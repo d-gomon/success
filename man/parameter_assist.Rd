@@ -44,11 +44,11 @@ package
 \item{data: }{The data used in the call to the function.}
 \item{baseline_data: }{The baseline_data used in the call to the function}
 \item{glmmod: }{A \code{\link[stats:glm]{glm()}} model which can be fed to
-the \code{\link[cgrcusum:funnel_plot]{funnel_plot()}}
-and \code{\link[cgrcusum:bernoulli_cusum]{bernoulli_cusum()}} functions.}
+the \code{\link[success:funnel_plot]{funnel_plot()}}
+and \code{\link[success:bernoulli_cusum]{bernoulli_cusum()}} functions.}
 \item{coxphmod: }{A \code{\link[survival:coxph]{coxph()}} model which can be
-fed to the \code{\link[cgrcusum:cgr_cusum]{cgr_cusum()}} and
-\code{\link[cgrcusum:cgr_cusum]{cgr_cusum()}} functions.}
+fed to the \code{\link[success:cgr_cusum]{cgr_cusum()}} and
+\code{\link[success:cgr_cusum]{cgr_cusum()}} functions.}
 \item{psi: }{Estimated Poisson arrival rate in \code{data}.}
 }
 }

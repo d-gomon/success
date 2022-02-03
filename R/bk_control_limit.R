@@ -1,7 +1,7 @@
 #' @title Determine control limits for BK-CUSUM by simulation
 #'
 #' @description This function can be used to determine control limits for the
-#' BK-CUSUM (\code{\link[cgrcusum]{bk_cusum}}) procedure by restricting the type I error \code{alpha} of the
+#' BK-CUSUM (\code{\link[success]{bk_cusum}}) procedure by restricting the type I error \code{alpha} of the
 #' procedure over \code{time}.
 #'
 #' @details This function performs 3 steps to determine a suitable control limit.
@@ -21,7 +21,7 @@
 #' Default is 0.05.
 #' @param psi A numeric value indicating the estimated Poisson arrival rate of subjects
 #' at their respective units. Can be determined using
-#' \code{\link[cgrcusum:parameter_assist]{parameter_assist()}}.
+#' \code{\link[success:parameter_assist]{parameter_assist()}}.
 #' @param n_sim An integer value indicating the amount of units to generate for the
 #' determination of the control limit. Larger values yield more precise control limits,
 #' but greatly increase computation times. Default is 20.
@@ -63,7 +63,7 @@
 #'
 #' @author Daniel Gomon
 #' @family control limit simulation
-#' @seealso \code{\link[cgrcusum]{plot.bkcusum}}, \code{\link[cgrcusum]{runlength.bkcusum}}
+#' @seealso \code{\link[success]{plot.bkcusum}}, \code{\link[success]{runlength.bkcusum}}
 #'
 #'
 #' @examples

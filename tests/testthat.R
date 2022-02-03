@@ -1,4 +1,4 @@
 library(testthat)
-library(cgrcusum)
+library(success)
 
-test_check("cgrcusum")
+test_check("success")

@@ -18,7 +18,7 @@ Event time will be equal to \code{entrytime + followup} for each subject.}
 
 \item{psi}{A numeric value indicating the estimated Poisson arrival rate of subjects
 at their respective units. Can be determined using
-\code{\link[cgrcusum:parameter_assist]{parameter_assist()}}.}
+\code{\link[success:parameter_assist]{parameter_assist()}}.}
 
 \item{n_sim}{An integer value indicating the amount of units to generate for the
 determination of the control limit. Larger values yield more precise control limits,
@@ -72,7 +72,7 @@ A list containing three components:
 }
 \description{
 This function can be used to determine control limits for the
-BK-CUSUM (\code{\link[cgrcusum]{bk_cusum}}) procedure by restricting the type I error \code{alpha} of the
+BK-CUSUM (\code{\link[success]{bk_cusum}}) procedure by restricting the type I error \code{alpha} of the
 procedure over \code{time}.
 }
 \details{
@@ -99,7 +99,7 @@ a <- bernoulli_control_limit(time = 500, alpha = 0.1, followup = followup,
 }
 }
 \seealso{
-\code{\link[cgrcusum]{plot.bkcusum}}, \code{\link[cgrcusum]{runlength.bkcusum}}
+\code{\link[success]{plot.bkcusum}}, \code{\link[success]{runlength.bkcusum}}
 
 Other control limit simulation: 
 \code{\link{bk_control_limit}()},

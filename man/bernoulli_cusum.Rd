@@ -89,7 +89,7 @@ bercus <- bernoulli_cusum(data = subset(surgerydat, hosp_num == 1), glmmod = glm
 plot(bercus)
 }
 \seealso{
-\code{\link[cgrcusum]{plot.bercusum}}, \code{\link[cgrcusum]{runlength.bercusum}}
+\code{\link[success]{plot.bercusum}}, \code{\link[success]{runlength.bercusum}}
 
 Other quality control charts: 
 \code{\link{bk_cusum}()},

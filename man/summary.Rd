@@ -30,5 +30,5 @@ in a \code{funnelplot} object at the confidence levels specified in the
 }}
 
 \seealso{
-\code{\link[cgrcusum:funnel_plot]{funnel_plot}}
+\code{\link[success:funnel_plot]{funnel_plot}}
 }

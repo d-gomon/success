@@ -139,7 +139,7 @@ continuous time based on the Cox Model, Statistics in medicine 27, 3452-3452.
 \doi{10.1002/sim.3216}
 }
 \seealso{
-\code{\link[cgrcusum]{plot.bkcusum}}, \code{\link[cgrcusum]{runlength.bkcusum}}
+\code{\link[success]{plot.bkcusum}}, \code{\link[success]{runlength.bkcusum}}
 
 Other quality control charts: 
 \code{\link{bernoulli_cusum}()},

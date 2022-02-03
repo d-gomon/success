@@ -73,7 +73,7 @@ funnel <- funnel_plot(data = surgerydat, ctime = 3*365, glmmod = glmmodfun, foll
 plot(funnel)
 }
 \seealso{
-\code{\link[cgrcusum]{plot.funnelplot}}, \code{\link[cgrcusum]{summary.funnelplot}}
+\code{\link[success]{plot.funnelplot}}, \code{\link[success]{summary.funnelplot}}
 
 Other quality control charts: 
 \code{\link{bernoulli_cusum}()},

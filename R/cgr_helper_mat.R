@@ -39,7 +39,6 @@
 #'
 #' @author Daniel Gomon
 #'
-#' @seealso \code{\link{cgrcusum}}
 #'
 #' @examples
 #' \dontrun{

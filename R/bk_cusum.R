@@ -75,7 +75,7 @@
 #' @author Daniel Gomon
 #' @family quality control charts
 #'
-#' @seealso \code{\link[cgrcusum]{plot.bkcusum}}, \code{\link[cgrcusum]{runlength.bkcusum}}
+#' @seealso \code{\link[success]{plot.bkcusum}}, \code{\link[success]{runlength.bkcusum}}
 #'
 #'
 #' @examples

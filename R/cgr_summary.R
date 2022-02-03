@@ -14,7 +14,7 @@
 #' \item \code{'0.xx'}: the detected instances at specified confidence level(s).
 #' }
 #'
-#' @seealso \code{\link[cgrcusum:funnel_plot]{funnel_plot}}
+#' @seealso \code{\link[success:funnel_plot]{funnel_plot}}
 #'
 #' @describeIn summary summarize instances detected by the
 #' \code{funnelplot} object

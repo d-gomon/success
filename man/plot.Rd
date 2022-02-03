@@ -43,7 +43,7 @@ Plot a \code{cgrcusum}, \code{bkcusum},
 }}
 
 \seealso{
-\code{\link[cgrcusum]{cgr_cusum}}, \code{\link[cgrcusum]{bk_cusum}}, \code{\link[cgrcusum]{bernoulli_cusum}}, \code{\link[cgrcusum]{funnel_plot}}
+\code{\link[success]{cgr_cusum}}, \code{\link[success]{bk_cusum}}, \code{\link[success]{bernoulli_cusum}}, \code{\link[success]{funnel_plot}}
 }
 \author{
 Daniel Gomon

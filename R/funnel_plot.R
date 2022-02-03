@@ -46,8 +46,6 @@
 #' \item \code{conflev}: specified confidence level(s)
 #' \item \code{p0}: (Estimated) baseline failure probability
 #' }
-# There are \code{\link[cgrcusum:plot.funnelplot]{plot}} and
-# \code{\link[cgrcusum:summary.funnelplot]{summary}} methods for "funnelplot" objects.
 #'
 #' @importFrom stats predict.glm
 #' @importFrom stats qnorm
@@ -55,7 +53,7 @@
 #'
 #' @author Daniel Gomon
 #' @family quality control charts
-#' @seealso \code{\link[cgrcusum]{plot.funnelplot}}, \code{\link[cgrcusum]{summary.funnelplot}}
+#' @seealso \code{\link[success]{plot.funnelplot}}, \code{\link[success]{summary.funnelplot}}
 #'
 #'
 #' @examples

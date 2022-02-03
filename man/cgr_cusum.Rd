@@ -142,7 +142,7 @@ cgr <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE)
 plot(cgr)
 }
 \seealso{
-\code{\link[cgrcusum]{plot.cgrcusum}}, \code{\link[cgrcusum]{runlength.cgrcusum}}
+\code{\link[success]{plot.cgrcusum}}, \code{\link[success]{runlength.cgrcusum}}
 
 Other quality control charts: 
 \code{\link{bernoulli_cusum}()},

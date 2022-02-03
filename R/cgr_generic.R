@@ -12,7 +12,7 @@
 #'
 #' @author Daniel Gomon
 #'
-#' @seealso \code{\link[cgrcusum]{cgr_cusum}}, \code{\link[cgrcusum]{bk_cusum}}, \code{\link[cgrcusum]{bernoulli_cusum}}, \code{\link[cgrcusum]{funnel_plot}}
+#' @seealso \code{\link[success]{cgr_cusum}}, \code{\link[success]{bk_cusum}}, \code{\link[success]{bernoulli_cusum}}, \code{\link[success]{funnel_plot}}
 #'
 #' @returns A plot of the associated chart is displayed in the current graphics device.
 #'

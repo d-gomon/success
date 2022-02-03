@@ -101,8 +101,6 @@
 #' the control limit;
 #' \item \code{h}: Specified value for the control limit.
 #' }
-# There are \code{\link[cgrcusum:plot.cgrcusum]{plot}} and
-#  \code{\link[cgrcusum:runlength.cgrcusum]{runlength}} methods for "cgrcusum" objects.
 #'
 #' @importFrom stats loess
 #' @importFrom stats predict
@@ -112,7 +110,7 @@
 #'
 #' @author Daniel Gomon
 #' @family quality control charts
-#' @seealso \code{\link[cgrcusum]{plot.cgrcusum}}, \code{\link[cgrcusum]{runlength.cgrcusum}}
+#' @seealso \code{\link[success]{plot.cgrcusum}}, \code{\link[success]{runlength.cgrcusum}}
 #'
 #'
 #' @examples

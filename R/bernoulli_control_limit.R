@@ -1,7 +1,7 @@
 #' @title Determine control limits for BK-CUSUM by simulation
 #'
 #' @description This function can be used to determine control limits for the
-#' BK-CUSUM (\code{\link[cgrcusum]{bk_cusum}}) procedure by restricting the type I error \code{alpha} of the
+#' BK-CUSUM (\code{\link[success]{bk_cusum}}) procedure by restricting the type I error \code{alpha} of the
 #' procedure over \code{time}.
 #'
 #' @details This function performs 3 steps to determine a suitable control limit.
@@ -19,7 +19,7 @@
 #' @param alpha A proportion between 0 and 1 indicating the required maximal type I error.
 #' @param psi A numeric value indicating the estimated Poisson arrival rate of subjects
 #' at their respective units. Can be determined using
-#' \code{\link[cgrcusum:parameter_assist]{parameter_assist()}}.
+#' \code{\link[success:parameter_assist]{parameter_assist()}}.
 #' @param n_sim An integer value indicating the amount of units to generate for the
 #' determination of the control limit. Larger values yield more precise control limits,
 #' but greatly increase computation times. Default is 20.
@@ -47,14 +47,14 @@
 #' \item \code{data}: A \code{data.frame} containing the in-control generated data.
 #' \item \code{h}: Determined value of the control limit.
 #' }
-# There are \code{\link[cgrcusum:plot.cgrcusum]{plot}} and
-#  \code{\link[cgrcusum:runlength.cgrcusum]{runlength}} methods for "cgrcusum" objects.
+# There are \code{\link[success:plot.success]{plot}} and
+#  \code{\link[success:runlength.success]{runlength}} methods for "success" objects.
 #'
 #' @export
 #'
 #' @author Daniel Gomon
 #' @family control limit simulation
-#' @seealso \code{\link[cgrcusum]{plot.bkcusum}}, \code{\link[cgrcusum]{runlength.bkcusum}}
+#' @seealso \code{\link[success]{plot.bkcusum}}, \code{\link[success]{runlength.bkcusum}}
 #'
 #'
 #' @examples
