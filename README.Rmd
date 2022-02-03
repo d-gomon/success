@@ -13,43 +13,44 @@ knitr::opts_chunk$set(
 )
 ```
 
-# cgrcusum
+# success
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of the cgrcusum package is to allow easy applications of continuous time CUSUM procedures on survival data. Specifically, the Biswas \& Kalbfleisch CUSUM (2008) and the CGR-CUSUM (2021).
+The goal of the success package is to allow easy applications of continuous time CUSUM procedures on survival data. Specifically, the Biswas \& Kalbfleisch CUSUM (2008) and the CGR-CUSUM (2021).
 
 Besides this, it allows for the construction of the Binary CUSUM chart and funnel plot on survival data as well.
 
 ## Installation
 
-You can install the released version of cgrcusum from [CRAN](https://CRAN.R-project.org) with:
+You can install the released version of success from [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
-install.packages("cgrcusum")
+install.packages("success")
 ```
 
 And the development version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("d-gomon/cgrcusum")
+devtools::install_github("d-gomon/success")
 ```
 ## Example
 
 This is a basic example which shows you how to construct a CGR-CUSUM chart on a hospital from the attached data set "surgerydat":
 
-```{r cgrcusum}
-library(cgrcusum)
+```{r success}
+library(success)
 library(survival)
-tdat <- subset(surgerydat, Hosp_num == 1)
+tdat <- subset(surgerydat, hosp_num == 1)
 tcbaseh <- function(t) chaz_exp(t, lambda = 0.01)
-varsanalysis <- c("age", "sex", "BMI")
-exprfit <- as.formula(paste("Surv(survtime, censorid) ~" ,paste(varsanalysis, collapse='+')))
+
+exprfit <- as.formula("Surv(survtime, censorid) ~ age + sex + BMI" )
 tcoxmod <- coxph(exprfit, data= surgerydat)
+
 #Alternatively, cbaseh can be left empty when specifying coxphmod through coxph()
-cgr <- cgrcusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE)
+cgr <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE)
 plot(cgr)
 ```
 
@@ -68,7 +69,7 @@ Hospital 1 would be detected by a CGR-CUSUM with control limit $h = 4$ after $10
 
 Alternatively, you can construct the CGR-CUSUM only until it crosses control limit $h = 3$ by:
 ```{r}
-cgr <- cgrcusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, h = 3)
+cgr <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, h = 3)
 plot(cgr)
 ```
 
