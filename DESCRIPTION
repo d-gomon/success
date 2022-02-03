@@ -1,0 +1,30 @@
+Package: cgrcusum
+Title: Quality control charts for survival outcomes
+Version: 0.1.3
+Authors@R: c(
+    person("Daniel", "Gomon", , "d.gomon@math.leidenuniv.nl", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-9011-3743")),
+    person("Mirko", "Signorelli", , "msignorelli.rpackages@gmail.com", role = "ctb",
+           comment = c(ORCID = "0000-0001-9011-3743"))
+  )
+Maintainer: Daniel Gomon <d.gomon@math.leidenuniv.nl>
+Description: Allows users to construct the Continuous Time Generalized
+    Rapid Response CUSUM (CGR-CUSUM), the Biswas & Kalbfleisch (2008,
+    <doi:10.1002/sim.3296>) CUSUM, the Bernoulli CUSUM and the
+    risk-adjusted funnel plot for survival data. These procedures can be
+    used to monitor survival processes for a change in the failure rate.
+License: GPL (>= 3)
+URL: https://github.com/d-gomon/cgrcusum
+Depends: 
+    ggplot2,
+    pbapply,
+    R (>= 3.5.0)
+Imports: 
+    survival
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE, old_usage = TRUE)
+RoxygenNote: 7.1.2

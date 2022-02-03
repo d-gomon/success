@@ -1,0 +1,20 @@
+
+CGR-CUSUM:
+
+data <- specify
+coxphmod <- determine from baseline_data
+cbaseh <- determine from baseline_data
+ctimes <- optional
+h <- determine from control_limit
+stoptime <- (optional)
+pb <- optional
+detection <- specify
+ncores <- optional
+
+
+cgr-control_limit:
+time <- specify
+alpha <- specify
+psi <- determine from data
+n_sim <- specify
+
