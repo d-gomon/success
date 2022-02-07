@@ -77,7 +77,7 @@
 #'
 #' @author Daniel Gomon
 #' @family control limit simulation
-#' @seealso \code{\link[success]{plot.cgrcusum}}, \code{\link[success]{runlength.cgrcusum}}
+#' @seealso \code{\link[success]{cgr_cusum}}
 #'
 #'
 #' @examples
@@ -113,8 +113,9 @@
 
 
 
-cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod, cbaseh,
-                              inv_cbaseh, baseline_data, interval = c(0, 9e12),
+cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
+                              baseline_data, cbaseh, inv_cbaseh,
+                              interval = c(0, 9e12),
                               h_precision = 0.01, ncores = 1, seed = 1041996,
                               pb = FALSE, chartpb = FALSE){
   #This function consists of 3 steps:

@@ -4,8 +4,8 @@
 \alias{bk_control_limit}
 \title{Determine control limits for BK-CUSUM by simulation}
 \usage{
-bk_control_limit(time, alpha = 0.05, psi, n_sim = 20, theta, coxphmod,
-  cbaseh, inv_cbaseh, baseline_data, interval = c(0, 9e+12),
+bk_control_limit(time, alpha = 0.05, psi, n_sim = 200, theta, coxphmod,
+  baseline_data, cbaseh, inv_cbaseh, interval = c(0, 9e+12),
   h_precision = 0.01, seed = 1041996, pb = FALSE, chartpb = FALSE)
 }
 \arguments{
@@ -20,7 +20,7 @@ at their respective units. Can be determined using
 
 \item{n_sim}{An integer value indicating the amount of units to generate for the
 determination of the control limit. Larger values yield more precise control limits,
-but greatly increase computation times. Default is 20.}
+but increase computation times. Default is 200.}
 
 \item{theta}{The expected log-hazard ratio \eqn{\theta}{\theta} under the alternative hypothesis.
 If \eqn{\theta >= 0}{\theta >= 0}, the chart will try to detect an increase
@@ -38,6 +38,16 @@ Alternatively, a list with the following elements:
 for covariates. Names must be the same as in \code{formula} and colnames of \code{data}.}
 }}
 
+\item{baseline_data}{(optional): A \code{data.frame} used for covariate resampling
+with rows representing subjects and at least the
+following named columns: \describe{
+\item{\code{entrytime}:}{time of entry into study (numeric);}
+\item{\code{survtime}:}{time from entry until event (numeric);}
+\item{\code{censorid}:}{censoring indicator (0 = right censored, 1 = observed),
+(integer).}
+} and optionally additional covariates used for risk-adjustment. Can only be specified
+in combination with \code{coxphmod}.}
+
 \item{cbaseh}{A function that returns the unadjusted cumulative
 baseline hazard \eqn{H_0(t)}{H_0(t)}. If \code{cbaseh} is missing but
 \code{coxphmod} has been
@@ -48,16 +58,6 @@ using the provided \code{coxphmod}.}
 baseline
 hazard \eqn{H^{-1}_0(t)}{H_0^-1(t)}. If \code{inv_cbaseh} is missing, it will be
 determined from \code{cbaseh} numerically.}
-
-\item{baseline_data}{(optional): A \code{data.frame} used for covariate resampling
-with rows representing subjects and at least the
-following named columns: \describe{
-\item{\code{entrytime}:}{time of entry into study (numeric);}
-\item{\code{survtime}:}{time from entry until event (numeric);}
-\item{\code{censorid}:}{censoring indicator (0 = right censored, 1 = observed),
-(integer).}
-} and optionally additional covariates used for risk-adjustment. Can only be specified
-in combination with \code{coxphmod}.}
 
 \item{interval}{(optional): Interval in which survival times should be solved for numerically.}
 
@@ -114,7 +114,7 @@ coxphmod = tcoxmod, psi = 0.5, n_sim = 10)
 }
 }
 \seealso{
-\code{\link[success]{plot.bkcusum}}, \code{\link[success]{runlength.bkcusum}}
+\code{\link[success]{bk_cusum}}
 
 Other control limit simulation: 
 \code{\link{bernoulli_control_limit}()},

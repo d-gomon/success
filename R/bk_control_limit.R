@@ -24,7 +24,7 @@
 #' \code{\link[success:parameter_assist]{parameter_assist()}}.
 #' @param n_sim An integer value indicating the amount of units to generate for the
 #' determination of the control limit. Larger values yield more precise control limits,
-#' but greatly increase computation times. Default is 20.
+#' but increase computation times. Default is 200.
 #' @param inv_cbaseh (optional): A function that returns the unadjusted inverse cumulative
 #' baseline
 #' hazard \eqn{H^{-1}_0(t)}{H_0^-1(t)}. If \code{inv_cbaseh} is missing, it will be
@@ -63,7 +63,7 @@
 #'
 #' @author Daniel Gomon
 #' @family control limit simulation
-#' @seealso \code{\link[success]{plot.bkcusum}}, \code{\link[success]{runlength.bkcusum}}
+#' @seealso \code{\link[success]{bk_cusum}}
 #'
 #'
 #' @examples
@@ -98,8 +98,8 @@
 
 
 
-bk_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, theta,
-                             coxphmod, cbaseh, inv_cbaseh, baseline_data,
+bk_control_limit <- function(time, alpha = 0.05, psi, n_sim = 200, theta,
+                             coxphmod, baseline_data, cbaseh, inv_cbaseh,
                              interval = c(0, 9e12), h_precision = 0.01,
                              seed = 1041996, pb = FALSE, chartpb = FALSE){
   #This function consists of 3 steps:

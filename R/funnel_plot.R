@@ -1,7 +1,7 @@
 #' Risk-adjusted funnel plot
 #'
 #' @description This function allows to construct a risk-adjusted funnel plot
-#' for comparing survival proportion between instances.
+#' for comparing survival proportion between units.
 #'
 #' @param data A \code{data.frame} with rows representing subjects and the
 #' following named columns: \describe{
@@ -9,7 +9,7 @@
 #'   \item{\code{survtime}:}{time from entry until event (numeric);}
 #'   \item{\code{censorid}:}{censoring indicator (0 = right censored, 1 = observed),
 #'    (integer);}
-#'   \item{\code{instance}:}{integer or character indicating which instance
+#'   \item{\code{unit}:}{integer or character indicating which unit
 #'   (f.e. hospital) the observation belongs to.}
 #' } and optionally additional covariates used for risk-adjustment.
 #' @param ctime Construction time at which the funnel plot
@@ -33,11 +33,11 @@
 #' \itemize{
 #' \item \code{data}: A \code{data.frame} containing:
 #' \describe{
-#'   \item{\code{instance}:}{instance number/name;}
-#'   \item{\code{observed}:}{observed number of failures at instance;}
-#'   \item{\code{expected}:}{expected (risk-adjusted) number of failures at instance;}
-#'   \item{\code{numtotal}}{total number of individuals considered at this instance;}
-#'   \item{\code{p}:}{(risk-adjusted) proportion of failure at instance;}
+#'   \item{\code{unit}:}{unit number/name;}
+#'   \item{\code{observed}:}{observed number of failures at unit;}
+#'   \item{\code{expected}:}{expected (risk-adjusted) number of failures at unit;}
+#'   \item{\code{numtotal}}{total number of individuals considered at this unit;}
+#'   \item{\code{p}:}{(risk-adjusted) proportion of failure at unit;}
 #'   \item{\code{conflevels}:}{worse/normal/better performance than expected at
 #'   specified confidence levels.}
 #' }
@@ -60,7 +60,6 @@
 #' #Determine a risk-adjustment model using a generalized linear model.
 #' #Outcome (survival in first 100 days) is regressed on the available covariates:
 #' exprfitfunnel <- as.formula("(survtime <= 100) & (censorid == 1)~ age + sex + BMI")
-#' surgerydat$instance <- surgerydat$hosp_num
 #' glmmodfun <- glm(exprfitfunnel, data = surgerydat, family = binomial(link = "logit"))
 #' #Determine the necessary values to produce a funnel plot
 #' funnel <- funnel_plot(data = surgerydat, ctime = 3*365, glmmod = glmmodfun, followup = 100)
@@ -73,7 +72,7 @@
 
 
 funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.99)){
-  entrytime <- instance <- NULL
+  entrytime <- unit <- NULL
   call <- match.call()
 
   #Basic data checks (global for BK, CGR and Bernoulli & funnel)
@@ -84,10 +83,10 @@ funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.9
   }
 
   #First perform a logistic regression to obtain coefficients for the Risk-adjustment, then specify them later
-  #dat has to be a dataframe containing at least entrytime (time of entry), survtime (time until failure), and additionally the    covariates to RA   on, it also has to contain $instance indicating the hospital in question
+  #dat has to be a dataframe containing at least entrytime (time of entry), survtime (time until failure), and additionally the    covariates to RA   on, it also has to contain $unit indicating the hospital in question
   #glmmodel is the risk-adjustment model, either an object of class "glm" or $formula and $coefficients
   #followup is time until which we consider outcomes, usually 365 (1 year) as we consider 1 year post transplant
-  #Specify institute name or number in dat$instance
+  #Specify institute name or number in dat$unit
   #conflev indicates the confidence levels at which to plot the boundaries
   #time is the chronological time at which the FUNNEL chart should be constructed, we remove non-qualifying cases
   if(!missing(ctime)){
@@ -99,9 +98,9 @@ funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.9
     warning("No value provided for null (hypothesis) failure probability. Determining using average over whole data set.", immediate. = TRUE)
     p0 <- length(which((newdata$survtime <= followup) & (newdata$censorid == 1)))/length(newdata$survtime)
   }
-  plotframe <- data.frame(instance = character(), observed = double(), expected = double(), numcases = double())
-  for(j in unique(newdata$instance)){
-    tempdata <- subset(newdata, instance == j)
+  plotframe <- data.frame(unit = character(), observed = double(), expected = double(), numcases = double())
+  for(j in unique(newdata$unit)){
+    tempdata <- subset(newdata, unit == j)
     tempnum <- length(tempdata$survtime)
     if(!missing(glmmod)){
       if(inherits(glmmod, "glm")){
@@ -120,7 +119,7 @@ funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.9
     temprow <- data.frame(as.character(j), tempobs, tempexpec,  tempnum)
     plotframe <- rbind(plotframe, temprow)
   }
-  colnames(plotframe) = c("instance", "observed", "expected", "numtotal")
+  colnames(plotframe) = c("unit", "observed", "expected", "numtotal")
 
   plotframe$p <- plotframe$observed/plotframe$expected * p0
   plotframe$p <- ifelse(plotframe$p > 1, 1, plotframe$p)

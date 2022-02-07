@@ -113,7 +113,7 @@ subjects at time \eqn{t}{t}.
 \examples{
 require(survival)
 #Select only the data of the first hospital in the surgerydat data set
-tdat <- subset(surgerydat, hosp_num == 1)
+tdat <- subset(surgerydat, unit == 1)
 
 #We know that the cumulative baseline hazard in the data set is
 #Exponential(0.01). If you don't know the cumulative baseline, we suggest

@@ -69,8 +69,8 @@ plot.bkcusum <- function(x, h, ...){
 #' @import ggplot2
 #' @export
 plot.funnelplot <- function(x, percentage = TRUE, ...){
-  numtotal <- lower <- conflev <- upper <- p <- instance <- NULL
-  #Supply plot.FUNNEL with output from FUNNELsim or a data frame with $instancedata and $p0 and $conflev
+  numtotal <- lower <- conflev <- upper <- p <- unit <- NULL
+  #Supply plot.FUNNEL with output from FUNNELsim or a data frame with $unitdata and $p0 and $conflev
   if(percentage == TRUE){
     x$plotdata[, c("lower", "upper")] <- x$plotdata[, c("lower", "upper")] * 100
     x$data$p <- x$data$p * 100
@@ -83,7 +83,11 @@ plot.funnelplot <- function(x, percentage = TRUE, ...){
     maxy <- min(1,max(x$data$p) + 0.1*max(x$data$p))
     miny <- max(0, min(x$data$p) - 0.1*max(x$data$p))
   }
-  t <- ggplot() + geom_line(data = x$plotdata, mapping= aes(x = numtotal, y = lower, group = as.factor(conflev)), colour = "blue", linetype = "dashed")  + geom_line(data = x$plotdata,aes(x = numtotal, y = upper, group = as.factor(conflev)),colour = "blue", linetype = "dashed") + geom_point(data = x$data, mapping= aes(x = numtotal, y = p, colour = as.factor(instance))) + theme(legend.position = "none") + geom_hline(yintercept = x$p0, colour = "grey") + ylim(miny, maxy)
+  t <- ggplot() + geom_line(data = x$plotdata, mapping= aes(x = numtotal, y = lower, group = as.factor(conflev)),
+                            colour = "blue", linetype = "dashed") +
+  geom_line(data = x$plotdata,aes(x = numtotal, y = upper, group = as.factor(conflev)),colour = "blue", linetype = "dashed") +
+  geom_point(data = x$data, mapping= aes(x = numtotal, y = p, colour = as.factor(unit))) + theme(legend.position = "none") +
+    geom_hline(yintercept = x$p0, colour = "grey") + ylim(miny, maxy)
   t <- t + labs(x = "Number of outcomes", y = paste0("(Risk-adjusted) Proportion of failure (%)"))
   return(t)
 }

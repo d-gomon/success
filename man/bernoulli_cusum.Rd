@@ -83,7 +83,7 @@ followup <- 100
 exprfitber <- as.formula("(survtime <= followup) & (censorid == 1)~ age + sex + BMI")
 glmmodber <- glm(exprfitber, data = surgerydat, family = binomial(link = "logit"))
 #Construct the Bernoulli CUSUM on the 1st hospital in the data set.
-bercus <- bernoulli_cusum(data = subset(surgerydat, hosp_num == 1), glmmod = glmmodber,
+bercus <- bernoulli_cusum(data = subset(surgerydat, unit == 1), glmmod = glmmodber,
  followup = followup, theta = log(2))
 #Plot the Bernoulli CUSUM
 plot(bercus)

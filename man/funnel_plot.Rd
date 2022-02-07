@@ -13,7 +13,7 @@ following named columns: \describe{
 \item{\code{survtime}:}{time from entry until event (numeric);}
 \item{\code{censorid}:}{censoring indicator (0 = right censored, 1 = observed),
 (integer);}
-\item{\code{instance}:}{integer or character indicating which instance
+\item{\code{unit}:}{integer or character indicating which unit
 (f.e. hospital) the observation belongs to.}
 } and optionally additional covariates used for risk-adjustment.}
 
@@ -43,11 +43,11 @@ An object of class "funnelplot" containing:
 \itemize{
 \item \code{data}: A \code{data.frame} containing:
 \describe{
-\item{\code{instance}:}{instance number/name;}
-\item{\code{observed}:}{observed number of failures at instance;}
-\item{\code{expected}:}{expected (risk-adjusted) number of failures at instance;}
-\item{\code{numtotal}}{total number of individuals considered at this instance;}
-\item{\code{p}:}{(risk-adjusted) proportion of failure at instance;}
+\item{\code{unit}:}{unit number/name;}
+\item{\code{observed}:}{observed number of failures at unit;}
+\item{\code{expected}:}{expected (risk-adjusted) number of failures at unit;}
+\item{\code{numtotal}}{total number of individuals considered at this unit;}
+\item{\code{p}:}{(risk-adjusted) proportion of failure at unit;}
 \item{\code{conflevels}:}{worse/normal/better performance than expected at
 specified confidence levels.}
 }
@@ -59,13 +59,12 @@ specified confidence levels.}
 }
 \description{
 This function allows to construct a risk-adjusted funnel plot
-for comparing survival proportion between instances.
+for comparing survival proportion between units.
 }
 \examples{
 #Determine a risk-adjustment model using a generalized linear model.
 #Outcome (survival in first 100 days) is regressed on the available covariates:
 exprfitfunnel <- as.formula("(survtime <= 100) & (censorid == 1)~ age + sex + BMI")
-surgerydat$instance <- surgerydat$hosp_num
 glmmodfun <- glm(exprfitfunnel, data = surgerydat, family = binomial(link = "logit"))
 #Determine the necessary values to produce a funnel plot
 funnel <- funnel_plot(data = surgerydat, ctime = 3*365, glmmod = glmmodfun, followup = 100)

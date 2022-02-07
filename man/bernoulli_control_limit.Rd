@@ -4,8 +4,8 @@
 \alias{bernoulli_control_limit}
 \title{Determine control limits for BK-CUSUM by simulation}
 \usage{
-bernoulli_control_limit(time, alpha = 0.05, followup, psi, n_sim = 20,
-  theta, p0, p1, glmmod, baseline_data, h_precision = 0.01, seed = 1041996,
+bernoulli_control_limit(time, alpha = 0.05, followup, psi, n_sim = 200,
+  glmmod, baseline_data, theta, p0, p1, h_precision = 0.01, seed = 1041996,
   pb = FALSE)
 }
 \arguments{
@@ -22,15 +22,7 @@ at their respective units. Can be determined using
 
 \item{n_sim}{An integer value indicating the amount of units to generate for the
 determination of the control limit. Larger values yield more precise control limits,
-but greatly increase computation times. Default is 20.}
-
-\item{theta}{The \eqn{theta}{theta} value used to specify the odds ratio
-\eqn{e^\theta}{e^\theta} under the alternative hypothesis.
-Note that \deqn{p_1 = \frac{p_0 e^\theta}{(1-p_0) (1+p_0 e^\theta)}.}{p1 = (p0 * e^\theta)/((1-p0) * (1+p0 e^\theta)).}}
-
-\item{p0}{The baseline failure probability at \code{entrytime + followup} for individuals.}
-
-\item{p1}{The alternative hypothesis failure probability at \code{entrytime + followup} for individuals.}
+but increase computation times. Default is 200.}
 
 \item{glmmod}{Generalized linear regression model used for risk-adjustment as produced by
 the function \code{\link[stats:glm]{glm()}}. Suggested: \cr
@@ -51,6 +43,14 @@ following named columns: \describe{
 (integer).}
 } and optionally additional covariates used for risk-adjustment. Can only be specified
 in combination with \code{coxphmod}.}
+
+\item{theta}{The \eqn{theta}{theta} value used to specify the odds ratio
+\eqn{e^\theta}{e^\theta} under the alternative hypothesis.
+Note that \deqn{p_1 = \frac{p_0 e^\theta}{(1-p_0) (1+p_0 e^\theta)}.}{p1 = (p0 * e^\theta)/((1-p0) * (1+p0 e^\theta)).}}
+
+\item{p0}{The baseline failure probability at \code{entrytime + followup} for individuals.}
+
+\item{p1}{The alternative hypothesis failure probability at \code{entrytime + followup} for individuals.}
 
 \item{h_precision}{(optional): A numerical value indicating how precisely the control limit
 should be determined. By default, control limits will be determined up to 2 significant digits.}
@@ -99,7 +99,7 @@ a <- bernoulli_control_limit(time = 500, alpha = 0.1, followup = followup,
 }
 }
 \seealso{
-\code{\link[success]{plot.bkcusum}}, \code{\link[success]{runlength.bkcusum}}
+\code{\link[success]{bernoulli_cusum}}
 
 Other control limit simulation: 
 \code{\link{bk_control_limit}()},

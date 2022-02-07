@@ -23,16 +23,18 @@ A \code{data.frame} with 12010 rows and 9 variables:
 surgerydat
 }
 \description{
-Data about patients and their surgery procedure from 30 simulated hospitals
+Data about patients and their surgery procedure from 45 simulated hospitals
 with patient arrivals in the first 400 days after the start of the study. \cr
 Patient survival times were determined using a risk-adjusted Cox proportional hazards model
 with coefficients age = 0.003, BMI = 0.02 and sexmale = 0.2 and exponential baseline hazard rate
 \eqn{h_0(t, \lambda = 0.01) e^\mu}{h_0(t, \lambda = 0.01) exp(\mu)}.
 Some hospitals have an increased failure rate:
 \itemize{
-\item Hospitals 1-15: \eqn{e^\mu = 1}{exp(\mu) = 1}
-\item Hospitals 16-30: \eqn{e^\mu = 2}{exp(\mu) = 2}
-} which means that the hazard rate at hospitals 16-30 is twice higher than exponential(\eqn{\lambda}). \cr
+\item Hospitals 1-15: \eqn{\mu \sim N(log(0.5), sd = 0.25)}{\mu ~ N(log(0.5), sd = 0.25)}
+\item Hospitals 16-30: \eqn{\mu \sim N(log(1), sd = 0.25)}{\mu ~ N(log(1), sd = 0.25)}
+\item Hospitals 31-45: \eqn{\mu \sim N(log(2), sd = 0.25)}{\mu ~ N(log(2), sd = 0.25)}
+} which means that the hazard rate at hospitals 31-45 is twice higher than exponential(\eqn{\lambda})
+and twice smaller at hospitals 1-15. \cr
 The arrival rate \eqn{\psi}{\psi} of patients at a hospital differs. The arrival rates are:
 \itemize{
 \item Hospitals 1-5 & 16-20: 0.5 patients per day (small hospitals)

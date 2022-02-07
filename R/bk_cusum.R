@@ -81,7 +81,7 @@
 #' @examples
 #' require(survival)
 #' #Select only the data of the first hospital in the surgerydat data set
-#' tdat <- subset(surgerydat, hosp_num == 1)
+#' tdat <- subset(surgerydat, unit == 1)
 #'
 #' #We know that the cumulative baseline hazard in the data set is
 #' #Exponential(0.01). If you don't know the cumulative baseline, we suggest
@@ -131,7 +131,7 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
     stoptime <- max(data$otime[is.finite(data$otime)])
   }
   checkcbase <- FALSE
-  if(missing(coxphmod) | is.null(coxphmod)){
+  if(missing(coxphmod)){
     coxphmod <- NULL
   } else if(inherits(coxphmod, "coxph")){
     if(missing(cbaseh)){
@@ -147,7 +147,9 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
     } else{
       stop("coxphmod does not contain $formula and/or $coefficients.")
     }
-  } else{ stop("coxphmod is not a list or survival object.")}
+  } else if(!is.null(coxphmod)){
+    stop("coxphmod is not a list or survival object.")
+    }
   if(missing(cbaseh)){
     if(!checkcbase){
       stop("Please specify cbaseh (function) or coxphmod as Survival object.")

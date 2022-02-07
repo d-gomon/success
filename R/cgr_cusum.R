@@ -116,7 +116,7 @@
 #' @examples
 #' require(survival)
 #' #Select only the data of the first hospital in the surgerydat data set
-#' tdat <- subset(surgerydat, hosp_num == 1)
+#' tdat <- subset(surgerydat, unit == 1)
 #'
 #' #We know that the cumulative baseline hazard in the data set is
 #' #Exponential(0.01). If you don't know the cumulative baseline, we suggest
@@ -171,7 +171,7 @@ cgr_cusum <- function(data, coxphmod, cbaseh, ctimes, h, stoptime,
     stoptime <- max(data$otime[is.finite(data$otime)])
   }
   checkcbase <- FALSE
-  if(missing(coxphmod) | is.null(coxphmod)){
+  if(missing(coxphmod)){
     coxphmod <- NULL
   } else if(inherits(coxphmod, "coxph") & missing(cbaseh)){
       checkcbase <- TRUE
@@ -183,7 +183,7 @@ cgr_cusum <- function(data, coxphmod, cbaseh, ctimes, h, stoptime,
   } else if(is.list(coxphmod)){
         if(all(c("formula", "coefficients") %in% names(coxphmod))){
           checkcoxlist <- TRUE
-        } else{
+        } else if(!is.null(coxphmod)){
           stop("coxphmod does not contain $formula and/or $coefficients.")
         }
   } else if(is.null(coxphmod)){

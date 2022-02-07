@@ -22,7 +22,7 @@
 #' \code{\link[success:parameter_assist]{parameter_assist()}}.
 #' @param n_sim An integer value indicating the amount of units to generate for the
 #' determination of the control limit. Larger values yield more precise control limits,
-#' but greatly increase computation times. Default is 20.
+#' but increase computation times. Default is 200.
 #' @param baseline_data (optional): A \code{data.frame} used for covariate resampling
 #' with rows representing subjects and at least the
 #' following named columns: \describe{
@@ -54,7 +54,7 @@
 #'
 #' @author Daniel Gomon
 #' @family control limit simulation
-#' @seealso \code{\link[success]{plot.bkcusum}}, \code{\link[success]{runlength.bkcusum}}
+#' @seealso \code{\link[success]{bernoulli_cusum}}
 #'
 #'
 #' @examples
@@ -74,8 +74,9 @@
 
 
 
-bernoulli_control_limit <- function(time, alpha = 0.05, followup, psi, n_sim = 20,
-                                    theta, p0, p1, glmmod, baseline_data,
+bernoulli_control_limit <- function(time, alpha = 0.05, followup, psi,
+                                    n_sim = 200,
+                                    glmmod, baseline_data, theta, p0, p1,
                                     h_precision = 0.01,
                                     seed = 1041996, pb = FALSE){
   #This function consists of 3 steps:
