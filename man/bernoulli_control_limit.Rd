@@ -2,11 +2,11 @@
 % Please edit documentation in R/bernoulli_control_limit.R
 \name{bernoulli_control_limit}
 \alias{bernoulli_control_limit}
-\title{Determine control limits for BK-CUSUM by simulation}
+\title{Determine control limits for the Bernoulli CUSUM by simulation}
 \usage{
 bernoulli_control_limit(time, alpha = 0.05, followup, psi, n_sim = 200,
   glmmod, baseline_data, theta, p0, p1, h_precision = 0.01, seed = 1041996,
-  pb = FALSE)
+  pb = FALSE, assist)
 }
 \arguments{
 \item{time}{A numeric value over which the type I error \code{alpha} must be restricted.}
@@ -60,6 +60,8 @@ Default is 01041996 (my birthday).}
 
 \item{pb}{(optional): A boolean indicating whether a progress bar should
 be shown. Default is \code{FALSE}.}
+
+\item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
 }
 \value{
 A list containing three components:
@@ -72,7 +74,8 @@ A list containing three components:
 }
 \description{
 This function can be used to determine control limits for the
-BK-CUSUM (\code{\link[success]{bk_cusum}}) procedure by restricting the type I error \code{alpha} of the
+Bernoulli CUSUM (\code{\link[success]{bernoulli_cusum}}) procedure by
+restricting the type I error \code{alpha} of the
 procedure over \code{time}.
 }
 \details{
@@ -89,10 +92,14 @@ of all units cross the control limit.
 \dontrun{
 #We consider patient outcomes 100 days after their entry into the study.
 followup <- 100
+
 #Determine a risk-adjustment model using a generalized linear model.
 #Outcome (failure within 100 days) is regressed on the available covariates:
 exprfitber <- as.formula("(survtime <= followup) & (censorid == 1)~ age + sex + BMI")
 glmmodber <- glm(exprfitber, data = surgerydat, family = binomial(link = "logit"))
+
+#Determine control limit restricting type I error to 0.1 over 500 days
+using the risk-adjusted glm constructed on the baseline data.
 a <- bernoulli_control_limit(time = 500, alpha = 0.1, followup = followup,
  psi = 0.5, n_sim = 10, theta = log(2), glmmod = glmmodber, baseline_data = surgerydat)
 

@@ -103,7 +103,11 @@
 
 
 bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
-                    C, twosided = FALSE, pb = FALSE){
+                    C, twosided = FALSE, pb = FALSE, assist){
+
+  if(!missing(assist)){
+    list2env(assist, envir = environment())
+  }
   call = match.call()
   #-------------------------------DATA CHECKS-----------------------------#
   #Basic data checks (global for BK, CGR and Bernoulli)
@@ -136,7 +140,7 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
   } else if(inherits(coxphmod, "coxph")){
     if(missing(cbaseh)){
       checkcbase <- TRUE
-      cat("Missing cumulative baseline hazard. Determining using provided Cox PH model.")
+      message("Missing cumulative baseline hazard. Determining using provided Cox PH model.")
       cbasetemp <- basehaz(coxphmod, centered = FALSE)
       cbaselo <- loess(cbasetemp$hazard~cbasetemp$time)
       cbaseh <- function(x) predict(cbaselo, x)
@@ -260,7 +264,7 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
           newval <- max(0, Gt[j-1,2] - (exp(theta)-1)* dAT)
           newval <- newval + theta*dNDT
           Gt <- rbind(Gt, c(ctimes[j], newval))
-        } else if(theta <0){
+        } else if(theta < 0){
           newval <- Gt[j-1,2] + (exp(theta)-1)* dAT
           newval <- newval - theta*dNDT
           newval <- min(0, newval)

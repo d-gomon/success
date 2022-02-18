@@ -28,6 +28,7 @@
 #' @param followup The followup time for every individual. At what time
 #' after subject entry do we consider the outcome?
 #' @param conflev A vector of confidence levels of interest. Default is c(0.95, 0.99).
+#' @param assist (optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}
 #'
 #' @return An object of class "funnelplot" containing:
 #' \itemize{
@@ -65,15 +66,25 @@
 #' funnel <- funnel_plot(data = surgerydat, ctime = 3*365, glmmod = glmmodfun, followup = 100)
 #' #Produce a funnel plot!
 #' plot(funnel)
+#' \dontrun{
+#' require(plotly)
+#' #Create an interactive plot!
+#' ggplotly(plot(funnel))
+#' }
 
 
 
 
 
 
-funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.99)){
+funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.99),
+                        assist){
   entrytime <- unit <- NULL
   call <- match.call()
+  if(!missing(assist)){
+    list2env(assist, envir = environment())
+    data <- assist$baseline_data
+  }
 
   #Basic data checks (global for BK, CGR and Bernoulli & funnel)
   if(missing(data)){
@@ -96,7 +107,7 @@ funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.9
   }
   if(missing(p0)){
     warning("No value provided for null (hypothesis) failure probability. Determining using average over whole data set.", immediate. = TRUE)
-    p0 <- length(which((newdata$survtime <= followup) & (newdata$censorid == 1)))/length(newdata$survtime)
+    p0 <- length(which((newdata$survtime <= followup) & (newdata$censorid == 1)))/nrow(newdata)
   }
   plotframe <- data.frame(unit = character(), observed = double(), expected = double(), numcases = double())
   for(j in unique(newdata$unit)){

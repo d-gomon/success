@@ -177,10 +177,10 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
     #Determine MLE of theta
     thetat <- log(NDT/AT)
     if (is.finite(thetat)){
-      thetat <- min(0,thetat)
+      thetat <- min(0, thetat)
     } else {thetat <- 0}
     #Determine value of CGI-CUSUM using only patients with S_i > helperstimes[i]
-    CGIvalue <- - thetat* NDT + (exp(thetat)- 1) * AT
+    CGIvalue <- - thetat * NDT + (exp(thetat)- 1) * AT
     #Return both the value of CGI and the MLE (to be used later)
     return(c(CGIvalue, thetat))
   }
@@ -266,6 +266,7 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
   } else{
     Gt <- cbind(ctimes, Gt)
   }
+  Gt <- rbind(c(min(data$entrytime), 0, 1, 0),Gt)
   colnames(Gt) <- c("time", "value", "exp_theta_t", "S_nu")
 
   #return list of relevant values

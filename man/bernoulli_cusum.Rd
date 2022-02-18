@@ -4,7 +4,7 @@
 \alias{bernoulli_cusum}
 \title{Risk-adjusted Bernoulli CUSUM}
 \usage{
-bernoulli_cusum(data, followup, glmmod, theta, p0, p1, h, stoptime)
+bernoulli_cusum(data, followup, glmmod, theta, p0, p1, h, stoptime, assist)
 }
 \arguments{
 \item{data}{A \code{data.frame} containing the following named columns for each subject:
@@ -39,6 +39,8 @@ Note that \deqn{p_1 = \frac{p_0 e^\theta}{(1-p_0) (1+p_0 e^\theta)}.}{p1 = (p0 *
 \item{h}{(optional): Control limit to be used for the procedure.}
 
 \item{stoptime}{(optional): Time after which the value of the chart should no longer be determined.}
+
+\item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
 }
 \value{
 An object of class \code{bercusum} containing:

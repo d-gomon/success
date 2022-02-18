@@ -86,6 +86,7 @@
 #' constructed. Upper CUSUMs can be used to monitor for an increase in the
 #' failure rate, while lower CUSUMs can be used to monitor for a decrease in the
 #' failure rate.
+#' @param assist (optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}
 #'
 #' @return An object of class "cgrcusum" containing:
 #' \itemize{
@@ -115,8 +116,8 @@
 #'
 #' @examples
 #' require(survival)
-#' #Select only the data of the first hospital in the surgerydat data set
-#' tdat <- subset(surgerydat, unit == 1)
+#' #Select only the data of the first year of the first hospital in the surgerydat data set
+#' tdat <- subset(surgerydat, unit == 1 & entrytime < 365)
 #'
 #' #We know that the cumulative baseline hazard in the data set is
 #' #Exponential(0.01). If you don't know the cumulative baseline, we suggest
@@ -143,7 +144,11 @@
 
 cgr_cusum <- function(data, coxphmod, cbaseh, ctimes, h, stoptime,
                      C, pb = FALSE, ncores = 1, cmethod = "memory",
-                     dependencies, detection = "upper"){
+                     dependencies, detection = "upper", assist){
+
+  if(!missing(assist)){
+    list2env(assist, envir = environment())
+  }
   call = match.call()
   #-------------------------------DATA CHECKS-----------------------------#
   #Basic data checks (global for BK, CGR and Bernoulli)

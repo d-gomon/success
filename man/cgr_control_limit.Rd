@@ -7,7 +7,7 @@
 cgr_control_limit(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
   baseline_data, cbaseh, inv_cbaseh, interval = c(0, 9e+12),
   h_precision = 0.01, ncores = 1, seed = 1041996, pb = FALSE,
-  chartpb = FALSE)
+  chartpb = FALSE, detection = "upper", assist)
 }
 \arguments{
 \item{time}{A numeric value over which the type I error \code{alpha} must be restricted.}
@@ -72,6 +72,11 @@ be shown. Default is \code{FALSE}.}
 
 \item{chartpb}{(optional): A boolean indicating whether progress bars should
 be displayed for the constructions of the charts. Default is \code{FALSE}.}
+
+\item{detection}{Should the control limit be determined for an
+\code{"upper"} or \code{"lower"} CGR-CUSUM? Default is \code{"upper"}.}
+
+\item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
 }
 \value{
 A list containing three components:
@@ -80,6 +85,8 @@ A list containing three components:
 \item \code{charts}: A list of length \code{n_sim} containing the constructed charts;
 \item \code{data}: A \code{data.frame} containing the in-control generated data.
 \item \code{h}: Determined value of the control limit.
+\item \code{achieved_alpha}: Achieved type I error on the sample of
+\code{n_sim} simulated units.
 }
 }
 \description{

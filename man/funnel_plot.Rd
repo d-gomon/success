@@ -4,7 +4,7 @@
 \alias{funnel_plot}
 \title{Risk-adjusted funnel plot}
 \usage{
-funnel_plot(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.99))
+funnel_plot(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.99), assist)
 }
 \arguments{
 \item{data}{A \code{data.frame} with rows representing subjects and the
@@ -37,6 +37,8 @@ for covariates. Names must be the same as in \code{formula} and colnames of \cod
 after subject entry do we consider the outcome?}
 
 \item{conflev}{A vector of confidence levels of interest. Default is c(0.95, 0.99).}
+
+\item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
 }
 \value{
 An object of class "funnelplot" containing:
@@ -70,6 +72,11 @@ glmmodfun <- glm(exprfitfunnel, data = surgerydat, family = binomial(link = "log
 funnel <- funnel_plot(data = surgerydat, ctime = 3*365, glmmod = glmmodfun, followup = 100)
 #Produce a funnel plot!
 plot(funnel)
+\dontrun{
+require(plotly)
+#Create an interactive plot!
+ggplotly(plot(funnel))
+}
 }
 \seealso{
 \code{\link[success]{plot.funnelplot}}, \code{\link[success]{summary.funnelplot}}

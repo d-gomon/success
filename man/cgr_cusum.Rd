@@ -5,7 +5,8 @@
 \title{Continuous time Generalized Rapid response CUSUM (CGR-CUSUM)}
 \usage{
 cgr_cusum(data, coxphmod, cbaseh, ctimes, h, stoptime, C, pb = FALSE,
-  ncores = 1, cmethod = "memory", dependencies, detection = "upper")
+  ncores = 1, cmethod = "memory", dependencies, detection = "upper",
+  assist)
 }
 \arguments{
 \item{data}{A \code{data.frame} with rows representing subjects and the
@@ -73,6 +74,8 @@ for parallel computation.}
 constructed. Upper CUSUMs can be used to monitor for an increase in the
 failure rate, while lower CUSUMs can be used to monitor for a decrease in the
 failure rate.}
+
+\item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
 }
 \value{
 An object of class "cgrcusum" containing:
@@ -120,8 +123,8 @@ where \eqn{\Lambda_i(t)}{\Lambda_i(t)} is the cumulative intensity of subject \e
 }
 \examples{
 require(survival)
-#Select only the data of the first hospital in the surgerydat data set
-tdat <- subset(surgerydat, unit == 1)
+#Select only the data of the first year of the first hospital in the surgerydat data set
+tdat <- subset(surgerydat, unit == 1 & entrytime < 365)
 
 #We know that the cumulative baseline hazard in the data set is
 #Exponential(0.01). If you don't know the cumulative baseline, we suggest

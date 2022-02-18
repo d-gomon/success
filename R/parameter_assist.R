@@ -7,7 +7,7 @@
 #' parameters. If \code{covariate_names} is not specified, the returned
 #' risk-adjustment models will be trivial. If \code{formula} is not specified
 #' but \code{covariate_names} are,
-#' the function assumes that the simplest form for the regression model
+#' the function assumes the simplest form for the regression model
 #' (cov1 + cov2 + ...). If \code{followup} is not specified, no \code{glmmod}
 #' will be determined
 #'
@@ -36,6 +36,14 @@
 #' } and optionally additional covariates used for risk-adjustment.
 #' @param followup (optional): The value of the follow-up time to be used to determine event time.
 #' Event time will be equal to \code{entrytime + followup} for each subject.
+#' @param theta The value of the expected log-hazard ratio. In other words: the logarithm of the
+#' expected increase in the odds of failure/failure rate. Default is log(2) (detecting a
+#' doubling of the odds/failure rate).
+#' @param time Timeframe over which the type I error of the control chart should be
+#' limited. Should be in the same unit as \code{survtime} in \code{data}. If left
+#' unspecified, the maximum entrytime in \code{baseline_data} is taken. (numeric)
+#' @param alpha Required maximal type I error (between 0 and 1) of the procedure
+#' over the timeframe specified in \code{time}. Default is 0.05. (numeric)
 #'
 #'
 #'
@@ -74,24 +82,23 @@
 #'
 #' #Minimal example - no risk-adjustment
 #' pars_min <- parameter_assist(baseline_data = surgerydat,
-#' data = subset(surgerydat, hosp_num == 1))
+#' data = subset(surgerydat, unit == 1))
 #'
 #' #Specifying all parameters
 #' pars <- parameter_assist(baseline_data = surgerydat,
-#' data = subset(surgerydat, hosp_num == 1),
+#' data = subset(surgerydat, unit == 1),
 #' covariate_names = c("age", "sex", "BMI"),
 #' formula = formula("survtime ~ age + sex + BMI"), followup = 100)
-#'
-#'
-#'
+
 
 
 
 
 
 parameter_assist <- function(baseline_data, data, covariate_names = c(),
-                             formula, followup){
+                             formula, followup, theta = log(2), time, alpha = 0.05){
   call <- match.call()
+  p0 <- NULL
 
   message("Checking provided data.")
   data <- check_data(data)
@@ -108,9 +115,20 @@ parameter_assist <- function(baseline_data, data, covariate_names = c(),
       stop("Specified covariates not (all) present in baseline_data.")
     }
   }
-  data <- data[,c("survtime", "entrytime", "censorid", covariate_names)]
-  baseline_data <- baseline_data[,c("survtime", "entrytime", "censorid",
+  if("unit" %in% colnames(data)){
+    data <- data[,c("survtime", "entrytime", "censorid", "unit", covariate_names)]
+  } else{
+    data <- data[,c("survtime", "entrytime", "censorid", covariate_names)]
+  }
+  if("unit" %in% colnames(baseline_data)){
+    baseline_data <- baseline_data[,c("survtime", "entrytime", "censorid", "unit",
                                       covariate_names)]
+  } else{
+    baseline_data <- baseline_data[,c("survtime", "entrytime", "censorid",
+                                      covariate_names)]
+  }
+
+
 
   #Attempt glmmod construction (only if followup is specified)
   if(!missing(followup)){
@@ -126,31 +144,50 @@ parameter_assist <- function(baseline_data, data, covariate_names = c(),
     environment(formulaglm) = environment()
     glmmod <- glm(formula = formulaglm, family = binomial(link = "logit"),
                   data = baseline_data)
+    p0 <- length(which((baseline_data$survtime <= followup) &
+                         (baseline_data$censorid == 1)))/nrow(baseline_data)
   } else{
     message("glmmod will not be determined: missing argument followup.")
     glmmod <- NULL
   }
 
   if(!missing(formula) & !missing(covariate_names)){
-    formulasurv <- update(formula, Surv(survtime, censorid) ~ .)
+    formulasurv <- update(formula, survival::Surv(survtime, censorid) ~ .)
   } else if(!missing(covariate_names)){
     formulasurv <- as.formula(paste0("Surv(survtime, censorid) ~ ",
                                      paste(covariate_names, collapse = "+")))
   } else{
     formulasurv <- as.formula("Surv(survtime, censorid) ~ 1")
   }
-  coxphmod <- coxph(formula = formulasurv, data = baseline_data)
+  coxphmod <- coxph(formula = formulasurv, data = baseline_data, model = TRUE)
 
 
 
   #Determine arrival rate psi of specified data frame
   psi <- nrow(data)/max(data$entrytime)
 
+  if(missing(time)){
+    time <- max(baseline_data$entrytime)
+  }
 
-  return(list(call = call,
-              data = data,
-              baseline_data = baseline_data,
-              glmmod = glmmod,
-              coxphmod = coxphmod,
-              psi = psi))
+
+  #Create list to return
+  parlist <- list(call = call,
+                  data = data,
+                  baseline_data = baseline_data,
+                  glmmod = glmmod,
+                  coxphmod = coxphmod,
+                  theta = theta,
+                  psi = psi,
+                  time = time,
+                  alpha = alpha)
+  if(!missing(followup)){
+    parlist$followup <- followup
+  }
+  if(!is.null(p0)){
+    parlist$p0 <- p0
+  }
+  class(parlist) <- "assisted_success"
+
+  return(parlist)
 }

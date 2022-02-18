@@ -54,6 +54,8 @@
 #' @param interval (optional): Interval in which survival times should be solved for numerically.
 #' @param h_precision (optional): A numerical value indicating how precisely the control limit
 #' should be determined. By default, control limits will be determined up to 2 significant digits.
+#' @param detection Should the control limit be determined for an
+#'  \code{"upper"} or \code{"lower"} CGR-CUSUM? Default is \code{"upper"}.
 #' @param ncores (optional): Number of cores to use to parallelize the computation of the
 #' CGR-CUSUM charts. If ncores = 1 (default), no parallelization is done. You
 #' can use \code{\link[parallel:detectCores]{detectCores()}} to check how many
@@ -63,6 +65,7 @@
 #' be shown. Default is \code{FALSE}.
 #' @param chartpb (optional): A boolean indicating whether progress bars should
 #' be displayed for the constructions of the charts. Default is \code{FALSE}.
+#' @param assist (optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}
 #'
 #'
 #' @return A list containing three components:
@@ -71,6 +74,8 @@
 #' \item \code{charts}: A list of length \code{n_sim} containing the constructed charts;
 #' \item \code{data}: A \code{data.frame} containing the in-control generated data.
 #' \item \code{h}: Determined value of the control limit.
+#' \item \code{achieved_alpha}: Achieved type I error on the sample of
+#' \code{n_sim} simulated units.
 #' }
 #'
 #' @export
@@ -117,7 +122,8 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
                               baseline_data, cbaseh, inv_cbaseh,
                               interval = c(0, 9e12),
                               h_precision = 0.01, ncores = 1, seed = 1041996,
-                              pb = FALSE, chartpb = FALSE){
+                              pb = FALSE, chartpb = FALSE, detection = "upper",
+                              assist){
   #This function consists of 3 steps:
   #1. Constructs n_sim instances (hospitals) with subject arrival rate psi and
   #   cumulative baseline hazard cbaseh. Possibly by resampling subject charac-
@@ -125,9 +131,14 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
   #2. Construct the CGR-CUSUM chart for each hospital until timepoint time
   #3. Determine control limit h such that at most proportion alpha of the
   #   instances will produce a signal.
-  call = match.call()
+
   set.seed(seed)
   manualcbaseh <- FALSE
+
+  if(!missing(assist)){
+    list2env(assist, envir = environment())
+  }
+  call = match.call()
 
 
   #First we generate the n_sim unit data
@@ -169,11 +180,14 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
 
   message("Step 3/3: Determining control limits")
 
+  #Keep track of current type I error
+  current_alpha <- 0
+
   #Create a sequence of control limit values h to check for
   #start from 0.1 to maximum value of all CGR-CUSUMS
   CUS_max_val <- 0
   for(k in 1:n_sim){
-    temp_max_val <- max(CGR_CUSUMS[[k]]$CGR["value"])
+    temp_max_val <- max(abs(CGR_CUSUMS[[k]]$CGR["value"]))
     if(temp_max_val >= CUS_max_val){
       CUS_max_val <- temp_max_val
     }
@@ -187,27 +201,24 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
     typ1err_temp <- sum(sapply(CGR_CUSUMS, function(x) is.finite(runlength(x, h = hseq[i]))))/n_sim
     if(typ1err_temp <= alpha){
       control_h <- hseq[i]
+      current_alpha <- typ1err_temp
     } else{
       break
     }
+  }
+
+  if(detection == "lower"){
+    control_h <- - control_h
   }
 
 
   return(list(call = call,
               charts = CGR_CUSUMS,
               data = df_temp,
-              h = control_h))
+              h = control_h,
+              achieved_alpha = current_alpha))
 }
 
-# Original function to find cbaseh inverse.
-# testfct <- function(t){
-#   return(exp(-chaz_exp(t, lambda = 0.02)) - runif(1))
-# }
-#
-# uniroot(f = function(t) testfct(t), interval = c(0, 8000))$root
-#
-# invcbaseh <- function(y, lower = 0, upper = 6 * 365){
-#   tryCatch({return(unname(unlist(uniroot((function (x) cbaseh(x) - y), lower = lower, upper = upper)[1])))}, error = function(cond){ return(upper)})
-# }
+
 
 

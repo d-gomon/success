@@ -1,7 +1,8 @@
-#' @title Determine control limits for BK-CUSUM by simulation
+#' @title Determine control limits for the Bernoulli CUSUM by simulation
 #'
 #' @description This function can be used to determine control limits for the
-#' BK-CUSUM (\code{\link[success]{bk_cusum}}) procedure by restricting the type I error \code{alpha} of the
+#' Bernoulli CUSUM (\code{\link[success]{bernoulli_cusum}}) procedure by
+#' restricting the type I error \code{alpha} of the
 #' procedure over \code{time}.
 #'
 #' @details This function performs 3 steps to determine a suitable control limit.
@@ -61,10 +62,14 @@
 #' \dontrun{
 #' #We consider patient outcomes 100 days after their entry into the study.
 #' followup <- 100
+#'
 #' #Determine a risk-adjustment model using a generalized linear model.
 #' #Outcome (failure within 100 days) is regressed on the available covariates:
 #' exprfitber <- as.formula("(survtime <= followup) & (censorid == 1)~ age + sex + BMI")
 #' glmmodber <- glm(exprfitber, data = surgerydat, family = binomial(link = "logit"))
+#'
+#' #Determine control limit restricting type I error to 0.1 over 500 days
+#' using the risk-adjusted glm constructed on the baseline data.
 #' a <- bernoulli_control_limit(time = 500, alpha = 0.1, followup = followup,
 #'  psi = 0.5, n_sim = 10, theta = log(2), glmmod = glmmodber, baseline_data = surgerydat)
 #'
@@ -78,7 +83,7 @@ bernoulli_control_limit <- function(time, alpha = 0.05, followup, psi,
                                     n_sim = 200,
                                     glmmod, baseline_data, theta, p0, p1,
                                     h_precision = 0.01,
-                                    seed = 1041996, pb = FALSE){
+                                    seed = 1041996, pb = FALSE, assist){
   #This function consists of 3 steps:
   #1. Constructs n_sim instances (hospitals) with subject arrival rate psi and
   #   cumulative baseline hazard cbaseh. Possibly by resampling subject charac-
@@ -86,8 +91,12 @@ bernoulli_control_limit <- function(time, alpha = 0.05, followup, psi,
   #2. Construct the CGR-CUSUM chart for each hospital until timepoint time
   #3. Determine control limit h such that at most proportion alpha of the
   #   instances will produce a signal.
-  call = match.call()
+
   set.seed(seed)
+  if(!missing(assist)){
+    list2env(assist, envir = environment())
+  }
+  call = match.call()
 
   #First we generate the n_sim unit data
   message("Step 1/3: Generating in-control data.")

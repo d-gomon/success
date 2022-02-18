@@ -23,7 +23,7 @@ summary.funnelplot <- function(object, ...){
   k <- object$conflev
   outp <- list("call" = object$call)
   for(i in k){
-    temp <- sort(object$data[which(object$data[, as.character(i)] == "worse"), "instance"])
+    temp <- sort(object$data[which(object$data[, as.character(i)] == "worse"), "unit"])
     outp[[as.character(i)]] = droplevels(as.factor(temp))
   }
   return(outp)

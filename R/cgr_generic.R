@@ -1,7 +1,8 @@
 #' @title Plot a quality control chart
 #'
 #' @description Plot a \code{cgrcusum}, \code{bkcusum},
-#'  \code{bercusum} or \code{funnelplot} chart.
+#'  \code{bercusum} or \code{funnelplot} chart, or a list containing a combination of
+#'  \code{'bercusum'}, \code{'bkcusum'} and \code{'cgrcusum'} charts.
 #'
 #'
 #' @param x Chart to plot
@@ -67,9 +68,12 @@ plot.bkcusum <- function(x, h, ...){
 
 #' @describeIn plot Display a funnel plot
 #' @import ggplot2
+#' @importFrom grDevices palette
+#' @importFrom grDevices palette.colors
 #' @export
 plot.funnelplot <- function(x, percentage = TRUE, ...){
-  numtotal <- lower <- conflev <- upper <- p <- unit <- NULL
+  numtotal <- lower <- conflev <- upper <- p <- unit <- detection <- NULL
+
   #Supply plot.FUNNEL with output from FUNNELsim or a data frame with $unitdata and $p0 and $conflev
   if(percentage == TRUE){
     x$plotdata[, c("lower", "upper")] <- x$plotdata[, c("lower", "upper")] * 100
@@ -83,10 +87,24 @@ plot.funnelplot <- function(x, percentage = TRUE, ...){
     maxy <- min(1,max(x$data$p) + 0.1*max(x$data$p))
     miny <- max(0, min(x$data$p) - 0.1*max(x$data$p))
   }
+
+  #Determine the number of required colours
+  numcolours <- length(x$conflev) + 1
+  cols <- palette.colors(n = numcolours)
+  #Determine which colour to use for point:
+  cols_columns <- ncol(x$data) - 5
+  finalcols <- rep("normal", length = nrow(x$data))
+  for (k in rev(1:cols_columns)){
+    t_col_data <- x$data[,ncol(x$data) - (k-1)]
+    finalcols[which(t_col_data == "worse" | t_col_data == "better")] <- rev(x$conflev)[k]
+  }
+  x$data$detection <- finalcols
   t <- ggplot() + geom_line(data = x$plotdata, mapping= aes(x = numtotal, y = lower, group = as.factor(conflev)),
                             colour = "blue", linetype = "dashed") +
-  geom_line(data = x$plotdata,aes(x = numtotal, y = upper, group = as.factor(conflev)),colour = "blue", linetype = "dashed") +
-  geom_point(data = x$data, mapping= aes(x = numtotal, y = p, colour = as.factor(unit))) + theme(legend.position = "none") +
+  geom_line(data = x$plotdata,aes(x = numtotal, y = upper, group = as.factor(conflev)),
+            colour = "blue", linetype = "dashed") +
+  geom_point(data = x$data, mapping= aes(x = numtotal, y = p, colour = detection, group = unit)) +
+    #theme(legend.position = "none") +
     geom_hline(yintercept = x$p0, colour = "grey") + ylim(miny, maxy)
   t <- t + labs(x = "Number of outcomes", y = paste0("(Risk-adjusted) Proportion of failure (%)"))
   return(t)
@@ -101,4 +119,17 @@ plot.bercusum <- function(x, h = x$h, ...){
   g <- ggplot(as.data.frame(x$CUSUM), mapping = aes(x = time, y = value)) + geom_line() + geom_hline(yintercept = h, color = "red")
   return(g)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 

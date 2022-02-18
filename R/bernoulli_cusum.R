@@ -36,6 +36,7 @@
 #' @param p1 The alternative hypothesis failure probability at \code{entrytime + followup} for individuals.
 #' @param h (optional): Control limit to be used for the procedure.
 #' @param stoptime (optional): Time after which the value of the chart should no longer be determined.
+#' @param assist (optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}
 #'
 #'
 #' @details The Bernoulli CUSUM chart is given by
@@ -90,8 +91,13 @@
 
 
 
-bernoulli_cusum <- function(data, followup, glmmod, theta, p0, p1, h, stoptime){
+bernoulli_cusum <- function(data, followup, glmmod, theta, p0, p1, h, stoptime,
+                            assist){
   entrytime <- otime <- NULL
+
+  if(!missing(assist)){
+    list2env(assist, envir = environment())
+  }
   call <- match.call()
   #exp(theta) is the Odds Ratio under the alternative hypothesis
   #Supply either of the following combinations:
@@ -123,7 +129,7 @@ bernoulli_cusum <- function(data, followup, glmmod, theta, p0, p1, h, stoptime){
   #not count as failures
   data$outcome <- as.integer((data$survtime <= followup) & (data$censorid == 1))
   data$otime <- data$entrytime + followup
-  Gt <- data.frame(time = double(), value = double(), numobs = double())
+  Gt <- data.frame(time = c(min(data$entrytime)), value = c(0), numobs = c(0))
   Gtval <- 0
   j <- 1
   numobs <- 0
@@ -162,16 +168,20 @@ bernoulli_cusum <- function(data, followup, glmmod, theta, p0, p1, h, stoptime){
     Gtval <- max(0, Gtval + Wn)
     #Push the new value to the data frame
     Gt <- rbind(Gt, c(i, Gtval, numobs))
-    if(!hnull){if(Gtval >= h){Ber <- list(CUSUM = Gt,
-                                          call = call,
-                                          h = h,
-                                          stopind = TRUE)}
-      if(!missing(glmmod)){
-        Ber$glmmod <- glmmod$coefficients
+    if(!hnull){
+      if(Gtval >= h){
+        colnames(Gt) = c("time", "value", "numobs")
+        Ber <- list(CUSUM = Gt,
+                    call = call,
+                    h = h,
+                    stopind = TRUE)
+        if(!missing(glmmod)){
+          Ber$glmmod <- glmmod$coefficients
+        }
+        class(Ber) <- "bercusum"
+        return(Ber)
       }
-      class(Ber) <- "bercusum"
-      return(Ber)
-      }
+    }
     j <- j+1
   }
   colnames(Gt) = c("time", "value", "numobs")

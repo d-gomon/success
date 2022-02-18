@@ -5,7 +5,7 @@
 \title{Continuous time BK-CUSUM}
 \usage{
 bk_cusum(data, theta, coxphmod, cbaseh, ctimes, h, stoptime, C,
-  twosided = FALSE, pb = FALSE)
+  twosided = FALSE, pb = FALSE, assist)
 }
 \arguments{
 \item{data}{A \code{data.frame} with rows representing subjects and the
@@ -62,6 +62,8 @@ the baseline hazard. Default is \code{FALSE}.}
 
 \item{pb}{(optional): A boolean indicating whether a progress bar should
 be shown. Default is \code{FALSE}.}
+
+\item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
 }
 \value{
 An object of class \code{bkcusum} containing:

@@ -16,7 +16,7 @@
 #' @examples
 #' exprfitber <- as.formula("(survtime <= 100) & (censorid == 1) ~ age + sex + BMI")
 #' glmmodber <- glm(exprfitber, data = surgerydat, family = binomial(link = "logit"))
-#' bercus <- bernoulli_cusum(data = subset(surgerydat, hosp_num == 14), glmmod = glmmodber,
+#' bercus <- bernoulli_cusum(data = subset(surgerydat, unit == 14), glmmod = glmmodber,
 #'                    followup = 100, theta = log(2))
 #' #Determine the run length of the above Bernoulli CUSUM when using a control limit
 #' #of h = 1.
@@ -38,11 +38,11 @@ runlength.cgrcusum <- function(chart, h, ...){
   if(missing(chart)){
     stop("Please provide a 'cgrcusum', 'bkcusum' or 'bercusum' chart as input.")
   }
-  ind <- which(chart$CGR[,2] >= h)[1]
+  ind <- which(abs(chart$CGR[,2]) >= abs(h))[1]
   if(is.na(ind)){
     return(Inf)
   } else{
-    return(chart$CGR[ind,1])
+    return(chart$CGR[ind,1] - chart$CGR[1, "time"])
   }
 }
 
@@ -59,11 +59,11 @@ runlength.bkcusum <- function(chart, h, ...){
   if(missing(chart)){
     stop("Please provide a 'cgrcusum', 'bkcusum' or 'bercusum' chart as input.")
   }
-  ind <- which(chart$BK[,2] >= h)[1]
+  ind <- which(abs(chart$BK[,2]) >= abs(h))[1]
   if(is.na(ind)){
     return(Inf)
   } else{
-    return(chart$BK[ind,1])
+    return(chart$BK[ind,1] - chart$BK[1, "time"])
   }
 }
 
@@ -80,7 +80,7 @@ runlength.bercusum <- function(chart, h, ...){
   if(is.na(ind)){
     return(Inf)
   } else{
-    return(chart$CUSUM[ind,1])
+    return(chart$CUSUM[ind,1] - chart$CUSUM[1, "time"])
   }
 }
 

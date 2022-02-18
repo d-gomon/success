@@ -29,7 +29,8 @@ A plot of the associated chart is displayed in the current graphics device.
 }
 \description{
 Plot a \code{cgrcusum}, \code{bkcusum},
-\code{bercusum} or \code{funnelplot} chart.
+\code{bercusum} or \code{funnelplot} chart, or a list containing a combination of
+\code{'bercusum'}, \code{'bkcusum'} and \code{'cgrcusum'} charts.
 }
 \section{Methods (by class)}{
 \itemize{

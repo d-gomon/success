@@ -55,6 +55,8 @@
 #' \item \code{charts}: A list of length \code{n_sim} containing the constructed charts;
 #' \item \code{data}: A \code{data.frame} containing the in-control generated data.
 #' \item \code{h}: Determined value of the control limit.
+#' \item \code{achieved_alpha}: Achieved type I error on the sample of
+#' \code{n_sim} simulated units.
 #' }
 # There are \code{\link[cgrcusum:plot.cgrcusum]{plot}} and
 #  \code{\link[cgrcusum:runlength.cgrcusum]{runlength}} methods for "cgrcusum" objects.
@@ -67,17 +69,22 @@
 #'
 #'
 #' @examples
-#' require(survival)
 #' \dontrun{
 #' require(survival)
+#'
+#' #Determine a cox proportional hazards model for risk-adjustment
 #' exprfit <- as.formula("Surv(survtime, censorid) ~ age + sex + BMI")
 #' tcoxmod <- coxph(exprfit, data= surgerydat)
 #'
+#' #Determine a control limit restricting type I error to 0.1 over 500 days
+#' #with specified cumulative hazard function without risk-adjustment
 #' a <- bk_control_limit(time = 500, alpha = 0.1, theta = log(2),
 #' cbaseh = function(t) chaz_exp(t, lambda = 0.02),
 #' inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02), psi = 0.5,
 #' n_sim = 10)
 #'
+#' #Determine a control limit restricting type I error to 0.1 over 500 days
+#' using the risk-adjusted cumulative hazard determined using coxph()
 #' b <- bk_control_limit(time = 500, alpha = 0.1, theta = log(2),
 #' coxphmod = tcoxmod, psi = 0.5, n_sim = 10)
 #' }
@@ -101,7 +108,8 @@
 bk_control_limit <- function(time, alpha = 0.05, psi, n_sim = 200, theta,
                              coxphmod, baseline_data, cbaseh, inv_cbaseh,
                              interval = c(0, 9e12), h_precision = 0.01,
-                             seed = 1041996, pb = FALSE, chartpb = FALSE){
+                             seed = 1041996, pb = FALSE, chartpb = FALSE,
+                             assist){
   #This function consists of 3 steps:
   #1. Constructs n_sim instances (hospitals) with subject arrival rate psi and
   #   cumulative baseline hazard cbaseh. Possibly by resampling subject charac-
@@ -109,8 +117,12 @@ bk_control_limit <- function(time, alpha = 0.05, psi, n_sim = 200, theta,
   #2. Construct the CGR-CUSUM chart for each hospital until timepoint time
   #3. Determine control limit h such that at most proportion alpha of the
   #   instances will produce a signal.
-  call = match.call()
+
   set.seed(seed)
+  if(!missing(assist)){
+    list2env(assist, envir = environment())
+  }
+  call = match.call()
   manualcbaseh <- FALSE
 
   #First we generate the n_sim unit data
@@ -152,11 +164,13 @@ bk_control_limit <- function(time, alpha = 0.05, psi, n_sim = 200, theta,
 
   message("Step 3/3: Determining control limits")
 
+  #Keep track of current type I error
+  current_alpha <- 0
   #Create a sequence of control limit values h to check for
   #start from 0.1 to maximum value of all CGR-CUSUMS
   CUS_max_val <- 0
   for(k in 1:n_sim){
-    temp_max_val <- max(BK_CUSUMS[[k]]$BK["value"])
+    temp_max_val <- max(abs(BK_CUSUMS[[k]]$BK["value"]))
     if(temp_max_val >= CUS_max_val){
       CUS_max_val <- temp_max_val
     }
@@ -170,15 +184,24 @@ bk_control_limit <- function(time, alpha = 0.05, psi, n_sim = 200, theta,
     typ1err_temp <- sum(sapply(BK_CUSUMS, function(x) is.finite(runlength(x, h = hseq[i]))))/n_sim
     if(typ1err_temp <= alpha){
       control_h <- hseq[i]
+      current_alpha <- typ1err_temp
     } else{
       break
     }
   }
 
+  #When lower-sided, control limit should be negative.
+  if(theta < 0){
+    control_h <- - control_h
+  }
+
+
+
 
   return(list(call = call,
               charts = BK_CUSUMS,
               data = df_temp,
-              h = control_h))
+              h = control_h,
+              achieved_alpha = current_alpha))
 }
 

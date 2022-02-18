@@ -42,7 +42,7 @@ chart when using control limit h
 \examples{
 exprfitber <- as.formula("(survtime <= 100) & (censorid == 1) ~ age + sex + BMI")
 glmmodber <- glm(exprfitber, data = surgerydat, family = binomial(link = "logit"))
-bercus <- bernoulli_cusum(data = subset(surgerydat, hosp_num == 14), glmmod = glmmodber,
+bercus <- bernoulli_cusum(data = subset(surgerydat, unit == 14), glmmod = glmmodber,
                    followup = 100, theta = log(2))
 #Determine the run length of the above Bernoulli CUSUM when using a control limit
 #of h = 1.

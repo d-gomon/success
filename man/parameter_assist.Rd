@@ -4,7 +4,8 @@
 \alias{parameter_assist}
 \title{Assist users in parameter selection}
 \usage{
-parameter_assist(baseline_data, data, covariate_names = c(), formula, followup)
+parameter_assist(baseline_data, data, covariate_names = c(), formula,
+  followup, theta = log(2), time, alpha = 0.05)
 }
 \arguments{
 \item{baseline_data}{A \code{data.frame} for determining a baseline performance
@@ -35,6 +36,17 @@ regression models. LHS of the formula will be ignored, and can be left empty.}
 
 \item{followup}{(optional): The value of the follow-up time to be used to determine event time.
 Event time will be equal to \code{entrytime + followup} for each subject.}
+
+\item{theta}{The value of the expected log-hazard ratio. In other words: the logarithm of the
+expected increase in the odds of failure/failure rate. Default is log(2) (detecting a
+doubling of the odds/failure rate).}
+
+\item{time}{Timeframe over which the type I error of the control chart should be
+limited. Should be in the same unit as \code{survtime} in \code{data}. If left
+unspecified, the maximum entrytime in \code{baseline_data} is taken. (numeric)}
+
+\item{alpha}{Required maximal type I error (between 0 and 1) of the procedure
+over the timeframe specified in \code{time}. Default is 0.05. (numeric)}
 }
 \value{
 A list of parameters to feed to quality control charts in this
@@ -61,7 +73,7 @@ Depending on the specified arguments, the function will return
 parameters. If \code{covariate_names} is not specified, the returned
 risk-adjustment models will be trivial. If \code{formula} is not specified
 but \code{covariate_names} are,
-the function assumes that the simplest form for the regression model
+the function assumes the simplest form for the regression model
 (cov1 + cov2 + ...). If \code{followup} is not specified, no \code{glmmod}
 will be determined
 }
@@ -70,16 +82,13 @@ require(survival)
 
 #Minimal example - no risk-adjustment
 pars_min <- parameter_assist(baseline_data = surgerydat,
-data = subset(surgerydat, hosp_num == 1))
+data = subset(surgerydat, unit == 1))
 
 #Specifying all parameters
 pars <- parameter_assist(baseline_data = surgerydat,
-data = subset(surgerydat, hosp_num == 1),
+data = subset(surgerydat, unit == 1),
 covariate_names = c("age", "sex", "BMI"),
 formula = formula("survtime ~ age + sex + BMI"), followup = 100)
-
-
-
 }
 \author{
 Daniel Gomon
