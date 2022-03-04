@@ -6,7 +6,7 @@
 \usage{
 cgr_cusum(data, coxphmod, cbaseh, ctimes, h, stoptime, C, pb = FALSE,
   ncores = 1, cmethod = "memory", dependencies, detection = "upper",
-  assist)
+  assist, maxtheta = Inf)
 }
 \arguments{
 \item{data}{A \code{data.frame} with rows representing subjects and the
@@ -76,6 +76,9 @@ failure rate, while lower CUSUMs can be used to monitor for a decrease in the
 failure rate.}
 
 \item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
+
+\item{maxtheta}{(optional): Maximum value of maximum likelihood estimate for
+parameter \eqn{\theta}{\theta}. Default is \code{Inf}.}
 }
 \value{
 An object of class "cgrcusum" containing:

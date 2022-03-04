@@ -26,9 +26,10 @@
 #' @return A vector of \code{nrow(data)} specifying the increased/decreased
 #' risk of failure for each subject.
 #'
+#' @import survival
 #' @importFrom stats model.matrix
-#' @importFrom stats terms
 #' @importFrom stats update
+#' @importFrom stats terms
 #' @export
 #'
 #'
@@ -64,7 +65,10 @@ calc_risk <- function(data, coxphmod = NULL){
     return(rep(1, nrow(data)))
   } else if(length(labels(terms(coxphmod$formula))) == 0){
     return(rep(1, nrow(data)))
-  } else{
+  } else if(inherits(coxphmod, "coxph")){
+    #Wrapper for survival::predict.coxph
+    return(predict(coxphmod, newdata = data, reference = "zero", type = "risk"))
+  } else if(inherits(coxphmod, "list")){
     #Extract right side of model matrix from formula
     mmatrix <- model.matrix(update(coxphmod$formula, NULL ~ .), data)[,-1] #removes the intercept
     coeffs <- coxphmod$coefficients[colnames(mmatrix)]

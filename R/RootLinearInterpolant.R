@@ -15,6 +15,9 @@ RootLinearInterpolant <- function (x, y, y0 = 0) {
   z <- y - y0
   ## which piecewise linear segment crosses zero?
   k <- which(z[-1] * z[-length(z)] < 0)
+  if(length(k) == 0){
+    return(NA)
+  }
   ## analytically root finding
   xk <- x[k] - z[k] * (x[k + 1] - x[k]) / (z[k + 1] - z[k])
   xk

@@ -87,6 +87,8 @@
 #' failure rate, while lower CUSUMs can be used to monitor for a decrease in the
 #' failure rate.
 #' @param assist (optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}
+#' @param maxtheta (optional): Maximum value of maximum likelihood estimate for
+#' parameter \eqn{\theta}{\theta}. Default is \code{Inf}.
 #'
 #' @return An object of class "cgrcusum" containing:
 #' \itemize{
@@ -144,7 +146,8 @@
 
 cgr_cusum <- function(data, coxphmod, cbaseh, ctimes, h, stoptime,
                      C, pb = FALSE, ncores = 1, cmethod = "memory",
-                     dependencies, detection = "upper", assist){
+                     dependencies, detection = "upper", assist,
+                     maxtheta = Inf){
 
   if(!missing(assist)){
     list2env(assist, envir = environment())
@@ -246,12 +249,12 @@ cgr_cusum <- function(data, coxphmod, cbaseh, ctimes, h, stoptime,
     #Calculate using matrix formulation, without having to stop when control limit is surpassed
     #Can perform multi-core computations
     Gt <- cgr_helper_mat(data = data, ctimes = ctimes, h=h, coxphmod = coxphmod, cbaseh = cbaseh,
-                           ncores = ncores, displaypb = pb, dependencies = dependencies)
+                           ncores = ncores, displaypb = pb, dependencies = dependencies, maxtheta)
     cgr <- list(CGR = Gt,
                 call = call)
   } else if(cmethod == "memory" && detection == "lower"){
     Gt <- cgr_helper_mat_down(data = data, ctimes = ctimes, h=h, coxphmod = coxphmod, cbaseh = cbaseh,
-                              ncores = ncores, displaypb = pb, dependencies = dependencies)
+                              ncores = ncores, displaypb = pb, dependencies = dependencies, maxtheta)
     cgr <- list(CGR = Gt,
                 call = call)
 

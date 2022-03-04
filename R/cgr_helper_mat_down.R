@@ -54,7 +54,8 @@
 #'                          coxphmod = tcoxmod, cbaseh = tcbaseh, displaypb = TRUE)
 #' }
 
-cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb = FALSE, dependencies){
+cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb = FALSE, dependencies,
+                                maxtheta){
   #!
   #DEVELOPMENT VERSION - DOWNWARDS CGR-CUSUM
   #!
@@ -166,7 +167,7 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
 
 
   #Function used for maximizing over starting points (patients with starting time >= k)
-  maxoverk <- function(helperstime, ctime, ctimes, data, lambdamat){
+  maxoverk <- function(helperstime, ctime, ctimes, data, lambdamat, maxtheta){
     #Determine part of data that is active at required times
     matsub <- which(data$entrytime >= helperstime & data$entrytime <= ctime)
     #The cumulative intensity at that time is the column sum of the specified ctime
@@ -177,7 +178,7 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
     #Determine MLE of theta
     thetat <- log(NDT/AT)
     if (is.finite(thetat)){
-      thetat <- min(0, thetat)
+      thetat <- max(min(0, thetat), -abs(maxtheta))
     } else {thetat <- 0}
     #Determine value of CGI-CUSUM using only patients with S_i > helperstimes[i]
     CGIvalue <- - thetat * NDT + (exp(thetat)- 1) * AT
@@ -194,7 +195,8 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
     #starting from all relevant helper S_i times (patient entry times)
     #We only need to calculate the CGI value when the the starting time of patients
     a <- sapply(helperstimes[which(helperstimes <= y)],
-                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data, lambdamat = lambdamat))
+                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data,
+                                     lambdamat = lambdamat, maxtheta = maxtheta))
     #If there are no values to be calculated, return trivial values
     if(length(a) == 0){
       return(c(0,0,1))
@@ -217,7 +219,8 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
     #For when I fix helperfailtimes problem.
     #a <- sapply(helperstimes[which(helperstimes <= y & helperfailtimes <= y)], function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data, lambdamat = lambdamat))
     a <- sapply(helperstimes[which(helperstimes <= y)],
-                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data, lambdamat = lambdamat))
+                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data,
+                                     lambdamat = lambdamat, maxtheta = maxtheta))
     #First row is value of chart, second row associated value of theta
     #Determine which entry is the largest (largest CGI value)
     tidmin <- which.min(a[1,])

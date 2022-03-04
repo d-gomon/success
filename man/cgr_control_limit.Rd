@@ -7,7 +7,7 @@
 cgr_control_limit(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
   baseline_data, cbaseh, inv_cbaseh, interval = c(0, 9e+12),
   h_precision = 0.01, ncores = 1, seed = 1041996, pb = FALSE,
-  chartpb = FALSE, detection = "upper", assist)
+  chartpb = FALSE, detection = "upper", assist, maxtheta = Inf)
 }
 \arguments{
 \item{time}{A numeric value over which the type I error \code{alpha} must be restricted.}
@@ -77,6 +77,9 @@ be displayed for the constructions of the charts. Default is \code{FALSE}.}
 \code{"upper"} or \code{"lower"} CGR-CUSUM? Default is \code{"upper"}.}
 
 \item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
+
+\item{maxtheta}{(optional): Maximum value of maximum likelihood estimate for
+parameter \eqn{\theta}{\theta}. Default is \code{Inf}.}
 }
 \value{
 A list containing three components:

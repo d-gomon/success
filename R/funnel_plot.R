@@ -49,6 +49,7 @@
 #' }
 #'
 #' @importFrom stats predict.glm
+#' @importFrom stats model.matrix
 #' @importFrom stats qnorm
 #' @export
 #'

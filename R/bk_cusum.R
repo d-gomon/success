@@ -141,9 +141,7 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
     if(missing(cbaseh)){
       checkcbase <- TRUE
       message("Missing cumulative baseline hazard. Determining using provided Cox PH model.")
-      cbasetemp <- basehaz(coxphmod, centered = FALSE)
-      cbaselo <- loess(cbasetemp$hazard~cbasetemp$time)
-      cbaseh <- function(x) predict(cbaselo, x)
+      cbaseh <- extract_hazard(coxphmod)$cbaseh
     }
   } else if(is.list(coxphmod)){
     if(all(c("formula", "coefficients") %in% names(coxphmod))){
@@ -212,10 +210,17 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
     if(j == 1){
       #Which subjects are active (contribute to the cumulative intensity)
       active <- which(data$entrytime < ctimes[j] & data$otime > min(data$entrytime))
-      tdat <- data[active,]
-      #Determine their contribution to the total cumulative intensity Lambda(t - Si) - Lambda(prevt - Si)
-      activecbaseh <- cbaseh(ifelse(tdat$otime < ctimes[j], tdat$otime, ctimes[j]))-cbaseh(min(data$entrytime))
-      activecbaseh[is.na(activecbaseh)] <- 0
+      if(length(active) > 0){
+        tdat <- data[active,]
+        #Determine their contribution to the total cumulative intensity Lambda(t - Si) - Lambda(prevt - Si)
+        print(active)
+        print(ctimes[j])
+        print(ifelse(tdat$otime < ctimes[j], tdat$otime, ctimes[j]))
+        activecbaseh <- cbaseh(ifelse(tdat$otime < ctimes[j], tdat$otime, ctimes[j]))-cbaseh(min(data$entrytime))
+        activecbaseh[is.na(activecbaseh)] <- 0
+      } else{
+        activecbaseh <- 0
+      }
       #Risk-adjust the contribution in cumulative intensity
       dAT <- sum(riskdat[active] * activecbaseh)
       #How many subjects experience failure in the first time frame
@@ -249,14 +254,21 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
       #Determine dUt from ctimes[j-1] to ctimes[j]
       active <- which(data$entrytime < ctimes[j] & data$otime > ctimes[j-1])
       tdat <- data[active,]
-      #Determine amount of (relevant) failures in this subset
-      dNDT <- length(which(tdat$otime <= ctimes[j] & tdat$censorid == 1))
-      #Contribution of active subjects to A(t)
-      activecbaseh <- cbaseh(ifelse(tdat$otime < ctimes[j], tdat$otime, ctimes[j]) - tdat$entrytime)-cbaseh(ctimes[j-1] - tdat$entrytime)
-      #Error check for empty contribution
-      activecbaseh[is.na(activecbaseh)] <- 0
-      #Determine dA(t) (have to risk-adjust)
-      dAT <- sum(riskdat[active] * activecbaseh)
+
+      if(length(active) > 0){
+        #Determine amount of (relevant) failures in this subset
+        dNDT <- length(which(tdat$otime <= ctimes[j] & tdat$censorid == 1))
+        #Contribution of active subjects to A(t)
+        activecbaseh <- cbaseh(ifelse(tdat$otime < ctimes[j], tdat$otime, ctimes[j]) - tdat$entrytime)-cbaseh(ctimes[j-1] - tdat$entrytime)
+        #Error check for empty contribution
+        activecbaseh[is.na(activecbaseh)] <- 0
+        #Determine dA(t) (have to risk-adjust)
+        dAT <- sum(riskdat[active] * activecbaseh)
+      } else{
+        dAT <- 0
+        dNDT <- 0
+      }
+
       #dUt <- theta * dNDT - (exp(theta) - 1) * dAT
       #Determine cusum value and rbind to previous values
       if(twosided == FALSE){

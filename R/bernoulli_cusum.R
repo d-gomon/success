@@ -67,6 +67,7 @@
 
 #'
 #' @importFrom stats predict.glm
+#' @importFrom stats model.matrix
 #' @export
 #'
 #' @author Daniel Gomon

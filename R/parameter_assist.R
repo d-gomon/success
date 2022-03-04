@@ -67,6 +67,7 @@
 #' @importFrom survival Surv
 #' @importFrom stats glm
 #' @importFrom stats formula
+#' @importFrom stats update
 #' @importFrom stats family
 #' @importFrom stats as.formula
 #' @importFrom stats binomial

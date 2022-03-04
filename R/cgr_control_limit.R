@@ -66,6 +66,8 @@
 #' @param chartpb (optional): A boolean indicating whether progress bars should
 #' be displayed for the constructions of the charts. Default is \code{FALSE}.
 #' @param assist (optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}
+#' @param maxtheta (optional): Maximum value of maximum likelihood estimate for
+#' parameter \eqn{\theta}{\theta}. Default is \code{Inf}.
 #'
 #'
 #' @return A list containing three components:
@@ -123,7 +125,7 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
                               interval = c(0, 9e12),
                               h_precision = 0.01, ncores = 1, seed = 1041996,
                               pb = FALSE, chartpb = FALSE, detection = "upper",
-                              assist){
+                              assist, maxtheta = Inf){
   #This function consists of 3 steps:
   #1. Constructs n_sim instances (hospitals) with subject arrival rate psi and
   #   cumulative baseline hazard cbaseh. Possibly by resampling subject charac-
@@ -146,6 +148,7 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
   df_temp <- generate_units(time = time, psi = psi, n_sim = n_sim, cbaseh = cbaseh,
                             inv_cbaseh = inv_cbaseh, coxphmod = coxphmod,
                             baseline_data = baseline_data, interval = interval)
+
 
 
   message("Step 2/3: Determining CGR-CUSUM chart.")
@@ -174,7 +177,7 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
     CGR_CUSUMS[[j]] <- cgr_cusum(data = subset(df_temp, unit == j),
                                  coxphmod = coxphmod, cbaseh = cbaseh,
                                  stoptime = time, ncores = ncores,
-                                 pb = chartpb)
+                                 pb = chartpb, maxtheta = maxtheta)
   }
 
 
