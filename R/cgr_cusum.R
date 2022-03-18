@@ -173,7 +173,7 @@ cgr_cusum <- function(data, coxphmod, cbaseh, ctimes, h, stoptime,
   }
   # determine the default construction times (all failtimes), if none specified
   if(missing(ctimes)){
-    ctimes <- unique(data$otime)
+    ctimes <- union(min(data$entrytime), unique(data$otime))
   }
   if(missing(stoptime)){
     stoptime <- max(data$otime[is.finite(data$otime)])
@@ -213,9 +213,9 @@ cgr_cusum <- function(data, coxphmod, cbaseh, ctimes, h, stoptime,
   #Only determine value of the chart at at relevant times
   ctimes <- sort(ctimes[which(ctimes <= stoptime)])
   #When determining CGR-CUSUM at only 1 time point, cmethod = "memory" doesnt work
-  if(length(ctimes) == 1){
-    cmethod = "CPU"
-  }
+  #if(length(ctimes) == 1){
+  #  cmethod = "CPU"
+  #}
 
 
   #If method = CPU, iteratively calculate the value at each time

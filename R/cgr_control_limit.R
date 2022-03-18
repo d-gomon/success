@@ -150,7 +150,6 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
                             baseline_data = baseline_data, interval = interval)
 
 
-
   message("Step 2/3: Determining CGR-CUSUM chart.")
   if(!missing(coxphmod) & missing(baseline_data)){
     #We don't want to use risk-adjustment if no baseline_data specified
@@ -179,6 +178,7 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
                                  stoptime = time, ncores = ncores,
                                  pb = chartpb, maxtheta = maxtheta)
   }
+
 
 
   message("Step 3/3: Determining control limits")

@@ -40,19 +40,15 @@ extract_hazard <- function(coxphmod){
 
   #We check to make sure that the cumulative hazard is defined at time 0
   if(length(which(cbase_temp$time == 0)) == 0){
-    rbind(c(0, 0), cbase_temp)
+    cbase_temp <- rbind(c(0, 0), cbase_temp)
   }
 
   #We do not know what happens outside the intervals, so determine max values.
   max_haz <- max(cbase_temp$hazard)
   max_time <- max(cbase_temp$time)
 
-  #Cbaseh function is then Linear interpolant between the list values.
-  cbaseh <- function(t){
-    tout <- approxfun(x = cbase_temp$time, y = cbase_temp$hazard)(t)
-    tout[which(is.na(tout))] <- max_haz
-    return(tout)
-  }
+
+  cbaseh <- approxfun(x = cbase_temp$time, y = cbase_temp$hazard, yleft = 0, yright = max_haz)
 
 
 

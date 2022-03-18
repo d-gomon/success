@@ -6,6 +6,8 @@
 #' @param x A list with each item containing one cumulative sum chart.
 #' @param unit_names The unit names to be displayed in the interactive plot.
 #' Must be of equal length as \code{x}.
+#' @param scale Should charts be scaled with respect to their control limit/
+#' maximum value? Default is \code{FALSE}.
 #' @param highlight Should charts be highlighted on hover? Default is \code{FALSE}.
 #' @param ... Further plotting parameters
 #'
@@ -25,6 +27,7 @@
 #' require(survival)
 #' #Extract data to construct CUSUM charts on
 #' tdat <- subset(surgerydat, unit == 1 & entrytime < 365)
+#' tdat2 <- subset(surgerydat, unit == 2 & entrytime < 365)
 #'
 #' #Determine model parameters
 #' followup <- 100
@@ -43,14 +46,17 @@
 #' bercus <- bernoulli_cusum(data = subset(surgerydat, unit == 1), glmmod = glmmodber,
 #' followup = followup, theta = log(2))
 #' bercus$h <- 3.36
+#' bk2 <- bk_cusum(data = tdat2, theta = log(2), coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE)
+#' bk2$h <- 6.23
 #'
 #' #Create the plot
-#' interactive_plot(list(cgr, bk, bercus), unit_names = c("hospital1", "hospital1", "hospital1"))
+#' interactive_plot(list(cgr, bk, bercus, bk2), unit_names =
+#' c("hosp1", "hosp1", "hosp1", "hosp2"))
 #' }
 
 
 
-interactive_plot <- function(x, unit_names, highlight = FALSE, ...){
+interactive_plot <- function(x, unit_names, scale = FALSE, highlight = FALSE, ...){
   n <- length(x)
   if(!missing(unit_names)){
     if(length(unit_names) != n){
@@ -61,10 +67,12 @@ interactive_plot <- function(x, unit_names, highlight = FALSE, ...){
   for(i in 1:n){
     chart <- x[[i]][[1]]
     chart <- chart[, c("time", "value")]
-    if("h" %in% names(x[[i]])){
-      chart$value <- chart$value/x[[i]]$h
-    } else{
-      chart$value <- chart$value/max(chart$value)
+    if(isTRUE(scale)){
+      if("h" %in% names(x[[i]])){
+        chart$value <- chart$value/x[[i]]$h
+      } else{
+        chart$value <- chart$value/max(chart$value)
+      }
     }
     if(!missing(unit_names)){
       chart$unit <- rep(unit_names[i], nrow(chart))
@@ -88,17 +96,26 @@ interactive_plot <- function(x, unit_names, highlight = FALSE, ...){
     )
 
   }
-  if(highlight == TRUE){
-    a <- highlight_key(plotframe, key = ~unit)
-    a <- plot_ly(a, x = ~time, y = ~value, type = 'scatter', mode = 'lines', split = ~unit, linetype = ~type, color = I("gray"))
-    a <- plotly::layout(a, shapes = list(hline(1)))
-    return(highlight(a, on = "plotly_hover", off = "plotly_deselect", color = "green"))
+  if(isTRUE(scale)){
+    if(isTRUE(highlight)){
+      a <- highlight_key(plotframe, key = ~unit)
+      a <- plot_ly(a, x = ~time, y = ~value, type = 'scatter', mode = 'lines', split = ~unit, linetype = ~type, color = I("gray"))
+      a <- plotly::layout(a, shapes = list(hline(1)))
+      return(highlight(a, on = "plotly_hover", off = "plotly_deselect", color = "green"))
+    } else{
+      a <- plot_ly(plotframe, x = ~time, y = ~value, type = 'scatter', mode = 'lines', split = ~unit, linetype = ~type, color = I("gray"))
+      a <- plotly::layout(a, shapes = list(hline(1)))
+      return(a)
+    }
   } else{
-    a <- plot_ly(plotframe, x = ~time, y = ~value, type = 'scatter', mode = 'lines', split = ~unit, linetype = ~type, color = I("gray"))
-    a <- plotly::layout(a, shapes = list(hline(1)))
-    return(a)
+    if(isTRUE(highlight)){
+      a <- highlight_key(plotframe, key = ~unit)
+      a <- plot_ly(a, x = ~time, y = ~value, type = 'scatter', mode = 'lines', split = ~unit, linetype = ~type, color = I("gray"))
+      return(highlight(a, on = "plotly_hover", off = "plotly_deselect", color = "green"))
+    } else{
+      a <- plot_ly(plotframe, x = ~time, y = ~value, type = 'scatter', mode = 'lines', split = ~unit, linetype = ~type, color = I("gray"))
+      return(a)
+    }
   }
-
-
 
 }

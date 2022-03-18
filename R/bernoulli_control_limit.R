@@ -105,7 +105,6 @@ bernoulli_control_limit <- function(time, alpha = 0.05, followup, psi,
                                       followup = followup,
                             baseline_data = baseline_data)
 
-
   message("Step 2/3: Determining Bernoulli CUSUM chart(s).")
 
   #Construct for each unit a Bernoulli CUSUM until time
@@ -124,6 +123,7 @@ bernoulli_control_limit <- function(time, alpha = 0.05, followup, psi,
                                    glmmod = glmmod,
                                    p0 = p0, p1 = p1, stoptime = time)
   }
+
 
 
   message("Step 3/3: Determining control limits")

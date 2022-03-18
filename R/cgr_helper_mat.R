@@ -149,6 +149,7 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
   #Risk-adjust the cumulative intensity calculated at times
   lambdamat <- lambdamat * as.vector(riskdat)
 
+
   #Determine times from which to construct the CGR
   helperstimes <- sort(unique(data$entrytime))
   #THIS DOESNT WORK YET WHEN YOU HAVE INSTANT FAILURES
@@ -233,18 +234,23 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
                                      lambdamat = lambdamat, maxtheta = maxtheta))
     #a <- sapply(helperstimes[which(helperstimes <= y)],
     #            function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data, lambdamat = lambdamat))
-    #First row is value of chart, second row associated value of theta
-    #Determine which entry is the largest (largest CGI value)
-    tidmax <- which.max(a[1,])
-    #Determine the corresponding value of CGI(t)
-    atemp <- a[,tidmax]
-    if(abs(atemp[1]) >= abs(h)){
-      hcheck <<- TRUE
-      stopind <<- TRUE
-      stopctime <<- match(y, ctimes)
+
+    if(length(a) == 0){
+      return(c(0,0,1))
+    }else{
+      #First row is value of chart, second row associated value of theta
+      #Determine which entry is the largest (largest CGI value)
+      tidmax <- which.max(a[1,])
+      #Determine the corresponding value of CGI(t)
+      atemp <- a[,tidmax]
+      if(abs(atemp[1]) >= abs(h)){
+        hcheck <<- TRUE
+        stopind <<- TRUE
+        stopctime <<- match(y, ctimes)
+      }
+      #Returns c(chartval, thetaval) at maximum of CGI(t)
+      return(c(atemp, temphelperstimes[tidmax]))
     }
-    #Returns c(chartval, thetaval) at maximum of CGI(t)
-    return(c(atemp, temphelperstimes[tidmax]))
   }
 
   #hcheck used to check whether value of CGR has surpassed control limit

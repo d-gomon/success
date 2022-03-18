@@ -4,13 +4,16 @@
 \alias{interactive_plot}
 \title{Plot a list of CUSUM charts (interactive)}
 \usage{
-interactive_plot(x, unit_names, highlight = FALSE, ...)
+interactive_plot(x, unit_names, scale = FALSE, highlight = FALSE, ...)
 }
 \arguments{
 \item{x}{A list with each item containing one cumulative sum chart.}
 
 \item{unit_names}{The unit names to be displayed in the interactive plot.
 Must be of equal length as \code{x}.}
+
+\item{scale}{Should charts be scaled with respect to their control limit/
+maximum value? Default is \code{FALSE}.}
 
 \item{highlight}{Should charts be highlighted on hover? Default is \code{FALSE}.}
 
@@ -29,6 +32,7 @@ which can be created using this package.
 require(survival)
 #Extract data to construct CUSUM charts on
 tdat <- subset(surgerydat, unit == 1 & entrytime < 365)
+tdat2 <- subset(surgerydat, unit == 2 & entrytime < 365)
 
 #Determine model parameters
 followup <- 100
@@ -47,9 +51,12 @@ bk$h <- 6.23
 bercus <- bernoulli_cusum(data = subset(surgerydat, unit == 1), glmmod = glmmodber,
 followup = followup, theta = log(2))
 bercus$h <- 3.36
+bk2 <- bk_cusum(data = tdat2, theta = log(2), coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE)
+bk2$h <- 6.23
 
 #Create the plot
-interactive_plot(list(cgr, bk, bercus), unit_names = c("hospital1", "hospital1", "hospital1"))
+interactive_plot(list(cgr, bk, bercus, bk2), unit_names =
+c("hosp1", "hosp1", "hosp1", "hosp2"))
 }
 }
 \seealso{

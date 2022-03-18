@@ -12,10 +12,10 @@
 #' will be determined
 #'
 #'
-#' @param covariate_names A vector containing the covariate names to be used
-#' in risk-adjustment procedures. (character)
+# #' @param covariate_names A vector containing the covariate names to be used
+# #' in risk-adjustment procedures. (character)
 #' @param formula A formula with right-hand side (RHS) indicating the form in which
-#' the covariates in \code{covariate_names} should be used for the Cox and GLM
+#' the covariates should be used for the Cox and GLM
 #' regression models. LHS of the formula will be ignored, and can be left empty.
 #' @param baseline_data A \code{data.frame} for determining a baseline performance
 #' metric. Rows should represent subjects and the
@@ -88,7 +88,6 @@
 #' #Specifying all parameters
 #' pars <- parameter_assist(baseline_data = surgerydat,
 #' data = subset(surgerydat, unit == 1),
-#' covariate_names = c("age", "sex", "BMI"),
 #' formula = formula("survtime ~ age + sex + BMI"), followup = 100)
 
 
@@ -96,8 +95,8 @@
 
 
 
-parameter_assist <- function(baseline_data, data, covariate_names = c(),
-                             formula, followup, theta = log(2), time, alpha = 0.05){
+parameter_assist <- function(baseline_data, data, formula,
+                             followup, theta = log(2), time, alpha = 0.05){
   call <- match.call()
   p0 <- NULL
 
@@ -105,10 +104,16 @@ parameter_assist <- function(baseline_data, data, covariate_names = c(),
   data <- check_data(data)
   message('Checking provided baseline_data.')
   baseline_data <- check_data(baseline_data)
+  covariate_names <- NULL
+
 
 
   #Covariate checks
-  if(!missing(covariate_names)){
+  if(!missing(formula)){
+    covariate_names <- labels(terms(formula))
+  }
+
+  if(!is.null(covariate_names)){
     if(!all(covariate_names %in% colnames(data))){
       stop("Specified covariates not (all) present in data.")
     }
@@ -134,15 +139,16 @@ parameter_assist <- function(baseline_data, data, covariate_names = c(),
   #Attempt glmmod construction (only if followup is specified)
   if(!missing(followup)){
     #Don't construct glmmod if missing followup
-    if(!missing(formula) & !missing(covariate_names)){
+    if(!missing(formula)){
       formulaglm <- update(formula, (survtime <= followup) & (censorid == 1) ~ .)
-    } else if (!missing(covariate_names)){
+    } else if (!is.null(covariate_names)){
       formulaglm <- as.formula(paste0("(survtime <= followup) & (censorid == 1) ~ ",
                                    paste(covariate_names, collapse = "+")))
     } else {
       formulaglm <- as.formula("(survtime <= followup) & (censorid == 1) ~ 1")
     }
     environment(formulaglm) = environment()
+
     glmmod <- glm(formula = formulaglm, family = binomial(link = "logit"),
                   data = baseline_data)
     p0 <- length(which((baseline_data$survtime <= followup) &
@@ -152,9 +158,9 @@ parameter_assist <- function(baseline_data, data, covariate_names = c(),
     glmmod <- NULL
   }
 
-  if(!missing(formula) & !missing(covariate_names)){
+  if(!missing(formula)){
     formulasurv <- update(formula, survival::Surv(survtime, censorid) ~ .)
-  } else if(!missing(covariate_names)){
+  } else if(!is.null(covariate_names)){
     formulasurv <- as.formula(paste0("Surv(survtime, censorid) ~ ",
                                      paste(covariate_names, collapse = "+")))
   } else{

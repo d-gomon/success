@@ -47,7 +47,6 @@ generate_units <- function(time, psi, n_sim = 20, cbaseh, inv_cbaseh,
   df_temp$survtime <- rep(NA, nrow(df_temp))
   #df_temp is now the dataframe containing all entrytimes and covariates for subjects
 
-
   #------------------------Step 2: inv_cbaseh determination ----------------
 
   if(!missing(inv_cbaseh)){

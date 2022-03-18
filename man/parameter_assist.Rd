@@ -4,8 +4,8 @@
 \alias{parameter_assist}
 \title{Assist users in parameter selection}
 \usage{
-parameter_assist(baseline_data, data, covariate_names = c(), formula,
-  followup, theta = log(2), time, alpha = 0.05)
+parameter_assist(baseline_data, data, formula, followup, theta = log(2),
+  time, alpha = 0.05)
 }
 \arguments{
 \item{baseline_data}{A \code{data.frame} for determining a baseline performance
@@ -27,11 +27,8 @@ following named columns should be present: \describe{
 (integer).}
 } and optionally additional covariates used for risk-adjustment.}
 
-\item{covariate_names}{A vector containing the covariate names to be used
-in risk-adjustment procedures. (character)}
-
 \item{formula}{A formula with right-hand side (RHS) indicating the form in which
-the covariates in \code{covariate_names} should be used for the Cox and GLM
+the covariates should be used for the Cox and GLM
 regression models. LHS of the formula will be ignored, and can be left empty.}
 
 \item{followup}{(optional): The value of the follow-up time to be used to determine event time.
@@ -87,7 +84,6 @@ data = subset(surgerydat, unit == 1))
 #Specifying all parameters
 pars <- parameter_assist(baseline_data = surgerydat,
 data = subset(surgerydat, unit == 1),
-covariate_names = c("age", "sex", "BMI"),
 formula = formula("survtime ~ age + sex + BMI"), followup = 100)
 }
 \author{

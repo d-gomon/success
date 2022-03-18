@@ -131,6 +131,7 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
   } else{
     ctimes <- union(ctimes, unique(data$otime[which(data$otime <= max(ctimes))]))
   }
+  ctimes <- sort(ctimes)
   if(missing(stoptime)){
     stoptime <- max(data$otime[is.finite(data$otime)])
   }
@@ -208,24 +209,26 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
     #As we do not have a previous value at the first time, we calculate it separately
     #We always take the first entry time of a patient
     if(j == 1){
-      #Which subjects are active (contribute to the cumulative intensity)
-      active <- which(data$entrytime < ctimes[j] & data$otime > min(data$entrytime))
-      if(length(active) > 0){
-        tdat <- data[active,]
-        #Determine their contribution to the total cumulative intensity Lambda(t - Si) - Lambda(prevt - Si)
-        print(active)
-        print(ctimes[j])
-        print(ifelse(tdat$otime < ctimes[j], tdat$otime, ctimes[j]))
-        activecbaseh <- cbaseh(ifelse(tdat$otime < ctimes[j], tdat$otime, ctimes[j]))-cbaseh(min(data$entrytime))
-        activecbaseh[is.na(activecbaseh)] <- 0
+      if(ctimes[j] >= min(data$entrytime)){
+        #Which subjects are active (contribute to the cumulative intensity)
+        active <- which(data$entrytime < ctimes[j] & data$otime > min(data$entrytime))
+        if(length(active) > 0){
+          tdat <- data[active,]
+          #Determine their contribution to the total cumulative intensity Lambda(t - Si) - Lambda(prevt - Si)
+          activecbaseh <- cbaseh(ifelse(tdat$otime < ctimes[j], tdat$otime, ctimes[j]))-cbaseh(min(data$entrytime))
+          activecbaseh[is.na(activecbaseh)] <- 0
+        } else{
+          activecbaseh <- 0
+        }
+        #Risk-adjust the contribution in cumulative intensity
+        dAT <- sum(riskdat[active] * activecbaseh)
+        #How many subjects experience failure in the first time frame
+        dNDT <- length(which(data$otime <= ctimes[j] & data$censorid == 1))
+        #If the chart is not two-sided, construct only in one direction
       } else{
-        activecbaseh <- 0
-      }
-      #Risk-adjust the contribution in cumulative intensity
-      dAT <- sum(riskdat[active] * activecbaseh)
-      #How many subjects experience failure in the first time frame
-      dNDT <- length(which(data$otime <= ctimes[j] & data$censorid == 1))
-      #If the chart is not two-sided, construct only in one direction
+        dAT = 0
+        dNDT = 0
+        }
       if(twosided == FALSE){
         #Upper direction (theta >= 0), lower (theta < 0)
         #For upper, we first substract the Cumulative intensity dAT,
