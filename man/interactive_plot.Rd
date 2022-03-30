@@ -4,7 +4,8 @@
 \alias{interactive_plot}
 \title{Plot a list of CUSUM charts (interactive)}
 \usage{
-interactive_plot(x, unit_names, scale = FALSE, highlight = FALSE, ...)
+interactive_plot(x, unit_names, scale = FALSE, group_by = c("none", "unit",
+  "type"), highlight = FALSE, ...)
 }
 \arguments{
 \item{x}{A list with each item containing one cumulative sum chart.}
@@ -14,6 +15,9 @@ Must be of equal length as \code{x}.}
 
 \item{scale}{Should charts be scaled with respect to their control limit/
 maximum value? Default is \code{FALSE}.}
+
+\item{group_by}{Character indicating how to group the CUSUM charts in the plot.
+Possible values are \code{c("none", "unit", "type")}. Default is \code{"none"}.}
 
 \item{highlight}{Should charts be highlighted on hover? Default is \code{FALSE}.}
 

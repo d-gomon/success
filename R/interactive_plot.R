@@ -10,6 +10,8 @@
 #' maximum value? Default is \code{FALSE}.
 #' @param highlight Should charts be highlighted on hover? Default is \code{FALSE}.
 #' @param ... Further plotting parameters
+#' @param group_by Character indicating how to group the CUSUM charts in the plot.
+#' Possible values are \code{c("none", "unit", "type")}. Default is \code{"none"}.
 #'
 #'
 #' @return An interactive plot will be produced in the current graphics device.
@@ -18,6 +20,10 @@
 #' @importFrom plotly plot_ly
 #' @importFrom plotly layout
 #' @importFrom plotly highlight_key
+#' @importFrom plotly add_trace
+#' @importFrom plotly add_lines
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom grDevices colorRampPalette
 #' @export
 #'
 #' @seealso \code{\link[success]{cgr_cusum}}, \code{\link[success]{bk_cusum}}, \code{\link[success]{bernoulli_cusum}}, \code{\link[success]{funnel_plot}}
@@ -55,34 +61,32 @@
 #' }
 
 
-
-interactive_plot <- function(x, unit_names, scale = FALSE, highlight = FALSE, ...){
+interactive_plot <- function(x, unit_names, scale = FALSE,
+                             group_by = c("none", "unit", "type"), highlight = FALSE, ...){
+  id <- NULL
+  #https://plotly-r.com/index.html
   n <- length(x)
   if(!missing(unit_names)){
     if(length(unit_names) != n){
       stop("Provided list of names must be equally long as the list of CUSUM charts.")
     }
-  }
-  plotframe <- data.frame(time = numeric(), value = numeric(), unit = factor(), type = factor())
-  for(i in 1:n){
-    chart <- x[[i]][[1]]
-    chart <- chart[, c("time", "value")]
-    if(isTRUE(scale)){
-      if("h" %in% names(x[[i]])){
-        chart$value <- chart$value/x[[i]]$h
-      } else{
-        chart$value <- chart$value/max(chart$value)
-      }
-    }
-    if(!missing(unit_names)){
-      chart$unit <- rep(unit_names[i], nrow(chart))
-    } else{
-      chart$unit <- as.factor(rep(i, nrow(chart)))
-    }
-    chart$type <- rep(as.factor(class(x[[i]])), nrow(chart))
-    plotframe <- rbind(plotframe, chart)
+  } else{
+    unit_names <- as.factor(1:n)
   }
 
+  if(length(group_by > 1)){
+    group_by <- group_by[1]
+  }
+
+  if(isTRUE(scale)){
+    for(i in 1:n){
+      if("h" %in% names(x[[i]])){
+        x[[i]][[1]]$value <- x[[i]][[1]]$value/x[[i]]$h
+      } else{
+        x[[i]][[1]]$value <- x[[i]][[1]]$value/max(x[[i]][[1]]$value)
+      }
+    }
+  }
   #Function for adding lines to plotly - not currently used
   hline <- function(y = 0, color = "black") {
     list(
@@ -96,26 +100,81 @@ interactive_plot <- function(x, unit_names, scale = FALSE, highlight = FALSE, ..
     )
 
   }
-  if(isTRUE(scale)){
-    if(isTRUE(highlight)){
-      a <- highlight_key(plotframe, key = ~unit)
-      a <- plot_ly(a, x = ~time, y = ~value, type = 'scatter', mode = 'lines', split = ~unit, linetype = ~type, color = I("gray"))
-      a <- plotly::layout(a, shapes = list(hline(1)))
-      return(highlight(a, on = "plotly_hover", off = "plotly_deselect", color = "green"))
-    } else{
-      a <- plot_ly(plotframe, x = ~time, y = ~value, type = 'scatter', mode = 'lines', split = ~unit, linetype = ~type, color = I("gray"))
-      a <- plotly::layout(a, shapes = list(hline(1)))
-      return(a)
+
+
+  ########################HIGHLIGHT############################
+  if(isTRUE(highlight)){
+    plotframe <- data.frame(time = numeric(), value = numeric(), unit = factor(), type = factor())
+    for(i in 1:n){
+      chart <- x[[i]][[1]]
+      chart <- chart[, c("time", "value")]
+      chart$unit <- rep(unit_names[i], nrow(chart))
+      chart$type <- rep(as.factor(class(x[[i]])), nrow(chart))
+      chart$id <- paste(chart$unit, chart$type)
+      plotframe <- rbind(plotframe, chart)
     }
-  } else{
-    if(isTRUE(highlight)){
-      a <- highlight_key(plotframe, key = ~unit)
-      a <- plot_ly(a, x = ~time, y = ~value, type = 'scatter', mode = 'lines', split = ~unit, linetype = ~type, color = I("gray"))
-      return(highlight(a, on = "plotly_hover", off = "plotly_deselect", color = "green"))
-    } else{
-      a <- plot_ly(plotframe, x = ~time, y = ~value, type = 'scatter', mode = 'lines', split = ~unit, linetype = ~type, color = I("gray"))
-      return(a)
+    tx <- highlight_key(plotframe, key = ~id)
+    a <- group_by(plot_ly(tx, color = I("black")),id)
+    a <- add_lines(group_by(a, id), x = ~ time, y = ~value)
+    if(isTRUE(scale)){
+      a <- plotly::layout(a, shapes = list(hline(1)))
     }
+    return(highlight(a, on = "plotly_click", off = "plotly_deselect", selectize = TRUE, dynamic = TRUE, persistent = TRUE))
   }
 
+
+  #######################NO HIGHLIGHT############################
+  #Line types
+  #cusumlty <- c("bercusum" = 3, "bkcusum" = 5, "cgrcusum" = 1)
+  cusumlty <- c("bercusum" = "dot", "bkcusum" = "dash", "cgrcusum" = "solid")
+
+  #Colours for different units
+  ncols <- length(unique(unit_names))
+  unitcols <- colorRampPalette(brewer.pal(n = 8, "Set2"))(ncols)
+  names(unitcols) <- unique(unit_names)
+  for(i in 1:n){
+    x[[i]][[1]]$col <- unit_names[i]
+  }
+
+  a <- plot_ly( )
+  for(i in 1:n){
+    #group_by checking
+    if(group_by == "none"){
+      tlegendgroup = ""
+      tlegendgrouptitle = ""
+      tname = paste(unit_names[i], class(x[[i]]), sep = "\n")
+    } else if(group_by == "unit"){ #Grouping by unit
+      tlegendgroup = unit_names[i]
+      tlegendgrouptitle = list(text = unit_names[i])
+      tname = class(x[[i]])
+    } else if(group_by == "type"){ #Grouping by chart type
+      tlegendgroup = class(x[[i]])
+      tlegendgrouptitle = list(text = class(x[[i]]))
+      tname = unit_names[i]
+    }
+    a <- add_lines(a, data = x[[i]][[1]], x = ~time, y = ~value,
+                   colors = unitcols, color = ~col, line = list(dash = cusumlty[class(x[[i]])]),
+                  mode = 'lines', name = tname, legendgroup = tlegendgroup,
+                  legendgrouptitle = tlegendgrouptitle)
+    #, text = class(x[[i]]) -> can add extra info into hoverbox   linetype = cusumlty[class(x[[i]])],
+    #https://plotly.com/r/reference/scatter/#scatter-hovertemplate
+  }
+  if(isTRUE(scale)){
+    a <- plotly::layout(a, shapes = list(hline(1)))
+  }
+  return(a)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

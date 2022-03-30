@@ -93,7 +93,7 @@ plot.funnelplot <- function(x, percentage = TRUE, ...){
   cols <- palette.colors(n = numcolours)
   #Determine which colour to use for point:
   cols_columns <- ncol(x$data) - 5
-  finalcols <- rep("normal", length = nrow(x$data))
+  finalcols <- rep("in-control", length = nrow(x$data))
   for (k in rev(1:cols_columns)){
     t_col_data <- x$data[,ncol(x$data) - (k-1)]
     finalcols[which(t_col_data == "worse" | t_col_data == "better")] <- rev(x$conflev)[k]

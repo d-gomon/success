@@ -50,7 +50,7 @@ An object of class "funnelplot" containing:
 \item{\code{expected}:}{expected (risk-adjusted) number of failures at unit;}
 \item{\code{numtotal}}{total number of individuals considered at this unit;}
 \item{\code{p}:}{(risk-adjusted) proportion of failure at unit;}
-\item{\code{conflevels}:}{worse/normal/better performance than expected at
+\item{\code{conflevels}:}{worse/in-control/better performance than expected at
 specified confidence levels.}
 }
 \item \code{call}: the call used to obtain output

@@ -84,7 +84,7 @@
 #' n_sim = 10)
 #'
 #' #Determine a control limit restricting type I error to 0.1 over 500 days
-#' using the risk-adjusted cumulative hazard determined using coxph()
+#' #using the risk-adjusted cumulative hazard determined using coxph()
 #' b <- bk_control_limit(time = 500, alpha = 0.1, theta = log(2),
 #' coxphmod = tcoxmod, psi = 0.5, n_sim = 10)
 #' }

@@ -9,7 +9,7 @@
 #'
 
 generate_units_bernoulli <- function(time, psi, n_sim = 20, p0, p1, theta,
-                           glmmod = NULL, followup, baseline_data){
+                           glmmod = NULL, followup, baseline_data, mu = 0){
 
   manualglm <- FALSE
 

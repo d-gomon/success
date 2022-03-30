@@ -1,7 +1,10 @@
-#' Risk-adjusted funnel plot
+#' Risk-adjusted funnel plot for survival data
 #'
 #' @description This function allows to construct a risk-adjusted funnel plot
 #' for comparing survival proportion between units.
+#'
+#' @noRd
+#' @keywords internal
 #'
 #' @param data A \code{data.frame} with rows representing subjects and the
 #' following named columns: \describe{
@@ -39,7 +42,7 @@
 #'   \item{\code{expected}:}{expected (risk-adjusted) number of failures at unit;}
 #'   \item{\code{numtotal}}{total number of individuals considered at this unit;}
 #'   \item{\code{p}:}{(risk-adjusted) proportion of failure at unit;}
-#'   \item{\code{conflevels}:}{worse/in-control/better performance than expected at
+#'   \item{\code{conflevels}:}{worse/normal/better performance than expected at
 #'   specified confidence levels.}
 #' }
 #' \item \code{call}: the call used to obtain output
@@ -51,7 +54,7 @@
 #' @importFrom stats predict.glm
 #' @importFrom stats model.matrix
 #' @importFrom stats qnorm
-#' @export
+#  @export
 #'
 #' @author Daniel Gomon
 #' @family quality control charts
@@ -78,7 +81,7 @@
 
 
 
-funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.99),
+funnel_survival <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.99),
                         assist){
   entrytime <- unit <- NULL
   call <- match.call()
@@ -151,7 +154,7 @@ funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.9
       } else if(plotframe$p[i] < tempbounds[1]){
         tempchar[i] <- "better"
       } else{
-        tempchar[i] <- "in-control"
+        tempchar[i] <- "normal"
       }
     }
     plotframe <- cbind(plotframe, tempchar)
@@ -159,10 +162,10 @@ funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.9
   }
   colnames(boundplotframe) = c("numtotal", "conflev", "lower", "upper")
   funnelp <- list(data = plotframe,
-              call = call,
-              plotdata = boundplotframe,
-              conflev = conflev,
-              p0 = p0)
+                  call = call,
+                  plotdata = boundplotframe,
+                  conflev = conflev,
+                  p0 = p0)
   class(funnelp) <- "funnelplot"
   funnelp
 }
