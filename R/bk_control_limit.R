@@ -69,7 +69,6 @@
 #'
 #'
 #' @examples
-#' \dontrun{
 #' require(survival)
 #'
 #' #Determine a cox proportional hazards model for risk-adjustment
@@ -87,7 +86,9 @@
 #' #using the risk-adjusted cumulative hazard determined using coxph()
 #' b <- bk_control_limit(time = 500, alpha = 0.1, theta = log(2),
 #' coxphmod = tcoxmod, psi = 0.5, n_sim = 10)
-#' }
+#'
+#' print(a$h)
+#' print(b$h)
 
 
 
@@ -126,13 +127,13 @@ bk_control_limit <- function(time, alpha = 0.05, psi, n_sim = 200, theta,
   manualcbaseh <- FALSE
 
   #First we generate the n_sim unit data
-  message("Step 1/3: Generating in-control data.")
+  if(pb){ message("Step 1/3: Generating in-control data.")}
   df_temp <- generate_units(time = time, psi = psi, n_sim = n_sim, cbaseh = cbaseh,
                             inv_cbaseh = inv_cbaseh, coxphmod = coxphmod,
                             baseline_data = baseline_data, interval = interval)
 
 
-  message("Step 2/3: Determining BK-CUSUM chart(s).")
+  if(pb){ message("Step 2/3: Determining BK-CUSUM chart(s).")}
   if(!missing(coxphmod) & missing(baseline_data)){
     #We don't want to use risk-adjustment if no baseline_data specified
     cbaseh <- extract_hazard(coxphmod)$cbaseh
@@ -162,7 +163,7 @@ bk_control_limit <- function(time, alpha = 0.05, psi, n_sim = 200, theta,
   }
 
 
-  message("Step 3/3: Determining control limits")
+  if(pb){ message("Step 3/3: Determining control limits")}
 
   #Keep track of current type I error
   current_alpha <- 0

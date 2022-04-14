@@ -88,17 +88,26 @@
 #'
 #'
 #' @examples
+#' \donttest{
 #' require(survival)
-#' \dontrun{
-#' require(survival)
+#'
+#' #Determine a cox proportional hazards model for risk-adjustment
 #' exprfit <- as.formula("Surv(survtime, censorid) ~ age + sex + BMI")
 #' tcoxmod <- coxph(exprfit, data= surgerydat)
 #'
+#' #Determine a control limit restricting type I error to 0.1 over 500 days
+#' #with specified cumulative hazard function without risk-adjustment
 #' a <- cgr_control_limit(time = 500, alpha = 0.1, cbaseh = function(t) chaz_exp(t, lambda = 0.02),
 #' inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02), psi = 0.5, n_sim = 10)
 #'
+#'
+#' #Determine a control limit restricting type I error to 0.1 over 500 days
+#' #using the risk-adjusted cumulative hazard found using coxph()
 #' b <- cgr_control_limit(time = 500, alpha = 0.1, coxphmod = tcoxmod, psi = 0.5, n_sim = 10,
-#' data = subset(surgerydat, hosp_num == 1))
+#' baseline_data = subset(surgerydat, unit == 1))
+#'
+#' print(a$h)
+#' print(b$h)
 #' }
 
 
@@ -125,7 +134,7 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
                               interval = c(0, 9e12),
                               h_precision = 0.01, ncores = 1, seed = 1041996,
                               pb = FALSE, chartpb = FALSE, detection = "upper",
-                              assist, maxtheta = Inf){
+                              maxtheta = Inf, assist){
   #This function consists of 3 steps:
   #1. Constructs n_sim instances (hospitals) with subject arrival rate psi and
   #   cumulative baseline hazard cbaseh. Possibly by resampling subject charac-
@@ -144,13 +153,13 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
 
 
   #First we generate the n_sim unit data
-  message("Step 1/3: Generating in-control data.")
+  if(pb){ message("Step 1/3: Generating in-control data.")}
   df_temp <- generate_units(time = time, psi = psi, n_sim = n_sim, cbaseh = cbaseh,
                             inv_cbaseh = inv_cbaseh, coxphmod = coxphmod,
                             baseline_data = baseline_data, interval = interval)
 
 
-  message("Step 2/3: Determining CGR-CUSUM chart.")
+  if(pb){ message("Step 2/3: Determining CGR-CUSUM chart(s).")}
   if(!missing(coxphmod) & missing(baseline_data)){
     #We don't want to use risk-adjustment if no baseline_data specified
     cbaseh <- extract_hazard(coxphmod)$cbaseh
@@ -181,7 +190,7 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
 
 
 
-  message("Step 3/3: Determining control limits")
+  if(pb){ message("Step 3/3: Determining control limits")}
 
   #Keep track of current type I error
   current_alpha <- 0
@@ -213,7 +222,6 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
   if(detection == "lower"){
     control_h <- - control_h
   }
-
 
   return(list(call = call,
               charts = CGR_CUSUMS,

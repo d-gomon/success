@@ -89,7 +89,6 @@ of all units cross the control limit.
 } The generated data as well as the charts are also returned in the output.
 }
 \examples{
-\dontrun{
 #We consider patient outcomes 100 days after their entry into the study.
 followup <- 100
 
@@ -99,11 +98,11 @@ exprfitber <- as.formula("(survtime <= followup) & (censorid == 1)~ age + sex + 
 glmmodber <- glm(exprfitber, data = surgerydat, family = binomial(link = "logit"))
 
 #Determine control limit restricting type I error to 0.1 over 500 days
-using the risk-adjusted glm constructed on the baseline data.
+#using the risk-adjusted glm constructed on the baseline data.
 a <- bernoulli_control_limit(time = 500, alpha = 0.1, followup = followup,
  psi = 0.5, n_sim = 10, theta = log(2), glmmod = glmmodber, baseline_data = surgerydat)
 
-}
+print(a$h)
 }
 \seealso{
 \code{\link[success]{bernoulli_cusum}}

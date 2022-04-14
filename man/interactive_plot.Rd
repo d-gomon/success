@@ -5,7 +5,7 @@
 \title{Plot a list of CUSUM charts (interactive)}
 \usage{
 interactive_plot(x, unit_names, scale = FALSE, group_by = c("none", "unit",
-  "type"), highlight = FALSE, ...)
+  "type"), highlight = FALSE, manual_colors = c(), ...)
 }
 \arguments{
 \item{x}{A list with each item containing one cumulative sum chart.}
@@ -21,6 +21,10 @@ Possible values are \code{c("none", "unit", "type")}. Default is \code{"none"}.}
 
 \item{highlight}{Should charts be highlighted on hover? Default is \code{FALSE}.}
 
+\item{manual_colors}{A character vector specifying which colors to use
+for the units in the data. By default, the "Dark2" color set from
+\code{\link[RColorBrewer:brewer.pal]{brewer.pal()}} will be used.}
+
 \item{...}{Further plotting parameters}
 }
 \value{
@@ -32,7 +36,7 @@ Create an interactive plot visualizing a combination of control charts
 which can be created using this package.
 }
 \examples{
-\dontrun{
+\donttest{
 require(survival)
 #Extract data to construct CUSUM charts on
 tdat <- subset(surgerydat, unit == 1 & entrytime < 365)

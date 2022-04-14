@@ -9,7 +9,7 @@
 check_data <- function(data){
   # check data.frame and column names
   if(!is.data.frame(data)){
-    warning("Data provided is not a data frame, attempting to convert.",
+    warning("Provided data is not a data frame, attempting to convert.",
             immediate. = TRUE)
     data <- as.data.frame(data)
   }
@@ -22,7 +22,7 @@ check_data <- function(data){
           column 'survtime' in your data frame.")
   }
   if(!"censorid" %in% colnames(data)){
-    message("No censoring mechanism specified. Assuming data is uncensored.")
+    warning("No censoring mechanism specified. Assuming data is uncensored.")
     data$censorid <- rep(1, nrow(data))
   }
   #  compriskcheck <- "cause" %in% colnames(data)

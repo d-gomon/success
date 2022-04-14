@@ -103,7 +103,6 @@ of all units cross the control limit.
 } The generated data as well as the charts are also returned in the output.
 }
 \examples{
-\dontrun{
 require(survival)
 
 #Determine a cox proportional hazards model for risk-adjustment
@@ -121,7 +120,9 @@ n_sim = 10)
 #using the risk-adjusted cumulative hazard determined using coxph()
 b <- bk_control_limit(time = 500, alpha = 0.1, theta = log(2),
 coxphmod = tcoxmod, psi = 0.5, n_sim = 10)
-}
+
+print(a$h)
+print(b$h)
 }
 \seealso{
 \code{\link[success]{bk_cusum}}

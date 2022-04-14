@@ -133,11 +133,14 @@
 #'
 #' #Determine the values of the chart
 #' cgr <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE)
-#' #Alternatively, cbaseh can be left empty when specifying coxphmod through coxph()
-#' #cgr <- cgr_cusum(data = tdat, coxphmod = tcoxmod, pb = TRUE)
-#'
-#' #plot the CGR-CUSUM
+#' #plot the CGR-CUSUM (exact hazard)
 #' plot(cgr)
+#' \donttest{
+#' #Alternatively, cbaseh can be left empty when specifying coxphmod through coxph()
+#' cgr_cox <- cgr_cusum(data = tdat, coxphmod = tcoxmod, pb = TRUE)
+#' #plot the CGR-CUSUM (estimated hazard from coxph)
+#' plot(cgr_cox)
+#' }
 
 
 
@@ -183,7 +186,7 @@ cgr_cusum <- function(data, coxphmod, cbaseh, ctimes, h, stoptime,
     coxphmod <- NULL
   } else if(inherits(coxphmod, "coxph") & missing(cbaseh)){
       checkcbase <- TRUE
-      message("Missing cumulative baseline hazard. Determining using provided Cox PH model.")
+      #message("Missing cumulative baseline hazard. Determining using provided Cox PH model.")
       cbaseh <- extract_hazard(coxphmod)$cbaseh
       #Old Loess method:
       # cbaselo <- loess(cbase_temp$hazard~cbase_temp$time)

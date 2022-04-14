@@ -141,11 +141,14 @@ tcoxmod <- coxph(exprfit, data= surgerydat)
 
 #Determine the values of the chart
 cgr <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE)
-#Alternatively, cbaseh can be left empty when specifying coxphmod through coxph()
-#cgr <- cgr_cusum(data = tdat, coxphmod = tcoxmod, pb = TRUE)
-
-#plot the CGR-CUSUM
+#plot the CGR-CUSUM (exact hazard)
 plot(cgr)
+\donttest{
+#Alternatively, cbaseh can be left empty when specifying coxphmod through coxph()
+cgr_cox <- cgr_cusum(data = tdat, coxphmod = tcoxmod, pb = TRUE)
+#plot the CGR-CUSUM (estimated hazard from coxph)
+plot(cgr_cox)
+}
 }
 \seealso{
 \code{\link[success]{plot.cgrcusum}}, \code{\link[success]{runlength.cgrcusum}}

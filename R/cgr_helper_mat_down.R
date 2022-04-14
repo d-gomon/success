@@ -41,7 +41,7 @@
 #'
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' require(survival)
 #' tdat <- subset(surgerydat, hosp_num == 1)
 #' tdat$otime <- tdat$entrytime + tdat$survtime

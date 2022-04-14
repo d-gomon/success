@@ -100,9 +100,9 @@ parameter_assist <- function(baseline_data, data, formula,
   call <- match.call()
   p0 <- NULL
 
-  message("Checking provided data.")
+  #message("Checking provided data.")
   data <- check_data(data)
-  message('Checking provided baseline_data.')
+  #message('Checking provided baseline_data.')
   baseline_data <- check_data(baseline_data)
   covariate_names <- NULL
 
@@ -154,7 +154,7 @@ parameter_assist <- function(baseline_data, data, formula,
     p0 <- length(which((baseline_data$survtime <= followup) &
                          (baseline_data$censorid == 1)))/nrow(baseline_data)
   } else{
-    message("glmmod will not be determined: missing argument followup.")
+    #message("glmmod will not be determined: missing argument followup.")
     glmmod <- NULL
   }
 

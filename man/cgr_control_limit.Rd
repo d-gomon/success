@@ -7,7 +7,7 @@
 cgr_control_limit(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
   baseline_data, cbaseh, inv_cbaseh, interval = c(0, 9e+12),
   h_precision = 0.01, ncores = 1, seed = 1041996, pb = FALSE,
-  chartpb = FALSE, detection = "upper", assist, maxtheta = Inf)
+  chartpb = FALSE, detection = "upper", maxtheta = Inf, assist)
 }
 \arguments{
 \item{time}{A numeric value over which the type I error \code{alpha} must be restricted.}
@@ -76,10 +76,10 @@ be displayed for the constructions of the charts. Default is \code{FALSE}.}
 \item{detection}{Should the control limit be determined for an
 \code{"upper"} or \code{"lower"} CGR-CUSUM? Default is \code{"upper"}.}
 
-\item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
-
 \item{maxtheta}{(optional): Maximum value of maximum likelihood estimate for
 parameter \eqn{\theta}{\theta}. Default is \code{Inf}.}
+
+\item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
 }
 \value{
 A list containing three components:
@@ -108,17 +108,26 @@ of all units cross the control limit.
 } The generated data as well as the charts are also returned in the output.
 }
 \examples{
+\donttest{
 require(survival)
-\dontrun{
-require(survival)
+
+#Determine a cox proportional hazards model for risk-adjustment
 exprfit <- as.formula("Surv(survtime, censorid) ~ age + sex + BMI")
 tcoxmod <- coxph(exprfit, data= surgerydat)
 
+#Determine a control limit restricting type I error to 0.1 over 500 days
+#with specified cumulative hazard function without risk-adjustment
 a <- cgr_control_limit(time = 500, alpha = 0.1, cbaseh = function(t) chaz_exp(t, lambda = 0.02),
 inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02), psi = 0.5, n_sim = 10)
 
+
+#Determine a control limit restricting type I error to 0.1 over 500 days
+#using the risk-adjusted cumulative hazard found using coxph()
 b <- cgr_control_limit(time = 500, alpha = 0.1, coxphmod = tcoxmod, psi = 0.5, n_sim = 10,
-data = subset(surgerydat, hosp_num == 1))
+baseline_data = subset(surgerydat, unit == 1))
+
+print(a$h)
+print(b$h)
 }
 }
 \seealso{

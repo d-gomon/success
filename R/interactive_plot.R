@@ -12,6 +12,9 @@
 #' @param ... Further plotting parameters
 #' @param group_by Character indicating how to group the CUSUM charts in the plot.
 #' Possible values are \code{c("none", "unit", "type")}. Default is \code{"none"}.
+#' @param manual_colors A character vector specifying which colors to use
+#' for the units in the data. By default, the "Dark2" color set from
+#' \code{\link[RColorBrewer:brewer.pal]{brewer.pal()}} will be used.
 #'
 #'
 #' @return An interactive plot will be produced in the current graphics device.
@@ -29,7 +32,7 @@
 #' @seealso \code{\link[success]{cgr_cusum}}, \code{\link[success]{bk_cusum}}, \code{\link[success]{bernoulli_cusum}}, \code{\link[success]{funnel_plot}}
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' require(survival)
 #' #Extract data to construct CUSUM charts on
 #' tdat <- subset(surgerydat, unit == 1 & entrytime < 365)
@@ -62,7 +65,8 @@
 
 
 interactive_plot <- function(x, unit_names, scale = FALSE,
-                             group_by = c("none", "unit", "type"), highlight = FALSE, ...){
+                             group_by = c("none", "unit", "type"), highlight = FALSE,
+                             manual_colors = c(), ...){
   id <- NULL
   #https://plotly-r.com/index.html
   n <- length(x)
@@ -130,7 +134,15 @@ interactive_plot <- function(x, unit_names, scale = FALSE,
 
   #Colours for different units
   ncols <- length(unique(unit_names))
-  unitcols <- colorRampPalette(brewer.pal(n = 8, "Set2"))(ncols)
+  if(!missing(manual_colors)){
+    if(length(manual_colors) != ncols){
+      manual_colors <- rep(manual_colors, ceiling(ncols/length(manual_colors)))
+    }
+    unitcols <- manual_colors[1:ncols]
+  } else{
+    unitcols <- colorRampPalette(brewer.pal(n = 8, "Set2"))(ncols)
+  }
+
   names(unitcols) <- unique(unit_names)
   for(i in 1:n){
     x[[i]][[1]]$col <- unit_names[i]

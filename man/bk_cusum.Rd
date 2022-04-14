@@ -129,11 +129,13 @@ tcoxmod <- coxph(exprfit, data= surgerydat)
 
 #Determine the values of the chart
 bk <- bk_cusum(data = tdat, theta = log(2), coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE)
-#Alternatively, cbaseh can be left empty when specifying coxphmod through coxph()
-#bk <- bk_cusum(data = tdat, theta = log(2), coxphmod = tcoxmod, pb = TRUE)
-
-#plot the BK-CUSUM
+#plot the BK-CUSUM (exact hazard)
 plot(bk)
+
+#Alternatively, cbaseh can be left empty when specifying coxphmod through coxph()
+bk_cox <- bk_cusum(data = tdat, theta = log(2), coxphmod = tcoxmod, pb = TRUE)
+#plot the BK-CUSUM (estimated hazard from coxph)
+plot(bk_cox)
 }
 \references{
 Biswas P. and Kalbfleisch J.D. (2008), A risk-adjusted CUSUM in
