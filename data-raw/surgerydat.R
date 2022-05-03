@@ -37,7 +37,7 @@ for(k in 1:3){
         survtime <- round(gen_surv_times(invchaz = function(t) inv_chaz_exp(t, lambda = 0.01),
                                          mu = mu, data = tdat, coxphmod = coxmodt))
         tdat2 <- data.frame(entrytime = arrivtimes, survtime = survtime, censorid = censorid, unit = rep(s, n),
-                            expmu = rep(exp(mu), n), psival = rep(psivals[j], n), age = age, sex = sex, BMI = BMI)
+                            exptheta = rep(exp(mu), n), psival = rep(psivals[j], n), age = age, sex = sex, BMI = BMI)
         surgerydat <- rbind(surgerydat, tdat2)
         #s is hospital/unit number
         s <- s+1
