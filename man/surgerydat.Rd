@@ -12,7 +12,7 @@ A \code{data.frame} with 12010 rows and 9 variables:
 \item{survtime}{Time from entry until failure of patient (numeric)}
 \item{censorid}{Censoring indicator (0 - right censored, 1 - observed) (integer)}
 \item{hosp_num}{Hospital number at which patient received treatment (integer)}
-\item{expmu}{True excess hazard used for generating patient survival (numeric)}
+\item{exptheta}{True excess hazard used for generating patient survival (numeric)}
 \item{psival}{Poisson arrival rate at hospital which the patient was at (numeric)}
 \item{age}{Age of the patient (numeric)}
 \item{sex}{Sex of the patient (factor)}
