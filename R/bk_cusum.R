@@ -128,10 +128,11 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
     data[tempidx,]$censorid <- rep(length(tempidx), 0)
   }
   # determine the default construction times (all failtimes + entrytimes), if none specified
+  #NOTE: WE NEED BOTH FAILTIMES AND ENTRYTIME, OTHERWISE THE VALUES MIGHT BE WRONG!!!
   if(missing(ctimes)){
     ctimes <- union(unique(data$otime), unique(data$entrytime))
   } else{
-    ctimes <- union(ctimes, unique(data$otime[which(data$otime <= max(ctimes))]))
+    ctimes <- union(ctimes, union(unique(data$entrytime[which(data$entrytime <= max(ctimes))]), unique(data$otime[which(data$otime <= max(ctimes))])))
   }
   ctimes <- sort(ctimes)
   if(missing(stoptime)){
@@ -164,10 +165,27 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
     stop("Please specify a value for theta (ln(expected hazard ratio)).")
   }
 
-
-  #---------------------------FUNCTION BODY---------------------------#
   #Determine and sort the times at which to construct the chart
   ctimes <- sort(ctimes[which(ctimes <= stoptime)])
+
+
+  #---------------------------FUNCTION BODY---------------------------#
+
+  #How is the BK-CUSUM constructed?
+  #First we calculate the value of the BK-CUSUM at first specified ctime
+  #Afterwards, we calculate the increments dUt (see Biswas & Kalbfleisch (2008))
+  #to calculate the value at each following ctime.
+  #The problem with this is that between each 2 ctimes, we need to redetermine
+  #which patients provide an active contribution to the chart.
+  #Due to how the chart is constructed,
+  #we require to have all patient entry and failure times to be included in ctimes.
+
+  #A different way would be to consider the active cbaseh contribution between the ctimes separately.
+  #Maybe for a future implementation?
+  #Not a priority - BK-CUSUM is not computationally expensive.
+
+
+
   #If twosided chart is required, determine the chart in two directions
   if(twosided == TRUE){
     Gt <- matrix(0, nrow =0, ncol = 3)
