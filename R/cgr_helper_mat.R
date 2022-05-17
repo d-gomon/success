@@ -184,15 +184,21 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
     #THIS COULD BE SLOW, OTHERWISE ASSIGN TDAT <- subset(data, matsub)
     #Determine amount of failures at ctime.
     NDT <- length(which(data[matsub, ]$censorid == 1 & data[matsub,]$otime <= ctime))
+    NDT_current <- length(which(data[matsub, ]$censorid == 1 & data[matsub, ]$otime == ctime))
     #Determine MLE of theta
     thetat <- log(NDT/AT)
+    thetat_down <- log((NDT-NDT_current)/AT)
     if (is.finite(thetat)){
-      thetat <- min(max(0, thetat), maxtheta)
+      thetat <- min(max(0, thetat), abs(maxtheta))
     } else {thetat <- 0}
+    if (is.finite(thetat_down)){
+      thetat_down <- min(max(0, thetat_down), abs(maxtheta))
+    } else {thetat_down <- 0}
     #Determine value of CGI-CUSUM using only patients with S_i > helperstimes[i]
     CGIvalue <- thetat* NDT - (exp(thetat)- 1) * AT
+    CGI_down <- thetat_down * (NDT - NDT_current) - (exp(thetat_down)- 1) * AT
     #Return both the value of CGI and the MLE (to be used later)
-    return(c(CGIvalue, thetat))
+    return(c(CGIvalue, CGI_down, thetat, thetat_down))
   }
 
   #Function to calculate CGR value at one ctime by ways of maximizing over all CGI(t) values.
@@ -210,7 +216,7 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
     #            function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data, lambdamat = lambdamat))
     #If there are no values to be calculated, return trivial values
     if(length(a) == 0){
-      return(c(0,0,1))
+      return(c(0,0,0,0,1))
     }else{
       #First row is value of chart, second row associated value of theta
       #Determine which entry is the largest (largest CGI value)
@@ -236,7 +242,7 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
     #            function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data, lambdamat = lambdamat))
 
     if(length(a) == 0){
-      return(c(0,0,1))
+      return(c(0,0,0,0,1))
     }else{
       #First row is value of chart, second row associated value of theta
       #Determine which entry is the largest (largest CGI value)
@@ -269,29 +275,44 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
       stopCluster(cl)
       cl <- NULL
     }
-    fin <- pbsapply(ctimes, function(x){ if(isFALSE(hcheck)){ maxoverj_h(x, h = h)} else{return(c(0,0,1))}}, cl = cl)
+    fin <- pbsapply(ctimes, function(x){ if(isFALSE(hcheck)){ maxoverj_h(x, h = h)} else{return(c(0,0,0,0,1))}}, cl = cl)
   } else{
     fin <- pbsapply(ctimes, maxoverj, cl = cl)
     if(ncores > 1){
       stopCluster(cl)
     }
   }
-  Gt <- as.data.frame(t(fin))
+  Gt <- t(fin)
   if(!is.na(stopctime)){
     Gt <- Gt[1:stopctime,]
   }
-  Gt[,2] <- exp(Gt[,2])
+  Gt[,3] <- exp(Gt[,3])
+  Gt[,4] <- exp(Gt[,4])
   #No longer necessary, provide start time directly
-  #Gt[,3] <- helperstimes[Gt[,3]]
+  #Gt[,5] <- helperstimes[Gt[,5]]
   if(!is.na(stopctime)){
     Gt <- cbind(ctimes[1:stopctime], Gt)
   } else{
     Gt <- cbind(ctimes, Gt)
   }
-  #Bind the first possible value so that runlength() works correctly.
-  Gt <- rbind(c(min(data$entrytime), 0, 1, 0),Gt)
-  colnames(Gt) <- c("time", "value", "exp_theta_t", "S_nu")
+  Gt <- unname(Gt)
+
+  #Initiate final matrix
+  Gt_final <- matrix(c(min(ctimes, min(data$entrytime)), 0, 1, 0), ncol = 4)
+  for(l in 1:nrow(Gt)){
+    if(Gt[l, 2] == Gt[l,3]){
+      Gt_final <- rbind(Gt_final, Gt[l, c(1, 2, 4, 6)])
+    } else{
+      Gt_final <- rbind(Gt_final, Gt[l, c(1, 3, 5, 6)])
+      Gt_final <- rbind(Gt_final, Gt[l, c(1, 2, 4, 6)])
+    }
+  }
+  Gt_final <- as.data.frame(Gt_final)
+
+  colnames(Gt_final) <- c("time", "value", "exp_theta_t", "S_nu")
+
+
 
   #return list of relevant values
-  return(Gt)
+  return(Gt_final)
 }
