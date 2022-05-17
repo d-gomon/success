@@ -177,6 +177,8 @@ cgr_cusum <- function(data, coxphmod, cbaseh, ctimes, h, stoptime,
   # determine the default construction times (all failtimes), if none specified
   if(missing(ctimes)){
     ctimes <- union(min(data$entrytime), unique(data$otime))
+  } else{
+    ctimes <- union(ctimes, unique(data$otime[which(data$otime <= max(ctimes) & data$otime >= min(ctimes))]))
   }
   if(missing(stoptime)){
     stoptime <- max(data$otime[is.finite(data$otime)])
