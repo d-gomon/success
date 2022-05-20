@@ -216,15 +216,20 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
     #            function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data, lambdamat = lambdamat))
     #If there are no values to be calculated, return trivial values
     if(length(a) == 0){
-      return(c(0,0,0,0,1))
+      return(c(0,0,0,0,1,1))
     }else{
       #First row is value of chart, second row associated value of theta
       #Determine which entry is the largest (largest CGI value)
       tidmax <- which.max(a[1,])
+      #Determine which entry is largest when not considering current failures.
+      tidmin <- which.max(a[2,])
       #Determine the corresponding value of CGI(t)
-      atemp <- a[,tidmax]
+      atemp <- a[, tidmax]
+      #And the corresponding lower value of CGI(t)
+      atemp_down <- a[, tidmin]
       #Returns c(chartval, thetaval, maxindex) at maximum of CGI(t)
-      return(c(atemp, temphelperstimes[tidmax]))
+      #More specific: CGI_up, CGI_down, theta_up, theta_down, idx_up, idx_down (see maxoverk())
+      return(c(atemp[1], atemp_down[2], atemp[3], atemp_down[4], temphelperstimes[tidmax], temphelperstimes[tidmin]))
     }
   }
 
@@ -242,20 +247,25 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
     #            function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data, lambdamat = lambdamat))
 
     if(length(a) == 0){
-      return(c(0,0,0,0,1))
+      return(c(0,0,0,0,1,1))
     }else{
       #First row is value of chart, second row associated value of theta
       #Determine which entry is the largest (largest CGI value)
       tidmax <- which.max(a[1,])
+      #Determine which entry is largest when not considering current failures.
+      tidmin <- which.max(a[2,])
       #Determine the corresponding value of CGI(t)
       atemp <- a[,tidmax]
+      #And the corresponding lower value of CGI(t)
+      atemp_down <- a[, tidmin]
       if(abs(atemp[1]) >= abs(h)){
         hcheck <<- TRUE
         stopind <<- TRUE
         stopctime <<- match(y, ctimes)
       }
       #Returns c(chartval, thetaval) at maximum of CGI(t)
-      return(c(atemp, temphelperstimes[tidmax]))
+      #More specific: CGI_up, CGI_down, theta_up, theta_down, idx_up, idx_down (see maxoverk())
+      return(c(atemp[1], atemp_down[2], atemp[3], atemp_down[4], temphelperstimes[tidmax], temphelperstimes[tidmin]))
     }
   }
 
@@ -275,7 +285,7 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
       stopCluster(cl)
       cl <- NULL
     }
-    fin <- pbsapply(ctimes, function(x){ if(isFALSE(hcheck)){ maxoverj_h(x, h = h)} else{return(c(0,0,0,0,1))}}, cl = cl)
+    fin <- pbsapply(ctimes, function(x){ if(isFALSE(hcheck)){ maxoverj_h(x, h = h)} else{return(c(0,0,0,0,1,1))}}, cl = cl)
   } else{
     fin <- pbsapply(ctimes, maxoverj, cl = cl)
     if(ncores > 1){
@@ -290,6 +300,7 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
   Gt[,4] <- exp(Gt[,4])
   #No longer necessary, provide start time directly
   #Gt[,5] <- helperstimes[Gt[,5]]
+  #Gt[,6] <- helperstimes[Gt[,6]]
   if(!is.na(stopctime)){
     Gt <- cbind(ctimes[1:stopctime], Gt)
   } else{
@@ -303,7 +314,7 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
     if(Gt[l, 2] == Gt[l,3]){
       Gt_final <- rbind(Gt_final, Gt[l, c(1, 2, 4, 6)])
     } else{
-      Gt_final <- rbind(Gt_final, Gt[l, c(1, 3, 5, 6)])
+      Gt_final <- rbind(Gt_final, Gt[l, c(1, 3, 5, 7)])
       Gt_final <- rbind(Gt_final, Gt[l, c(1, 2, 4, 6)])
     }
   }
