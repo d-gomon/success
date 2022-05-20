@@ -287,15 +287,20 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
             j_temp <- j_temp + 2
           }
         }
-      } else if(twosided == TRUE){
+      } else if(twosided == TRUE){ #Twosided BK-CUSUM
         newvalupper_down <- max(0, 0 - (exp(theta[2])-1)* dAT)
         newvalupper_up <- newvalupper_down + theta[2]*dNDT
         newvallower_down <- 0 + (exp(theta[1])-1)* dAT
         newvallower_up <- newvallower_down - theta[1]*dNDT
         newvallower_up <- min(0, newvallower_up)
-        Gt <- rbind(Gt, c(ctimes[j], newvalupper_down, newvallower_down))
-        Gt <- rbind(Gt, c(ctimes[j], newvalupper_up, newvallower_up))
-        j_temp <- j_temp + 2
+        if((newvalupper_down == newvalupper_up) & (newvallower_down == newvallower_up)){
+          Gt <- rbind(Gt, c(ctimes[j], newvalupper_up, newvallower_down))
+          j_temp <- j_temp + 1
+        } else{
+          Gt <- rbind(Gt, c(ctimes[j], newvalupper_down, newvallower_down))
+          Gt <- rbind(Gt, c(ctimes[j], newvalupper_up, newvallower_up))
+          j_temp <- j_temp + 2
+        }
       }
     } else{
       #Determine dUt from ctimes[j-1] to ctimes[j]
@@ -349,9 +354,14 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
         newvallower_down <- Gt[j_temp,3] + (exp(theta[1])-1)* dAT
         newvallower_up <- newvallower_down - theta[1]*dNDT
         newvallower_up <- min(0, newvallower_up)
-        Gt <- rbind(Gt, c(ctimes[j], newvalupper_down, newvallower_down))
-        Gt <- rbind(Gt, c(ctimes[j], newvalupper_up, newvallower_up))
-        j_temp <- j_temp + 2
+        if((newvalupper_down == newvalupper_up) & (newvallower_down == newvallower_up)){
+          Gt <- rbind(Gt, c(ctimes[j], newvalupper_up, newvallower_down))
+          j_temp <- j_temp + 1
+        } else{
+          Gt <- rbind(Gt, c(ctimes[j], newvalupper_down, newvallower_down))
+          Gt <- rbind(Gt, c(ctimes[j], newvalupper_up, newvallower_up))
+          j_temp <- j_temp + 2
+        }
       }
     }
     if (!missing(h)){
