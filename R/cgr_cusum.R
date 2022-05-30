@@ -26,6 +26,10 @@
 #' and \deqn{\Lambda_{\geq \nu}(t) = \sum_{i \geq \nu} \Lambda_i(t),}{\Lambda_{>=\nu}(t) = \sum_{i>=\nu}\Lambda_i(t),}
 #' where \eqn{\Lambda_i(t)}{\Lambda_i(t)} is the cumulative intensity of subject \eqn{i}{i} at time \eqn{t}{t}.
 #'
+#' When \code{maxtheta} is specified, the maximum likelihood estimate of \eqn{\theta}{\theta}
+#' is restricted to either \code{abs(maxtheta)} (upper sided CGR-CUSUM) or
+#' \code{-abs(maxtheta)} (lower sided CGR-CUSUM).
+#'
 #' @param data A \code{data.frame} with rows representing subjects and the
 #' following named columns: \describe{
 #'   \item{\code{entrytime}:}{time of entry into study (numeric);}
@@ -87,8 +91,10 @@
 #' failure rate, while lower CUSUMs can be used to monitor for a decrease in the
 #' failure rate.
 #' @param assist (optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}
-#' @param maxtheta (optional): Maximum value of maximum likelihood estimate for
-#' parameter \eqn{\theta}{\theta}. Default is \code{Inf}.
+#' @param maxtheta (optional): Maximum value the maximum likelihood estimate for
+#' parameter \eqn{\theta}{\theta} can take. If \code{detection = "lower"}, \code{-abs(theta)}
+#' will be the minimum value the maximum likelihood estimate for
+#' parameter \eqn{\theta}{\theta} can take.  Default is \code{Inf}.
 #'
 #' @return An object of class "cgrcusum" containing:
 #' \itemize{
@@ -210,6 +216,13 @@ cgr_cusum <- function(data, coxphmod, cbaseh, ctimes, h, stoptime,
   if(!missing(h)){
     if(length(h) > 1){
       stop("Please specify only 1 control limit.")
+    }
+  }
+  if(!missing(maxtheta)){
+    if(maxtheta < 0){
+      stop("Parameter 'maxtheta' must be larger than 0.
+      Expect at most a doubling (exp(theta) = 2) of cumulative hazard? theta = log(2)
+      Expect at most a halving (exp(theta) = 0.5) of cumulative hazard rate? theta = log(2) and detection = 'lower'")
     }
   }
 

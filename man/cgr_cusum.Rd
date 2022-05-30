@@ -77,8 +77,10 @@ failure rate.}
 
 \item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
 
-\item{maxtheta}{(optional): Maximum value of maximum likelihood estimate for
-parameter \eqn{\theta}{\theta}. Default is \code{Inf}.}
+\item{maxtheta}{(optional): Maximum value the maximum likelihood estimate for
+parameter \eqn{\theta}{\theta} can take. If \code{detection = "lower"}, \code{-abs(theta)}
+will be the minimum value the maximum likelihood estimate for
+parameter \eqn{\theta}{\theta} can take.  Default is \code{Inf}.}
 }
 \value{
 An object of class "cgrcusum" containing:
@@ -123,6 +125,8 @@ where  \deqn{N(\geq \nu)(t) = \sum_{i \geq \nu} N_i(t),}{N_{>=\nu}(t) = \sum_{i>
 with \eqn{N_i(t)}{N_i(t)} the counting process for the failure at time \eqn{t}{t} of subject \eqn{i}{i}
 and \deqn{\Lambda_{\geq \nu}(t) = \sum_{i \geq \nu} \Lambda_i(t),}{\Lambda_{>=\nu}(t) = \sum_{i>=\nu}\Lambda_i(t),}
 where \eqn{\Lambda_i(t)}{\Lambda_i(t)} is the cumulative intensity of subject \eqn{i}{i} at time \eqn{t}{t}.
+
+AsdAsd
 }
 \examples{
 require(survival)
