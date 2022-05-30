@@ -185,6 +185,7 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
     CGR_CUSUMS[[j]] <- cgr_cusum(data = subset(df_temp, unit == j),
                                  coxphmod = coxphmod, cbaseh = cbaseh,
                                  stoptime = time, ncores = ncores,
+                                 detection = detection,
                                  pb = chartpb, maxtheta = maxtheta)
   }
 
