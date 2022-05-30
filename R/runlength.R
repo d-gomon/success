@@ -115,11 +115,49 @@ runlength.bercusum <- function(chart, h, ...){
   if(missing(chart)){
     stop("Please provide a 'cgrcusum', 'bkcusum' or 'bercusum' chart as input.")
   }
-  ind <- which(chart$CUSUM[,2] >= h)[1]
-  if(is.na(ind)){
-    return(Inf)
-  } else{
-    return(chart$CUSUM[ind,1] - chart$CUSUM[1, "time"])
+  if(isFALSE(chart$call[["twosided"]]) | is.null(chart$call[["twosided"]])){
+    if(!length(h) == 1){
+      stop("Please provide only 1 control limit.")
+    }
+    ind <- which(abs(chart$CUSUM[,2]) >= abs(h))[1]
+    if(is.na(ind)){
+      return(Inf)
+    } else{
+      return(chart$CUSUM[ind,1] - chart$CUSUM[1, "time"])
+    }
+  } else{ #twosided Bernoulli-CUSUM
+    if(length(h) == 1){
+      if(h < 0){
+        ind <- which(chart$CUSUM$val_down <= h)[1]
+        if(is.na(ind)){
+          return(Inf)
+        } else{
+          return(chart$CUSUM[ind,1] - chart$CUSUM[1, "time"])
+        }
+      } else if(h >= 0){
+        ind <- which(chart$CUSUM$val_up >= h)[1]
+        if(is.na(ind)){
+          return(Inf)
+        } else{
+          return(chart$CUSUM[ind,1] - chart$CUSUM[1, "time"])
+        }
+      }
+    } else if(length(h) == 2){
+      if(!all(sign(sort(h)) == c(-1, 1))){
+        stop("When specifying 2 control limits the two values should have reverse signs.")
+      }
+      h <- sort(h)
+      ind_down <- which(chart$CUSUM$val_down <= h[1])[1]
+      ind_up <- which(chart$CUSUM$val_up >= h[2])[1]
+      ind <- tryCatch(min(ind_down, ind_up, na.rm = TRUE), warning = function(cond){NA})
+      if(is.na(ind)){
+        return(Inf)
+      } else{
+        return(chart$CUSUM[ind,1] - chart$CUSUM[1, "time"])
+      }
+    } else{
+      stop("Please provide either 1 or 2 control limits.")
+    }
   }
 }
 

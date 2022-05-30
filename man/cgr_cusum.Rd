@@ -126,7 +126,9 @@ with \eqn{N_i(t)}{N_i(t)} the counting process for the failure at time \eqn{t}{t
 and \deqn{\Lambda_{\geq \nu}(t) = \sum_{i \geq \nu} \Lambda_i(t),}{\Lambda_{>=\nu}(t) = \sum_{i>=\nu}\Lambda_i(t),}
 where \eqn{\Lambda_i(t)}{\Lambda_i(t)} is the cumulative intensity of subject \eqn{i}{i} at time \eqn{t}{t}.
 
-AsdAsd
+When \code{maxtheta} is specified, the maximum likelihood estimate of \eqn{\theta}{\theta}
+is restricted to either \code{abs(maxtheta)} (upper sided CGR-CUSUM) or
+\code{-abs(maxtheta)} (lower sided CGR-CUSUM).
 }
 \examples{
 require(survival)

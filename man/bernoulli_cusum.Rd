@@ -4,7 +4,8 @@
 \alias{bernoulli_cusum}
 \title{Risk-adjusted Bernoulli CUSUM}
 \usage{
-bernoulli_cusum(data, followup, glmmod, theta, p0, p1, h, stoptime, assist)
+bernoulli_cusum(data, followup, glmmod, theta, p0, p1, h, stoptime, assist,
+  twosided = FALSE)
 }
 \arguments{
 \item{data}{A \code{data.frame} containing the following named columns for each subject:
@@ -30,6 +31,9 @@ for covariates. Names must be the same as in \code{formula} and colnames of \cod
 
 \item{theta}{The \eqn{theta}{theta} value used to specify the odds ratio
 \eqn{e^\theta}{e^\theta} under the alternative hypothesis.
+If \eqn{\theta >= 0}{\theta >= 0}, the chart will try to detect an increase
+in hazard ratio (upper one-sided). If \eqn{\theta < 0}{\theta < 0},
+the chart will look for a decrease in hazard ratio (lower one-sided).
 Note that \deqn{p_1 = \frac{p_0 e^\theta}{(1-p_0) (1+p_0 e^\theta)}.}{p1 = (p0 * e^\theta)/((1-p0) * (1+p0 e^\theta)).}}
 
 \item{p0}{The baseline failure probability at \code{entrytime + followup} for individuals.}
@@ -41,6 +45,9 @@ Note that \deqn{p_1 = \frac{p_0 e^\theta}{(1-p_0) (1+p_0 e^\theta)}.}{p1 = (p0 *
 \item{stoptime}{(optional): Time after which the value of the chart should no longer be determined.}
 
 \item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
+
+\item{twosided}{(optional): Should a two-sided Bernoulli CUSUM be constructed?
+Default is \code{FALSE}.}
 }
 \value{
 An object of class \code{bercusum} containing:

@@ -31,12 +31,17 @@
 #' }
 #' @param theta The \eqn{theta}{theta} value used to specify the odds ratio
 #'  \eqn{e^\theta}{e^\theta} under the alternative hypothesis.
+#'  If \eqn{\theta >= 0}{\theta >= 0}, the chart will try to detect an increase
+#'   in hazard ratio (upper one-sided). If \eqn{\theta < 0}{\theta < 0},
+#' the chart will look for a decrease in hazard ratio (lower one-sided).
 #' Note that \deqn{p_1 = \frac{p_0 e^\theta}{(1-p_0) (1+p_0 e^\theta)}.}{p1 = (p0 * e^\theta)/((1-p0) * (1+p0 e^\theta)).}
 #' @param p0 The baseline failure probability at \code{entrytime + followup} for individuals.
 #' @param p1 The alternative hypothesis failure probability at \code{entrytime + followup} for individuals.
 #' @param h (optional): Control limit to be used for the procedure.
 #' @param stoptime (optional): Time after which the value of the chart should no longer be determined.
 #' @param assist (optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}
+#' @param twosided (optional): Should a two-sided Bernoulli CUSUM be constructed?
+#' Default is \code{FALSE}.
 #'
 #'
 #' @details The Bernoulli CUSUM chart is given by
@@ -93,7 +98,7 @@
 
 
 bernoulli_cusum <- function(data, followup, glmmod, theta, p0, p1, h, stoptime,
-                            assist){
+                            assist, twosided = FALSE){
   entrytime <- otime <- NULL
 
   if(!missing(assist)){
@@ -117,6 +122,8 @@ bernoulli_cusum <- function(data, followup, glmmod, theta, p0, p1, h, stoptime,
     data <- check_data(data)
   }
 
+
+
   if(!missing(stoptime)){
     data <- subset(data, entrytime + followup <= stoptime)
   }
@@ -124,18 +131,49 @@ bernoulli_cusum <- function(data, followup, glmmod, theta, p0, p1, h, stoptime,
   #Boolean indicating whether chart has been stopped by control limit h
   stopind = FALSE
   hnull <- missing(h)
+  #If twosided chart is required, determine the chart in two directions
+  if(isTRUE(twosided)){
+    Gt <- data.frame(time = c(min(data$entrytime)), val_up = c(0), val_down = c(0), numobs = c(0))
+    Gtval_up <- 0
+    Gtval_down <- 0
+    if(!hnull && length(h) == 1){
+      h <- sort(c(-h, h))
+    } else if(!hnull && length(h) == 2){
+      if(!all(sign(sort(h)) == c(-1, 1))){
+        stop("When specifying 2 control limits the two values should have reverse signs.")
+      } else{
+        h <- sort(h)
+      }
+    } else if(!hnull && length(h) > 2){
+      stop("Please provide 1 or 2 values for the control limit.")
+    }
+  } else if(isFALSE(twosided)){
+    Gt <- data.frame(time = c(min(data$entrytime)), value = c(0), numobs = c(0))
+    Gtval <- 0
+    if(!hnull){
+      if(length(h) > 1){
+        stop("Please provide only 1 value for the control limit")
+      }
+      if(theta >= 0){
+        h = abs(h)
+      } else{
+        h = -abs(h)
+      }
+    }
+  }
   #Order the data by subject entry time
   data <- data[order(data$entrytime),]
   #Determine whether patient had failure. Censored observations do
   #not count as failures
   data$outcome <- as.integer((data$survtime <= followup) & (data$censorid == 1))
   data$otime <- data$entrytime + followup
-  Gt <- data.frame(time = c(min(data$entrytime)), value = c(0), numobs = c(0))
-  Gtval <- 0
   j <- 1
   numobs <- 0
   if(!missing(p1)){
-    OR = (p1*(1-p0))/(p0*(1-p1))
+    theta <- log((p1*(1-p0))/(p0*(1-p1)))
+  }
+  if(isTRUE(twosided)){
+    theta = abs(theta)
   }
   #Loop over all unique observation times and determine value of the chart
   for(i in unique(data$otime)){
@@ -153,45 +191,68 @@ bernoulli_cusum <- function(data, followup, glmmod, theta, p0, p1, h, stoptime,
         tempprobs <- c(1/(1 + exp(-mmatrix %*% coeffs)))
       }
       tempsecondval <- sum(log(1/(1-tempprobs + exp(theta)*tempprobs)))
+      if(isTRUE(twosided)){
+        tempsecondval_down <- sum(log(1/(1-tempprobs + exp(-theta)*tempprobs)))
+      }
     }else if(!missing(p0)){
       if(!missing(theta)){
         tempsecondval <- log((1/(1-p0 + exp(theta)*p0))^(nrow(tempdata)))
+        if(isTRUE(twosided)){
+          tempsecondval_down <- log((1/(1-p0 + exp(-theta)*p0))^(nrow(tempdata)))
+        }
       } else if(!missing(p1)){
         tempsecondval <- log(((1-p1)/(1-p0))^(nrow(tempdata)))
       }
     } else{ stop("Please supply a value of theta or p1 or a glmmod")}
-    #Determine W_n to update the value of the CUSUM with
-    if(!missing(theta)){
+
+
+    #Determine chart values
+    if(isTRUE(twosided)){
+      #Determine W_n to update the value of the CUSUM with
+      Wn_upper <- sum(tempdata$outcome)*theta +  tempsecondval
+      Wn_lower <- -sum(tempdata$outcome)*theta +  tempsecondval_down
+      Gtval_up <- max(0, Gtval_up + Wn_upper)
+      Gtval_down <- min(0, Gtval_down - Wn_lower)
+      Gt <- rbind(Gt, c(i, Gtval_up, Gtval_down, numobs))
+    } else if(isFALSE(twosided)){
+      #Determine W_n to update the value of the CUSUM with
       Wn <- sum(tempdata$outcome)*theta +  tempsecondval
-    } else{
-      Wn <- sum(tempdata$outcome)*log(OR) +  tempsecondval
+      if(theta >= 0){
+        Gtval <- max(0, Gtval + Wn)
+      } else if(theta < 0){
+        Gtval <- min(0, Gtval - Wn)
+      }
+      Gt <- rbind(Gt, c(i, Gtval, numobs))
     }
-    Gtval <- max(0, Gtval + Wn)
-    #Push the new value to the data frame
-    Gt <- rbind(Gt, c(i, Gtval, numobs))
-    if(!hnull){
-      if(Gtval >= h){
-        colnames(Gt) = c("time", "value", "numobs")
-        Ber <- list(CUSUM = Gt,
-                    call = call,
-                    h = h,
-                    stopind = TRUE)
-        if(!missing(glmmod)){
-          Ber$glmmod <- glmmod$coefficients
+
+
+    #Determine whether to stop if h is specified
+    if (!hnull){
+      if(isTRUE(twosided)){
+        if(length(h) == 2){
+          if( (Gtval_up >= h[2]) | (Gtval_down <= h[1]) ) {stopind = TRUE; break}
+        } else if(length(h) == 1){
+          if( (abs(Gtval_up) >= abs(h)) | (abs(Gtval_down) >= abs(h)) ) {stopind = TRUE; break}
         }
-        class(Ber) <- "bercusum"
-        return(Ber)
+      } else if(isFALSE(twosided)){
+        if( abs(Gtval) >= abs(h) ) {stopind = TRUE; break}
       }
     }
+
     j <- j+1
   }
-  colnames(Gt) = c("time", "value", "numobs")
+  if(isTRUE(twosided)){
+    colnames(Gt) <- c("time", "val_up", "val_down", "numobs")
+  } else if(isFALSE(twosided)){
+    colnames(Gt) = c("time", "value", "numobs")
+  }
   Ber <- list(CUSUM = Gt,
               call = call,
               stopind = stopind)
   if(!missing(glmmod)){
     Ber$glmmod <- glmmod$coefficients
   }
+  if(!missing(h)){Ber$h <- h}
   class(Ber) <- "bercusum"
   Ber
 }

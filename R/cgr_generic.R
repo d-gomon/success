@@ -115,8 +115,29 @@ plot.funnelplot <- function(x, percentage = TRUE, ...){
 #' @import ggplot2
 #' @export
 plot.bercusum <- function(x, h = x$h, ...){
-  time <- value <- NULL
-  g <- ggplot(as.data.frame(x$CUSUM), mapping = aes(x = time, y = value)) + geom_line() + geom_hline(yintercept = h, color = "red")
+  time <- value <- val_up <- val_down <- NULL
+  requireNamespace('ggplot2')
+  if(isFALSE(x$call[["twosided"]]) | is.null(x$call[["twosided"]])){
+    g <- ggplot(as.data.frame(x$CUSUM),
+                mapping = aes(x = time, y = value)) + geom_line()
+    if(!missing(h)){
+      g <- g + geom_hline(yintercept = h, color = "red")
+    } else if("h" %in% names(x)){
+      g <- g + geom_hline(yintercept = x$h, color = "red")
+    }
+  }else if(isTRUE(x$call[["twosided"]])){
+    g <- ggplot()
+    g <- g + geom_line(as.data.frame(x$CUSUM),
+                       mapping = aes(x = time, y = val_up), color = "black")
+    g <- g + geom_line(as.data.frame(x$CUSUM),
+                       mapping = aes(x = time, y = val_down), color = "blue")
+    if(!missing(h)){
+      g <- g + geom_hline(yintercept = h, color = "red")
+    } else if("h" %in% names(x)){
+      g <- g + geom_hline(yintercept = x$h, color = "red")
+    }
+  }
+  g <- g + labs(x = "Time", y = "Value")
   return(g)
 }
 
