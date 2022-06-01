@@ -36,20 +36,25 @@
 #' } and optionally additional covariates used for risk-adjustment.
 #' @param followup (optional): The value of the follow-up time to be used to determine event time.
 #' Event time will be equal to \code{entrytime + followup} for each subject.
-#' @param theta The value of the expected log-hazard ratio. In other words: the logarithm of the
-#' expected increase in the odds of failure/failure rate. Default is log(2) (detecting a
+#' @param theta The value of the expected log-hazard/odds ratio. In other words: the logarithm of the
+#' expected increase in the odds/hazard ratio. Default is log(2) (detecting a
 #' doubling of the odds/failure rate).
 #' @param time Timeframe over which the type I error of the control chart should be
 #' limited. Should be in the same unit as \code{survtime} in \code{data}. If left
 #' unspecified, the maximum entrytime in \code{baseline_data} is taken. (numeric)
 #' @param alpha Required maximal type I error (between 0 and 1) of the procedure
 #' over the timeframe specified in \code{time}. Default is 0.05. (numeric)
+#' @param maxtheta Maximum value the maximum likelihood estimate for
+#' parameter \eqn{\theta}{\theta} can take. If \code{detection = "lower"}, \code{-abs(theta)}
+#' will be the minimum value the maximum likelihood estimate for
+#' parameter \eqn{\theta}{\theta} can take.  Default is \code{log(10)}, meaning that
+#' at most a 10 times increase/decrease in the odds/hazard ratio is expected.
 #'
 #'
 #'
 #'
 #' @return A list of parameters to feed to quality control charts in this
-#' package
+#' package:
 #' \itemize{
 #' \item{call: }{The call used to obtain output.}
 #' \item{data: }{The data used in the call to the function.}
@@ -60,7 +65,11 @@
 #'  \item{coxphmod: }{A \code{\link[survival:coxph]{coxph()}} model which can be
 #'  fed to the \code{\link[success:cgr_cusum]{cgr_cusum()}} and
 #'  \code{\link[success:cgr_cusum]{cgr_cusum()}} functions.}
+#'  \item{theta: }{Expected increase in the odds/hazard ratio.}
 #'  \item{psi: }{Estimated Poisson arrival rate in \code{data}.}
+#'  \item{time: }{Time frame over which to restrict type I error.}
+#'  \item{alpha: }{Desired level of type I error for control limit determination.}
+#'  \item{maxtheta: }{Maximum expected increase/decrease in the odds/hazard ratio.}
 #' }
 #'
 #' @importFrom survival coxph
@@ -96,7 +105,8 @@
 
 
 parameter_assist <- function(baseline_data, data, formula,
-                             followup, theta = log(2), time, alpha = 0.05){
+                             followup, theta = log(2), time, alpha = 0.05,
+                             maxtheta = log(10)){
   call <- match.call()
   p0 <- NULL
 
@@ -187,7 +197,8 @@ parameter_assist <- function(baseline_data, data, formula,
                   theta = theta,
                   psi = psi,
                   time = time,
-                  alpha = alpha)
+                  alpha = alpha,
+                  maxtheta = maxtheta)
   if(!missing(followup)){
     parlist$followup <- followup
   }

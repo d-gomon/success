@@ -223,3 +223,19 @@
 #  psi = 0.5, n_sim = 100, theta = log(2), glmmod = glmmodber, baseline_data = surgerydat)
 # toc()
 #
+
+
+
+
+
+a <- cgr_control_limit(time = 50, alpha = 0.05, psi = 2, n_sim = 10, cbaseh = function(t) chaz_exp(t, lambda = 0.02), inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02))$h
+b <- cgr_control_limit(time = 50, alpha = 0.05, psi = 2, n_sim = 10, cbaseh = function(t) chaz_exp(t, lambda = 0.02), inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02), maxtheta = Inf)$h
+c <- cgr_control_limit(time = 50, alpha = 0.05, psi = 2, n_sim = 10, cbaseh = function(t) chaz_exp(t, lambda = 0.02), inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02), maxtheta = log(4))$h
+d <- bk_control_limit(time = 50, alpha = 0.05, psi = 2, n_sim = 10, cbaseh = function(t) chaz_exp(t, lambda = 0.02), inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02), theta = log(2))$h
+test_that("Decreasing maxthetat reduces control limit",{
+  expect_lt(a, b)
+  expect_lt(c, a)
+})
+
+
+

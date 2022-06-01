@@ -67,7 +67,8 @@
 #' be displayed for the constructions of the charts. Default is \code{FALSE}.
 #' @param assist (optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}
 #' @param maxtheta (optional): Maximum value of maximum likelihood estimate for
-#' parameter \eqn{\theta}{\theta}. Default is \code{Inf}.
+#' parameter \eqn{\theta}{\theta}. Default is \code{log(6)}, meaning that
+#' at most a 6 times increase/decrease in the odds/hazard ratio is expected.
 #'
 #'
 #' @return A list containing three components:
@@ -134,7 +135,7 @@ cgr_control_limit <- function(time, alpha = 0.05, psi, n_sim = 20, coxphmod,
                               interval = c(0, 9e12),
                               h_precision = 0.01, ncores = 1, seed = 1041996,
                               pb = FALSE, chartpb = FALSE, detection = "upper",
-                              maxtheta = Inf, assist){
+                              maxtheta = log(6), assist){
   #This function consists of 3 steps:
   #1. Constructs n_sim instances (hospitals) with subject arrival rate psi and
   #   cumulative baseline hazard cbaseh. Possibly by resampling subject charac-
