@@ -5,7 +5,7 @@
 \title{Assist users in parameter selection}
 \usage{
 parameter_assist(baseline_data, data, formula, followup, theta = log(2),
-  time, alpha = 0.05)
+  time, alpha = 0.05, maxtheta = log(6))
 }
 \arguments{
 \item{baseline_data}{A \code{data.frame} for determining a baseline performance
@@ -34,8 +34,8 @@ regression models. LHS of the formula will be ignored, and can be left empty.}
 \item{followup}{(optional): The value of the follow-up time to be used to determine event time.
 Event time will be equal to \code{entrytime + followup} for each subject.}
 
-\item{theta}{The value of the expected log-hazard ratio. In other words: the logarithm of the
-expected increase in the odds of failure/failure rate. Default is log(2) (detecting a
+\item{theta}{The value of the expected log-hazard/odds ratio. In other words: the logarithm of the
+expected increase in the odds/hazard ratio. Default is log(2) (detecting a
 doubling of the odds/failure rate).}
 
 \item{time}{Timeframe over which the type I error of the control chart should be
@@ -44,10 +44,16 @@ unspecified, the maximum entrytime in \code{baseline_data} is taken. (numeric)}
 
 \item{alpha}{Required maximal type I error (between 0 and 1) of the procedure
 over the timeframe specified in \code{time}. Default is 0.05. (numeric)}
+
+\item{maxtheta}{Maximum value the maximum likelihood estimate for
+parameter \eqn{\theta}{\theta} can take. If \code{detection = "lower"}, \code{-abs(theta)}
+will be the minimum value the maximum likelihood estimate for
+parameter \eqn{\theta}{\theta} can take.  Default is \code{log(6)}, meaning that
+at most a 6 times increase/decrease in the odds/hazard ratio is expected.}
 }
 \value{
 A list of parameters to feed to quality control charts in this
-package
+package:
 \itemize{
 \item{call: }{The call used to obtain output.}
 \item{data: }{The data used in the call to the function.}
@@ -58,7 +64,11 @@ and \code{\link[success:bernoulli_cusum]{bernoulli_cusum()}} functions.}
 \item{coxphmod: }{A \code{\link[survival:coxph]{coxph()}} model which can be
 fed to the \code{\link[success:cgr_cusum]{cgr_cusum()}} and
 \code{\link[success:cgr_cusum]{cgr_cusum()}} functions.}
+\item{theta: }{Expected increase in the odds/hazard ratio.}
 \item{psi: }{Estimated Poisson arrival rate in \code{data}.}
+\item{time: }{Time frame over which to restrict type I error.}
+\item{alpha: }{Desired level of type I error for control limit determination.}
+\item{maxtheta: }{Maximum expected increase/decrease in the odds/hazard ratio.}
 }
 }
 \description{

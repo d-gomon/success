@@ -47,8 +47,8 @@
 #' @param maxtheta Maximum value the maximum likelihood estimate for
 #' parameter \eqn{\theta}{\theta} can take. If \code{detection = "lower"}, \code{-abs(theta)}
 #' will be the minimum value the maximum likelihood estimate for
-#' parameter \eqn{\theta}{\theta} can take.  Default is \code{log(10)}, meaning that
-#' at most a 10 times increase/decrease in the odds/hazard ratio is expected.
+#' parameter \eqn{\theta}{\theta} can take.  Default is \code{log(6)}, meaning that
+#' at most a 6 times increase/decrease in the odds/hazard ratio is expected.
 #'
 #'
 #'
@@ -106,7 +106,7 @@
 
 parameter_assist <- function(baseline_data, data, formula,
                              followup, theta = log(2), time, alpha = 0.05,
-                             maxtheta = log(10)){
+                             maxtheta = log(6)){
   call <- match.call()
   p0 <- NULL
 

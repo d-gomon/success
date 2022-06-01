@@ -6,7 +6,7 @@
 \usage{
 cgr_cusum(data, coxphmod, cbaseh, ctimes, h, stoptime, C, pb = FALSE,
   ncores = 1, cmethod = "memory", dependencies, detection = "upper",
-  assist, maxtheta = Inf)
+  assist, maxtheta = log(6))
 }
 \arguments{
 \item{data}{A \code{data.frame} with rows representing subjects and the
@@ -80,7 +80,8 @@ failure rate.}
 \item{maxtheta}{(optional): Maximum value the maximum likelihood estimate for
 parameter \eqn{\theta}{\theta} can take. If \code{detection = "lower"}, \code{-abs(theta)}
 will be the minimum value the maximum likelihood estimate for
-parameter \eqn{\theta}{\theta} can take.  Default is \code{Inf}.}
+parameter \eqn{\theta}{\theta} can take.  Default is \code{log(6)}, meaning that
+at most a 6 times increase/decrease in the odds/hazard ratio is expected.}
 }
 \value{
 An object of class "cgrcusum" containing:
@@ -128,7 +129,12 @@ where \eqn{\Lambda_i(t)}{\Lambda_i(t)} is the cumulative intensity of subject \e
 
 When \code{maxtheta} is specified, the maximum likelihood estimate of \eqn{\theta}{\theta}
 is restricted to either \code{abs(maxtheta)} (upper sided CGR-CUSUM) or
-\code{-abs(maxtheta)} (lower sided CGR-CUSUM).
+\code{-abs(maxtheta)} (lower sided CGR-CUSUM). Choosing this value smaller leads to smaller
+control limits and therefore quicker detection times, but can cause delays in
+detection if the true increase in failure rate is larger than the cut-off. The
+default of expecting at most a 6 times increase in hazard/odds ratio can therefore
+be the wrong choice for your intended application area. If unsure, the most conservative
+choice is to take \code{maxtheta = Inf}.
 }
 \examples{
 require(survival)
