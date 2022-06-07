@@ -1,7 +1,7 @@
 #' @title Continuous time Generalized Rapid response CUSUM (CGR-CUSUM)
 #'
 #' @description This function performs the CGR-CUSUM procedure
-#' described in Gomon et al. (in review). For detection purposes, it suffices
+#' described in Gomon et al. (2022 - preprint). For detection purposes, it suffices
 #' to determine the value of the chart at the times of failure. This can be
 #'  achieved by leaving \code{ctimes} unspecified.
 #' The function has two vital parameters, at least one of which must be specified:
@@ -13,6 +13,10 @@
 #' construction. If specified with \code{coxphmod} missing, no risk-adjustment
 #' will be performed}
 #' }
+#'
+#' @references Gomon, D. and Putter, H. and Nelissen, R. G. H. H. and van der Pas, S. (2022),
+#' CGR-CUSUM: A Continuous time Generalized Rapid Response Cumulative Sum chart, arXiv - preprint.
+#' \doi{10.48550/ARXIV.2205.07618}
 #'
 #' @details The CGR-CUSUM can be used to test for a change of unknown positive fixed size \eqn{\theta}{\theta}
 #'  in the subject-specific hazard rate from \eqn{h_i(t)}{h_i(t)} to \eqn{h_i(t) e^\theta}{h_i(t) exp(\theta)}
