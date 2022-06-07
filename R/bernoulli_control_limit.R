@@ -131,7 +131,7 @@ bernoulli_control_limit <- function(time, alpha = 0.05, followup, psi,
   #start from 0.1 to maximum value of all CGR-CUSUMS
   CUS_max_val <- 0
   for(k in 1:n_sim){
-    temp_max_val <- max(charts[[k]]$CUSUM["value"])
+    temp_max_val <- max(abs(charts[[k]]$CUSUM["value"]))
     if(temp_max_val >= CUS_max_val){
       CUS_max_val <- temp_max_val
     }
@@ -148,6 +148,11 @@ bernoulli_control_limit <- function(time, alpha = 0.05, followup, psi,
     } else{
       break
     }
+  }
+
+  #When lower-sided, control limit should be negative.
+  if(theta < 0){
+    control_h <- - control_h
   }
 
 

@@ -29,12 +29,12 @@
 #'   \item{\code{coefficients}:}{a named vector specifying risk adjustment coefficients
 #'   for covariates. Names must be the same as in \code{formula} and colnames of \code{data}.}
 #' }
-#' @param theta The \eqn{theta}{theta} value used to specify the odds ratio
+#' @param theta The \eqn{\theta}{\theta} value used to specify the odds ratio
 #'  \eqn{e^\theta}{e^\theta} under the alternative hypothesis.
 #'  If \eqn{\theta >= 0}{\theta >= 0}, the chart will try to detect an increase
 #'   in hazard ratio (upper one-sided). If \eqn{\theta < 0}{\theta < 0},
 #' the chart will look for a decrease in hazard ratio (lower one-sided).
-#' Note that \deqn{p_1 = \frac{p_0 e^\theta}{(1-p_0) (1+p_0 e^\theta)}.}{p1 = (p0 * e^\theta)/((1-p0) * (1+p0 e^\theta)).}
+#' Note that \deqn{p_1 = \frac{p_0 e^\theta}{1-p_0 +p_0 e^\theta}.}{p1 = (p0 * e^\theta)/(1-p0+p0 * e^\theta).}
 #' @param p0 The baseline failure probability at \code{entrytime + followup} for individuals.
 #' @param p1 The alternative hypothesis failure probability at \code{entrytime + followup} for individuals.
 #' @param h (optional): Control limit to be used for the procedure.
