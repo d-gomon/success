@@ -5,7 +5,7 @@ Authors@R: c(
     person("Daniel", "Gomon", , "d.gomon@math.leidenuniv.nl", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-9011-3743")),
     person("Mirko", "Signorelli", , "msignorelli.rpackages@gmail.com", role = "ctb",
-           comment = c(ORCID = "0000-0001-9011-3743"))
+           comment = c(ORCID = "0000-0002-8102-3356"))
   )
 Maintainer: Daniel Gomon <d.gomon@math.leidenuniv.nl>
 Description: Quality control charts for survival outcomes.
