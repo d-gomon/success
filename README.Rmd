@@ -16,7 +16,15 @@ knitr::opts_chunk$set(
 # success
 
 <!-- badges: start -->
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://lifecycle.r-lib.org/articles/stages.html)
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![R-CMD-check](https://github.com/d-gomon/success/workflows/R-CMD-check/badge.svg)](https://github.com/d-gomon/success/actions/)
+[![CRAN status](https://www.r-pkg.org/badges/version/success)](https://CRAN.R-project.org/package=success)
+[![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/success)](https://cran.r-project.org/package=success)
+[![GitHub Repo stars](https://img.shields.io/github/stars/d-gomon/success?style=social)](https://github.com/d-gomon/success)
 <!-- badges: end -->
+
+# SUrvival Control Chart EStimation Software
 
 The goal of the \pkg{success} package is to allow easy applications of continuous time CUSUM procedures on survival data. Specifically, the Biswas \& Kalbfleisch CUSUM (2008) and the CGR-CUSUM (2021).
 
@@ -40,8 +48,13 @@ devtools::install_github("d-gomon/success")
 
 This is a basic example which shows you how to construct a CGR-CUSUM chart on a hospital from the attached data set "surgerydat":
 ```{r echo = FALSE, warning = FALSE, error = FALSE, message = FALSE}
-library(success)
+#library(success)
 library(survival)
+```
+
+```{r echo = FALSE, warning = FALSE, error = FALSE, message = FALSE}
+library(devtools)
+load_all()
 ```
 
 ```{r success}
