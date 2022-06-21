@@ -17,6 +17,7 @@ status](https://www.r-pkg.org/badges/version/success)](https://CRAN.R-project.or
 downloads](https://cranlogs.r-pkg.org/badges/success)](https://cran.r-project.org/package=success)
 [![GitHub Repo
 stars](https://img.shields.io/github/stars/d-gomon/success?style=social)](https://github.com/d-gomon/success)
+[![arXiv](https://img.shields.io/badge/stat.AP-arXiv%3A2205.07618-B31B1B)](https://doi.org/10.48550/arXiv.2205.07618)
 <!-- badges: end -->
 
 # SUrvival Control Chart EStimation Software
