@@ -10,6 +10,10 @@
 #' } If the \code{data.frame} also contains a column named \code{unit}, the arrival
 #' rate will be determined for each unit separately.
 #'
+#'
+#'
+#' @export
+#'
 #' @return A (named) vector containing the estimated arrival rate in the data,
 #' or for each unit in the data.
 #'

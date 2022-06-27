@@ -181,7 +181,6 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
     matsub <- which(data$entrytime >= helperstime & data$entrytime <= ctime)
     #The cumulative intensity at that time is the column sum of the specified ctime
     AT <- sum(lambdamat[matsub, which(ctimes == ctime)])
-    #THIS COULD BE SLOW, OTHERWISE ASSIGN TDAT <- subset(data, matsub)
     #Determine amount of failures at ctime.
 
     tmat <- data[matsub,]
@@ -189,11 +188,9 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
     NDT <- length(which(tmat$censorid == 1 & tmat$otime <= ctime))
     NDT_current <- length(which(tmat$censorid == 1 & tmat$otime == ctime))
 
-
+    #Old and slow version:
     #NDT <- length(which(data[matsub, ]$censorid == 1 & data[matsub,]$otime <= ctime))
     #NDT_current <- length(which(data[matsub, ]$censorid == 1 & data[matsub, ]$otime == ctime))
-
-
 
     #Determine MLE of theta
     thetat <- log(NDT/AT)
