@@ -174,8 +174,14 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
     AT <- sum(lambdamat[matsub, which(ctimes == ctime)])
     #THIS COULD BE SLOW, OTHERWISE ASSIGN TDAT <- subset(data, matsub)
     #Determine amount of failures at ctime.
-    NDT <- length(which(data[matsub, ]$censorid == 1 & data[matsub, ]$otime <= ctime))
-    NDT_current <- length(which(data[matsub, ]$censorid == 1 & data[matsub, ]$otime == ctime))
+
+
+    tmat <- data[matsub,]
+    NDT <- length(which(tmat$censorid == 1 & tmat$otime <= ctime))
+    NDT_current <- length(which(tmat$censorid == 1 & tmat$otime == ctime))
+
+    #NDT <- length(which(data[matsub, ]$censorid == 1 & data[matsub, ]$otime <= ctime))
+    #NDT_current <- length(which(data[matsub, ]$censorid == 1 & data[matsub, ]$otime == ctime))
     #Determine MLE of theta
     thetat <- log(NDT/AT)
     thetat_down <- log((NDT-NDT_current)/AT)
@@ -201,7 +207,7 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
     #starting from all relevant helper S_i times (patient entry times)
     #We only need to calculate the CGI value when the the starting time of patients
     a <- sapply(helperstimes[which(helperstimes <= y)],
-                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data,
+                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data[, c("censorid", "entrytime", "otime")],
                                      lambdamat = lambdamat, maxtheta = maxtheta))
     #If there are no values to be calculated, return trivial values
     if(length(a) == 0){
@@ -231,7 +237,7 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
     #For when I fix helperfailtimes problem.
     #a <- sapply(helperstimes[which(helperstimes <= y & helperfailtimes <= y)], function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data, lambdamat = lambdamat))
     a <- sapply(helperstimes[which(helperstimes <= y)],
-                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data,
+                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data[, c("censorid", "entrytime", "otime")],
                                      lambdamat = lambdamat, maxtheta = maxtheta))
     if(length(a) == 0){
       #Returns empty values if nothing to calculate

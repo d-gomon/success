@@ -183,8 +183,18 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
     AT <- sum(lambdamat[matsub, which(ctimes == ctime)])
     #THIS COULD BE SLOW, OTHERWISE ASSIGN TDAT <- subset(data, matsub)
     #Determine amount of failures at ctime.
-    NDT <- length(which(data[matsub, ]$censorid == 1 & data[matsub,]$otime <= ctime))
-    NDT_current <- length(which(data[matsub, ]$censorid == 1 & data[matsub, ]$otime == ctime))
+
+    tmat <- data[matsub,]
+
+    NDT <- length(which(tmat$censorid == 1 & tmat$otime <= ctime))
+    NDT_current <- length(which(tmat$censorid == 1 & tmat$otime == ctime))
+
+
+    #NDT <- length(which(data[matsub, ]$censorid == 1 & data[matsub,]$otime <= ctime))
+    #NDT_current <- length(which(data[matsub, ]$censorid == 1 & data[matsub, ]$otime == ctime))
+
+
+
     #Determine MLE of theta
     thetat <- log(NDT/AT)
     thetat_down <- log((NDT-NDT_current)/AT)
@@ -207,7 +217,7 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
     #For when I fix helperfailtimes problem.
     temphelperstimes <- helperstimes[which(helperstimes <= y & helperfailtimes <= y)]
     a <- sapply(temphelperstimes,
-                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data,
+                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data[, c("censorid", "entrytime", "otime")],
                                      lambdamat = lambdamat, maxtheta = maxtheta))
     #We first apply the maxoverk function to determine CGI values
     #starting from all relevant helper S_i times (patient entry times)
@@ -241,7 +251,7 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
     #For when I fix helperfailtimes problem.
     temphelperstimes <- helperstimes[which(helperstimes <= y & helperfailtimes <= y)]
     a <- sapply(temphelperstimes,
-                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data,
+                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data[, c("censorid", "entrytime", "otime")],
                                      lambdamat = lambdamat, maxtheta = maxtheta))
     #a <- sapply(helperstimes[which(helperstimes <= y)],
     #            function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data, lambdamat = lambdamat))
