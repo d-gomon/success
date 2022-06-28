@@ -171,16 +171,17 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
   #Function used for maximizing over starting points (patients with starting time >= k)
   maxoverk <- function(helperstime, ctime, ctimes, data, lambdamat, maxtheta){
     #Determine part of data that is active at required times
-    matsub <- which(data$entrytime >= helperstime & data$entrytime <= ctime)
+    matsub <- which(data[, "entrytime"] >= helperstime & data[, "entrytime"] <= ctime)
     #The cumulative intensity at that time is the column sum of the specified ctime
     AT <- sum(lambdamat[matsub, which(ctimes == ctime)])
     #THIS COULD BE SLOW, OTHERWISE ASSIGN TDAT <- subset(data, matsub)
     #Determine amount of failures at ctime.
 
 
-    tmat <- data[matsub,]
-    NDT <- length(which(tmat$censorid == 1 & tmat$otime <= ctime))
-    NDT_current <- length(which(tmat$censorid == 1 & tmat$otime == ctime))
+    tmat <- data[matsub, , drop = FALSE]
+
+    NDT <- length(which(tmat[, "censorid"] == 1 & tmat[, "otime"] <= ctime))
+    NDT_current <- length(which(tmat[, "censorid"] == 1 & tmat[, "otime"] == ctime))
 
     #NDT <- length(which(data[matsub, ]$censorid == 1 & data[matsub, ]$otime <= ctime))
     #NDT_current <- length(which(data[matsub, ]$censorid == 1 & data[matsub, ]$otime == ctime))
