@@ -80,6 +80,8 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
   # The number of failures at that timepoint is determined the same way
   ctimes <- ctimes[which(ctimes >= min(data$entrytime))]
 
+  data_mat <- as.matrix(data[, c("censorid", "entrytime", "otime")])
+
   #Remove R check warnings
   entrytime <- NULL
 
@@ -178,15 +180,16 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
   #Function used for maximizing over starting points (patients with starting time >= k)
   maxoverk <- function(helperstime, ctime, ctimes, data, lambdamat, maxtheta){
     #Determine part of data that is active at required times
-    matsub <- which(data$entrytime >= helperstime & data$entrytime <= ctime)
+    matsub <- which(data[, "entrytime"] >= helperstime & data[, "entrytime"] <= ctime)
+    #print(c(ctime, matsub))
     #The cumulative intensity at that time is the column sum of the specified ctime
     AT <- sum(lambdamat[matsub, which(ctimes == ctime)])
     #Determine amount of failures at ctime.
 
-    tmat <- data[matsub,]
+    tmat <- data[matsub, , drop = FALSE]
 
-    NDT <- length(which(tmat$censorid == 1 & tmat$otime <= ctime))
-    NDT_current <- length(which(tmat$censorid == 1 & tmat$otime == ctime))
+    NDT <- length(which(tmat[, "censorid"] == 1 & tmat[, "otime"] <= ctime))
+    NDT_current <- length(which(tmat[, "censorid"] == 1 & tmat[, "otime"] == ctime))
 
     #Old and slow version:
     #NDT <- length(which(data[matsub, ]$censorid == 1 & data[matsub,]$otime <= ctime))
@@ -214,7 +217,8 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
     #For when I fix helperfailtimes problem.
     temphelperstimes <- helperstimes[which(helperstimes <= y & helperfailtimes <= y)]
     a <- sapply(temphelperstimes,
-                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data[, c("censorid", "entrytime", "otime")],
+                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes,
+                                     data = data_mat,
                                      lambdamat = lambdamat, maxtheta = maxtheta))
     #We first apply the maxoverk function to determine CGI values
     #starting from all relevant helper S_i times (patient entry times)
@@ -248,7 +252,8 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
     #For when I fix helperfailtimes problem.
     temphelperstimes <- helperstimes[which(helperstimes <= y & helperfailtimes <= y)]
     a <- sapply(temphelperstimes,
-                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data[, c("censorid", "entrytime", "otime")],
+                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes,
+                                     data = data_mat,
                                      lambdamat = lambdamat, maxtheta = maxtheta))
     #a <- sapply(helperstimes[which(helperstimes <= y)],
     #            function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data, lambdamat = lambdamat))

@@ -48,9 +48,6 @@ calc_risk <- function(data, coxphmod = NULL){
   #Calculate risk for dataset data according to Cox PH model using specified model
   #coxphmod must either be a COXPH model or a list containing $formula and named vector $coefficients
 
-
-
-
   #Data checks
   if(missing(data)){
     return(1)

@@ -79,6 +79,8 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
   # The number of failures at that timepoint is determined the same way
   ctimes <- ctimes[which(ctimes >= min(data$entrytime))]
 
+  data_mat <- as.matrix(data[, c("censorid", "entrytime", "otime")])
+
   #Remove R check warnings
   entrytime <- NULL
 
@@ -207,7 +209,8 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
     #starting from all relevant helper S_i times (patient entry times)
     #We only need to calculate the CGI value when the the starting time of patients
     a <- sapply(helperstimes[which(helperstimes <= y)],
-                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data[, c("censorid", "entrytime", "otime")],
+                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes,
+                                     data = data_mat,
                                      lambdamat = lambdamat, maxtheta = maxtheta))
     #If there are no values to be calculated, return trivial values
     if(length(a) == 0){
@@ -237,7 +240,8 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
     #For when I fix helperfailtimes problem.
     #a <- sapply(helperstimes[which(helperstimes <= y & helperfailtimes <= y)], function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data, lambdamat = lambdamat))
     a <- sapply(helperstimes[which(helperstimes <= y)],
-                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes, data = data[, c("censorid", "entrytime", "otime")],
+                function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes,
+                                     data = data_mat,
                                      lambdamat = lambdamat, maxtheta = maxtheta))
     if(length(a) == 0){
       #Returns empty values if nothing to calculate

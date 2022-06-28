@@ -196,6 +196,9 @@ cgr_cusum <- function(data, coxphmod, cbaseh, ctimes, h, stoptime,
   } else{
     ctimes <- union(ctimes, unique(data$otime[which(data$otime <= max(ctimes) & data$otime >= min(ctimes))]))
   }
+  if(max(ctimes) <= min(data$entrytime)){
+    stop("Cannot construct chart before subjects enter into study (max(ctimes) <= min(data$entrytime)). Please re-asses the argument 'ctimes'.")
+  }
   if(missing(stoptime)){
     stoptime <- max(data$otime[is.finite(data$otime)])
   }
@@ -240,6 +243,11 @@ cgr_cusum <- function(data, coxphmod, cbaseh, ctimes, h, stoptime,
 
   #Only determine value of the chart at at relevant times
   ctimes <- sort(ctimes[which(ctimes <= stoptime)])
+
+  #Sort data according to entrytime for easier subsetting.
+  data <- data[order(data$entrytime, data$otime),]
+
+
   #When determining CGR-CUSUM at only 1 time point, cmethod = "memory" doesnt work
   #if(length(ctimes) == 1){
   #  cmethod = "CPU"
