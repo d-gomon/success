@@ -180,7 +180,13 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
   #Function used for maximizing over starting points (patients with starting time >= k)
   maxoverk <- function(helperstime, ctime, ctimes, data, lambdamat, maxtheta){
     #Determine part of data that is active at required times
-    matsub <- which(data[, "entrytime"] >= helperstime & data[, "entrytime"] <= ctime)
+    #This code works because data is sorted according to entrytime and then otime
+    lower <- match(helperstime, data[, "entrytime"])
+    upper <- findInterval(ctime, data[, "entrytime"], left.open = TRUE)
+    matsub <- lower:upper
+
+    #matsub <- which(data[, "entrytime"] >= helperstime & data[, "entrytime"] <= ctime)
+
     #print(c(ctime, matsub))
     #The cumulative intensity at that time is the column sum of the specified ctime
     AT <- sum(lambdamat[matsub, which(ctimes == ctime)])
