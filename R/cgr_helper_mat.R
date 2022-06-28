@@ -181,7 +181,7 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
   maxoverk <- function(helperstime, ctime, ctimes, data, lambdamat, maxtheta){
     #Determine part of data that is active at required times
     #This code works because data is sorted according to entrytime and then otime
-    #lower <- match(helperstime, data[, "entrytime"])
+    #We use findInterval instead of match or which because it's faster
     lower <- .Internal(findInterval(data[, "entrytime"], helperstime, rightmost.closed = FALSE,
                                     all.inside = FALSE, left.open = TRUE)) + 1
     upper <- .Internal(findInterval(data[, "entrytime"], ctime, rightmost.closed = FALSE,
