@@ -6,3 +6,7 @@
 ^Old_Stuff$
 ^\.github$
 ^hexagon$
+^success\.git
+^.*\.png
+^.*\.xcf
+

@@ -80,6 +80,10 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
   ctimes <- ctimes[which(ctimes >= min(data$entrytime))]
 
   data_mat <- as.matrix(data[, c("censorid", "entrytime", "otime")])
+  data_mat[, "entrytime"] <- as.double(data_mat[, "entrytime"])
+  if (!identical(FALSE, is.unsorted(data_mat[, "entrytime"]))){
+    stop("'data$entrytime' must be sorted non-decreasingly and not contain NAs.")
+  }
 
   #Remove R check warnings
   entrytime <- NULL
@@ -151,7 +155,7 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
   lambdamat <- lambdamat * as.vector(riskdat)
 
   #Determine times from which to construct the CGR
-  helperstimes <- sort(unique(data$entrytime))
+  helperstimes <- as.double(sort(unique(data$entrytime)))
   #helperfailtimes are not used in lower sided CGR-CUSUMS, because any
   #contribution to Lambda(t) will drift the chart downwards... :(
   #helperfailtimes <- numeric(length(helperstimes))
@@ -171,20 +175,25 @@ cgr_helper_mat_down <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displ
   #Function used for maximizing over starting points (patients with starting time >= k)
   maxoverk <- function(helperstime, ctime, ctimes, data, lambdamat, maxtheta){
     #Determine part of data that is active at required times
-    matsub <- which(data[, "entrytime"] >= helperstime & data[, "entrytime"] <= ctime)
+    #This code works because data is sorted according to entrytime and then otime
+    #We use findInterval instead of match or which because it's faster
+    #Important: findInterval requires DOUBLE inputs. all inputs have been
+    #coerced to doubles beforehand.
+    lower <- binary_search(data[, "entrytime"], helperstime, index = TRUE)
+    upper <- nrow(data) - binary_search(rev(-1*data[, "entrytime"]), (-1*ctime), index = TRUE) +1
+    #lower <- .Internal(findInterval(data[, "entrytime"], helperstime, rightmost.closed = FALSE,
+    #                                all.inside = FALSE, left.open = TRUE)) + 1
+    #upper <- .Internal(findInterval(data[, "entrytime"], ctime, rightmost.closed = FALSE,
+    #                                all.inside = FALSE, left.open = FALSE))
+    matsub <- lower:upper
     #The cumulative intensity at that time is the column sum of the specified ctime
-    AT <- sum(lambdamat[matsub, which(ctimes == ctime)])
-    #THIS COULD BE SLOW, OTHERWISE ASSIGN TDAT <- subset(data, matsub)
+    AT <- sum(lambdamat[matsub, match(ctime, ctimes)])
+
     #Determine amount of failures at ctime.
-
-
     tmat <- data[matsub, , drop = FALSE]
+    NDT <- sum(tmat[, "censorid"] == 1 & tmat[, "otime"] <= ctime)
+    NDT_current <- sum(tmat[, "censorid"] == 1 & tmat[, "otime"] == ctime)
 
-    NDT <- length(which(tmat[, "censorid"] == 1 & tmat[, "otime"] <= ctime))
-    NDT_current <- length(which(tmat[, "censorid"] == 1 & tmat[, "otime"] == ctime))
-
-    #NDT <- length(which(data[matsub, ]$censorid == 1 & data[matsub, ]$otime <= ctime))
-    #NDT_current <- length(which(data[matsub, ]$censorid == 1 & data[matsub, ]$otime == ctime))
     #Determine MLE of theta
     thetat <- log(NDT/AT)
     thetat_down <- log((NDT-NDT_current)/AT)

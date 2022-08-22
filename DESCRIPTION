@@ -1,6 +1,6 @@
 Package: success
 Title: Survival Control Charts Estimation Software
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: c(
     person("Daniel", "Gomon", , "d.gomon@math.leidenuniv.nl", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-9011-3743")),
@@ -22,6 +22,7 @@ Depends:
     pbapply,
     plotly,
     RColorBrewer,
+    Rfast,
     R (>= 3.5.0)
 Imports: 
     survival

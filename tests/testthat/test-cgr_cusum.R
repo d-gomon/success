@@ -43,3 +43,9 @@ test_that("maxtheta is working as intended",{
 
 
 
+
+
+
+
+
+

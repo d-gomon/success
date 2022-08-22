@@ -1,51 +1,35 @@
-#We create a list of in-control and out-of-control instances, both upwards
-#and downwards. Then we grey out the in-control instances, and highlight the out-of-control ones
-#Create pictures which shows this and make sticker
+library(ggplot2)
+ic_chart <- data.frame(time = c(0, 2.5, 4, 6),
+                       value = c(0, 2.5/(cot((30/360)*2*pi)), 0.7, 6))
+oc_chart <- data.frame(time = c(0, 2, 3, 6), value = c(0, -2, -0.5, -4))
 
-load_all()
-set.seed(01041996)
-time <- 100
-psi <- 2
-n_sim <- 20
-cbaseh <- function(t) chaz_exp(t, lambda = 0.02)
-inv_cbaseh <- function(t) inv_chaz_exp(t, lambda = 0.02, mu = log(1))
-coxphmod <- NULL
-baseline_data <- NULL
-interval <- c(0, 9e12)
-ic_hosp <- generate_units(time = time, psi = psi, n_sim = n_sim, cbaseh = cbaseh,
-                          inv_cbaseh = inv_cbaseh)
+#Tuning parameters
+t_size <- 1.2
 
-oc_hosp_up <- generate_units(time = time, psi = psi, n_sim = n_sim, cbaseh = cbaseh,
-                          inv_cbaseh = inv_cbaseh, mu = log(3))
 
-oc_hosp_down <- generate_units(time = time, psi = psi, n_sim = n_sim, cbaseh = cbaseh,
-                             inv_cbaseh = inv_cbaseh, mu = -log(3))
-
-bk_oc_up <- bk_cusum(data = subset(oc_hosp_up, unit == 1), cbaseh = function(t) chaz_exp(t, lambda = 0.02),theta = log(2), stoptime = 50)
-bk_oc_down <- bk_cusum(data = subset(oc_hosp_down, unit == 2), cbaseh = function(t) chaz_exp(t, lambda = 0.02),theta = -log(2), stoptime = 50)
-
-#cgr_oc_up <- cgr_cusum(data = subset(oc_hosp_up, unit == 1), cbaseh = function(t) chaz_exp(t, lambda = 0.02), stoptime = 50)
-#cgr_oc_down <- cgr_cusum(data = subset(oc_hosp_down, unit == 2), cbaseh = function(t) chaz_exp(t, lambda = 0.02), stoptime = 50, detection ="lower")
-
+#initiate plot
 c <- ggplot()
-for(i in 1:n_sim){
-  bktemp <- bk_cusum(data = subset(ic_hosp, unit == i), cbaseh = function(t) chaz_exp(t, lambda = 0.02),theta = log(2), stoptime = 50)
-  bktemp2 <- bk_cusum(data = subset(ic_hosp, unit == i), cbaseh = function(t) chaz_exp(t, lambda = 0.02),theta = -log(2), stoptime = 50)
-  c <- c +
-    geom_line(data = bktemp$BK, mapping= aes(x = time, y = value),
-                     col = "grey", size = 0.6, lty = 1) +
-    geom_line(data = bktemp2$BK, mapping= aes(x = time, y = value),
-              col = "grey", size = 0.6, lty = 1)
-}
+
+#Add chart lines
 c <- c +
-  geom_line(data = bk_oc_up$BK, mapping= aes(x = time, y = value),
-            col = "red", size = 1, lty = 1) +
-  geom_line(data = bk_oc_down$BK, mapping= aes(x = time, y = value),
-            col = "green", size = 1, lty = 1) +
-  geom_hline(yintercept = 12, col = "red", lty = 2, size = 1.3) +
-  geom_hline(yintercept = -12, col = "green", lty = 2, size = 1.3) +
-  theme_classic() +
-  theme(legend.position = "none") +
+  geom_line(data = ic_chart, mapping= aes(x = time, y = value),
+            col = "red", size = t_size, lty = 1)+
+  geom_line(data = oc_chart, mapping= aes(x = time, y = value),
+            col = "green", size = t_size, lty = 1)
+
+#Add control limits
+c <- c + geom_hline(yintercept = 7, lty = 5, col = "red", size = t_size) +
+  geom_hline(yintercept = -6, col = "green", lty = 5, size = t_size)
+
+#Add arrows
+c <- c + geom_segment(aes(x = ic_chart$time[3], y = ic_chart$value[3], xend = ic_chart$time[4], yend = ic_chart$value[4]),
+                      arrow = arrow(length = unit(0.5, "cm")), col = "red", size = t_size)
+c <- c + geom_segment(aes(x = oc_chart$time[3], y = oc_chart$value[3], xend = oc_chart$time[4], yend = oc_chart$value[4]),
+                      arrow = arrow(length = unit(0.5, "cm")), col = "green", size = t_size)
+
+
+#Remove stuff from theme
+c <- c +
   theme(axis.line=element_blank(),
         axis.text.x=element_blank(), #remove x axis labels
         axis.ticks.x=element_blank(), #remove x axis ticks
@@ -59,17 +43,14 @@ c <- c +
         panel.grid.minor=element_blank(),
         plot.background=element_blank()
   )+ scale_x_continuous(expand=c(0,0)) +
-  scale_y_continuous(expand=c(0,0)) +
-  geom_hline(yintercept = 0, size = 1)
+  scale_y_continuous(expand=c(0,0))
 
 
-ggsave(filename = "success.png", plot = c,
+ggsave(filename = "success2.png", plot = c,
        path = dirname(rstudioapi::getActiveDocumentContext()$path),
-       height = 700, width = 1000, units = "px")
+       height = 2000, width = 1728, units = "px")
 
 
-
-rm(list = ls())
 
 library(showtext)
 ## Loading Google fonts (fonts.google.com)
@@ -84,15 +65,41 @@ library(hexSticker)
 col = 'dodgerblue4'
 asd <- getwd()
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-sticker("success.png", dpi = 1000,
-        s_x=1, s_y=1.08, s_width = 1, s_height = 1,
-        package = "success", p_size = 40, p_color = col,
+sticker("success_gimp.png", dpi = 1000,
+        s_x=1, s_y=1, s_width = 1, s_height = 1,
+        package = "", p_size = 1, p_color = "red",
         p_family = 'myfont',
         p_x = 1, p_y = 0.30,
         h_fill = 'white', h_color = "red",
         asp = 0.9, # default asp = 1 sformatta input figure!!!
-        filename="success_logo.png",
-        white_around_sticker = TRUE)
+        filename="success_logo2.png",
+        white_around_sticker = FALSE)
+setwd(asd)
+
+asd <- getwd()
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+sticker("success_gimp_v3.png", dpi = 1000,
+        s_x=1, s_y=1, s_width = 1, s_height = 1,
+        package = "", p_size = 1, p_color = "red",
+        p_family = 'myfont',
+        p_x = 1, p_y = 0.30,
+        h_fill = 'white', h_color = "red",
+        asp = 0.9, # default asp = 1 sformatta input figure!!!
+        filename="success_logo3.png",
+        white_around_sticker = FALSE)
+setwd(asd)
+
+asd <- getwd()
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+sticker("TyronIdee.png", dpi = 1000,
+        s_x=1, s_y=1, s_width = 1, s_height = 1,
+        package = "", p_size = 1, p_color = "red",
+        p_family = 'myfont',
+        p_x = 1, p_y = 0.30,
+        h_fill = 'black', h_color = "black",
+        asp = 0.9, # default asp = 1 sformatta input figure!!!
+        filename="success_logo_Tyron.png",
+        white_around_sticker = FALSE)
 setwd(asd)
 
 

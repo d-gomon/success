@@ -38,12 +38,12 @@ arrival_rate <- function(data){
     units <- unique(data$"unit")
     arr_rates <- numeric(length(units))
     for(i in seq_along(units)){
-      tdat <- subset(data, unit == i)
+      tdat <- subset(data, unit == units[i])
       arr_rates[i] <- get_arr_rate(tdat)
     }
     names(arr_rates) <- units
   } else{
     arr_rates <- get_arr_rate(data)
   }
-  return(arr_rates)
+  return(sort(arr_rates))
 }

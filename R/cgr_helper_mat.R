@@ -33,6 +33,7 @@
 #' @importFrom pbapply pbapply
 #' @importFrom parallel clusterExport
 #' @importFrom pbapply pboptions
+#' @importFrom Rfast binary_search
 #'
 #' @noRd
 #' @keywords internal
@@ -81,6 +82,11 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
   ctimes <- ctimes[which(ctimes >= min(data$entrytime))]
 
   data_mat <- as.matrix(data[, c("censorid", "entrytime", "otime")])
+  data_mat[, "entrytime"] <- as.double(data_mat[, "entrytime"])
+  if (!identical(FALSE, is.unsorted(data_mat[, "entrytime"]))){
+    stop("'data$entrytime' must be sorted non-decreasingly and not contain NAs.")
+  }
+
 
   #Remove R check warnings
   entrytime <- NULL
@@ -153,7 +159,7 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
 
 
   #Determine times from which to construct the CGR
-  helperstimes <- sort(unique(data$entrytime))
+  helperstimes <- as.double(sort(unique(data$entrytime)))
   #THIS DOESNT WORK YET WHEN YOU HAVE INSTANT FAILURES
   #BECAUSE THEN YOU CANT DETERMINE THETA - INSTANT FAILURE -> theta = Inf, so
   #you ignore instant failure and instead look at previous closest failure time
@@ -180,27 +186,38 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
   #Function used for maximizing over starting points (patients with starting time >= k)
   maxoverk <- function(helperstime, ctime, ctimes, data, lambdamat, maxtheta){
     #Determine part of data that is active at required times
+    lower <- binary_search(data[, "entrytime"], helperstime, index = TRUE)
+    upper <- nrow(data) - binary_search(rev(-1*data[, "entrytime"]), (-1*ctime), index = TRUE) +1
+
+    ########This part of the code can be improved to reduce comp time#######
     #This code works because data is sorted according to entrytime and then otime
     #We use findInterval instead of match or which because it's faster
-    lower <- .Internal(findInterval(data[, "entrytime"], helperstime, rightmost.closed = FALSE,
-                                    all.inside = FALSE, left.open = TRUE)) + 1
-    upper <- .Internal(findInterval(data[, "entrytime"], ctime, rightmost.closed = FALSE,
-                                    all.inside = FALSE, left.open = FALSE))
-    #lower <- findInterval(helperstime, data[, "entrytime"], left.open = TRUE) + 1
-    #upper <- findInterval(ctime, data[, "entrytime"])
+    #lower <- .Internal(findInterval(data[, "entrytime"], helperstime, rightmost.closed = FALSE,
+    #                                all.inside = FALSE, left.open = TRUE)) + 1
+    #upper <- .Internal(findInterval(data[, "entrytime"], ctime, rightmost.closed = FALSE,
+    #                                all.inside = FALSE, left.open = FALSE))
+    ########This part of the code can be improved to reduce comp time#######
+    #findInterval is faster than binary_search, but we may not use
+    #.Internal functions in R packages
+    #If we remove .Internal, then an is.sorted() check is executed every time,
+    #greatly increasing the required computation time.
+
     matsub <- lower:upper
-
+    #Above code used to be:
     #matsub <- which(data[, "entrytime"] >= helperstime & data[, "entrytime"] <= ctime)
+    #This was slow, so use Rfast functions instead, .Internal functions a bit faster, rewrite in Rcpp in future.
 
-    #print(c(ctime, matsub))
     #The cumulative intensity at that time is the column sum of the specified ctime
-    AT <- sum(lambdamat[matsub, which(ctimes == ctime)])
-    #Determine amount of failures at ctime.
+    AT <- sum(lambdamat[matsub, match(ctime, ctimes)])
 
+    #Subset only the part of data where patients arriving after helperstime and having
+    #otime before ctime are considered
     tmat <- data[matsub, , drop = FALSE]
 
-    NDT <- length(which(tmat[, "censorid"] == 1 & tmat[, "otime"] <= ctime))
-    NDT_current <- length(which(tmat[, "censorid"] == 1 & tmat[, "otime"] == ctime))
+    #Determine amount of failures before and at ctime.
+    #Maybe do sum( < ctimes) and sum( == ctime) and then calculate NDT <- sum(both)
+    NDT <- sum(tmat[, "censorid"] == 1 & tmat[, "otime"] <= ctime)
+    NDT_current <- sum(tmat[, "censorid"] == 1 & tmat[, "otime"] == ctime)
 
     #Old and slow version:
     #NDT <- length(which(data[matsub, ]$censorid == 1 & data[matsub,]$otime <= ctime))
@@ -225,8 +242,10 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
   #Function to calculate CGR value at one ctime by ways of maximizing over all CGI(t) values.
   #Achieved by applying the maxoverk function and determining maxima.
   maxoverj <- function(y){
-    #For when I fix helperfailtimes problem.
+    #Determine which helperstimes to use in this iteration.
     temphelperstimes <- helperstimes[which(helperstimes <= y & helperfailtimes <= y)]
+    #Problem is that temphelperstimes is sometimes empty (integer(0)), which
+    #causes .findInterval in maxoverk to not work.
     a <- sapply(temphelperstimes,
                 function(x) maxoverk(helperstime = x,  ctime = y, ctimes = ctimes,
                                      data = data_mat,
