@@ -1,4 +1,4 @@
-# success 0.1.2
+# success 0.1.1
 
 * Added a `NEWS.md` file to track changes to the package.
 * Fixed lower CGR_CUSUM to calculate correct values
@@ -7,3 +7,4 @@
 * Reduced computation time of CGR-CUSUM approximately 4 fold (depends on size of data) using Rfast package. 
   * Future: Rfast binary_search() is not optimal for this problem. Either write an adjusted binary_search fitting for the problem manually or look for other implementations.
 * Created a hexagon for the package (can be found in /hexagon)
+* Added data set based on real cancer trial.

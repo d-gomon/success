@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# success
+# success <img src="hexagon/success_hex.png" align="right" width="120" />
 
 <!-- badges: start -->
 
