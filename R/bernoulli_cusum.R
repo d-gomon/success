@@ -76,7 +76,6 @@
 #' @export
 #'
 #' @author Daniel Gomon
-#' @family quality control charts
 #'
 #' @seealso \code{\link[success]{plot.bercusum}}, \code{\link[success]{runlength.bercusum}}
 #'
@@ -98,7 +97,7 @@
 
 
 bernoulli_cusum <- function(data, followup, glmmod, theta, p0, p1, h, stoptime,
-                            assist, twosided = FALSE){
+                   assist, twosided = FALSE){
   entrytime <- otime <- NULL
 
   if(!missing(assist)){
@@ -131,9 +130,30 @@ bernoulli_cusum <- function(data, followup, glmmod, theta, p0, p1, h, stoptime,
   #Boolean indicating whether chart has been stopped by control limit h
   stopind = FALSE
   hnull <- missing(h)
+
+  #Some checks:
+  if(nrow(data) == 0){
+    warning("No failures observed in specified time frame.
+Decrease 'followup' or consider a larger time frame for construction.
+Returning trivial chart.")
+    Gt <- data.frame(time = c(0), value = c(0), numobs = c(0))
+    colnames(Gt) = c("time", "value", "numobs")
+    Ber <- list(CUSUM = Gt,
+                call = call,
+                stopind = stopind)
+    if(!missing(glmmod)){
+      Ber$glmmod <- glmmod$coefficients
+    }
+    if(!missing(h)){Ber$h <- h}
+    class(Ber) <- "bercusum"
+    Ber
+    return(Ber)
+  } else{
+    min_entrytime <- min(data$entrytime)
+  }
   #If twosided chart is required, determine the chart in two directions
   if(isTRUE(twosided)){
-    Gt <- data.frame(time = c(min(data$entrytime)), val_up = c(0), val_down = c(0), numobs = c(0))
+    Gt <- data.frame(time = c(min_entrytime), val_up = c(0), val_down = c(0), numobs = c(0))
     Gtval_up <- 0
     Gtval_down <- 0
     if(!hnull && length(h) == 1){
@@ -148,7 +168,7 @@ bernoulli_cusum <- function(data, followup, glmmod, theta, p0, p1, h, stoptime,
       stop("Please provide 1 or 2 values for the control limit.")
     }
   } else if(isFALSE(twosided)){
-    Gt <- data.frame(time = c(min(data$entrytime)), value = c(0), numobs = c(0))
+    Gt <- data.frame(time = c(min_entrytime), value = c(0), numobs = c(0))
     Gtval <- 0
     if(!hnull){
       if(length(h) > 1){
@@ -170,26 +190,41 @@ bernoulli_cusum <- function(data, followup, glmmod, theta, p0, p1, h, stoptime,
   j <- 1
   numobs <- 0
   if(!missing(p1)){
+    if(missing(p0) & missing(theta)){
+      stop("Please also provide a value for p0 or theta.")
+    }
+    if(missing(p0) & !missing(theta)){
+      p0 <- p1/(exp(theta) - exp(theta)*p1 + p1)
+    }
     theta <- log((p1*(1-p0))/(p0*(1-p1)))
+
   }
   if(isTRUE(twosided)){
     theta = abs(theta)
   }
+
+
+  #pre-calculate risk-adjustment
+  if(!missing(glmmod)){
+    if(inherits(glmmod, "glm")){
+      fixprobs <-  predict(glmmod, newdata = data, type = "response")
+    } else{
+      mmatrix <- model.matrix(glmmod$formula, data)
+      coeffs <- glmmod$coefficients[colnames(mmatrix)]
+      fixprobs <- c(1/(1 + exp(-mmatrix %*% coeffs)))
+    }
+  }
+
   #Loop over all unique observation times and determine value of the chart
   for(i in unique(data$otime)){
     #Only interested in subjects with failure time at single time point
-    tempdata <- subset(data, otime == i)
+    tempdata_ind <- which(data$otime == i)
+    tempdata <- data[tempdata_ind,]
     numobs <- numobs + nrow(tempdata)
     #If risk-adjustment has been specified, calculate risk scores.
     #Otherwise, use specified failure probabilities
     if(!missing(glmmod)){
-      if(inherits(glmmod, "glm")){
-        tempprobs <-  predict(glmmod, newdata = tempdata, type = "response")
-      } else{
-        mmatrix <- model.matrix(glmmod$formula, tempdata)
-        coeffs <- glmmod$coefficients[colnames(mmatrix)]
-        tempprobs <- c(1/(1 + exp(-mmatrix %*% coeffs)))
-      }
+      tempprobs <- fixprobs[tempdata_ind]
       tempsecondval <- sum(log(1/(1-tempprobs + exp(theta)*tempprobs)))
       if(isTRUE(twosided)){
         tempsecondval_down <- sum(log(1/(1-tempprobs + exp(-theta)*tempprobs)))

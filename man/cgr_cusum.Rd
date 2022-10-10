@@ -101,7 +101,7 @@ the control limit;
 }
 \description{
 This function performs the CGR-CUSUM procedure
-described in Gomon et al. (2022 - preprint). For detection purposes, it suffices
+described in Gomon et al. (2022). For detection purposes, it suffices
 to determine the value of the chart at the times of failure. This can be
 achieved by leaving \code{ctimes} unspecified.
 The function has two vital parameters, at least one of which must be specified:
@@ -164,14 +164,13 @@ plot(cgr_cox)
 }
 \references{
 Gomon, D. and Putter, H. and Nelissen, R. G. H. H. and van der Pas, S. (2022),
-CGR-CUSUM: A Continuous time Generalized Rapid Response Cumulative Sum chart, arXiv - preprint.
-\doi{10.48550/ARXIV.2205.07618}
+CGR-CUSUM: A Continuous time Generalized Rapid Response Cumulative Sum chart, Biostatistics
+\doi{10.1093/biostatistics/kxac041}
 }
 \seealso{
 \code{\link[success]{plot.cgrcusum}}, \code{\link[success]{runlength.cgrcusum}}
 
 Other quality control charts: 
-\code{\link{bernoulli_cusum}()},
 \code{\link{bk_cusum}()},
 \code{\link{funnel_plot}()}
 }

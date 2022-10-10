@@ -1,7 +1,7 @@
 #' Risk-adjusted funnel plot
 #'
 #' @description This function allows to construct a risk-adjusted funnel plot
-#' for comparing survival proportion between units.
+#' for comparing survival proportion between units, see Spiegelhalter (2005).
 #'
 #' @param data A \code{data.frame} with rows representing subjects and the
 #' following named columns: \describe{
@@ -47,6 +47,10 @@
 #' \item \code{conflev}: specified confidence level(s)
 #' \item \code{p0}: (Estimated) baseline failure probability
 #' }
+#'
+#' @references Spiegelhalter D. J. (2005). Funnel plots for comparing
+#' institutional performance. Statistics in medicine, 24(8), 1185-1202.
+#' \doi{10.1002/sim.1970}
 #'
 #' @importFrom stats predict.glm
 #' @importFrom stats model.matrix

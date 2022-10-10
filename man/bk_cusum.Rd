@@ -146,7 +146,6 @@ continuous time based on the Cox Model, Statistics in medicine 27, 3452-3452.
 \code{\link[success]{plot.bkcusum}}, \code{\link[success]{runlength.bkcusum}}
 
 Other quality control charts: 
-\code{\link{bernoulli_cusum}()},
 \code{\link{cgr_cusum}()},
 \code{\link{funnel_plot}()}
 }

@@ -181,7 +181,8 @@ parameter_assist <- function(baseline_data, data, formula,
 
 
   #Determine arrival rate psi of specified data frame
-  psi <- nrow(data)/max(data$entrytime)
+  psi <- (nrow(data)-1)/(max(data$"entrytime") - min(data$"entrytime"))
+
 
   if(missing(time)){
     time <- max(baseline_data$entrytime)
