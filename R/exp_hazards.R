@@ -5,11 +5,11 @@
 #' with parameter \eqn{\lambda}{\lambda} and true hazard ratio \eqn{\mu}{\mu}.
 #'
 #' @details The hazard function of an exponential distribution is given by:
-#' \deqn{h(\lambda) = \lambda}{h(\lambda) = \lambda}
+#' \deqn{h(t| \lambda, \mu) = \lambda e^\mu}{h(t|\lambda, \mu) = \lambda e^\mu}
 #' The cumulative hazard (with true hazard ratio \eqn{\mu}{\mu}) is given by:
-#' \deqn{H(\lambda, \mu) = \lambda t e^\mu}{H(\lambda, \mu) = \lambda * t * exp(\mu)}
+#' \deqn{H(t| \lambda, \mu) = \lambda t e^\mu}{H(t|\lambda, \mu) = \lambda * t * exp(\mu)}
 #' The inverse cumulative hazard (with true hazard ratio \eqn{\mu}{\mu}) by:
-#' \deqn{H^{-1}(\lambda, \mu) = \frac{t}{\lambda e^\mu}}{H^(-1)(\lambda, \mu) = t/(\lambda exp(\mu))}
+#' \deqn{H^{-1}(t| \lambda, \mu) = \frac{t}{\lambda e^\mu}}{H^(-1)(t|\lambda, \mu) = t/(\lambda exp(\mu))}
 #'
 #' @return Value of specified function at time \eqn{t}{t}.
 #'
@@ -24,8 +24,8 @@ NULL
 
 #' @rdname exp_hazards
 #' @export
-haz_exp <- function(t, lambda){
-  lambda
+haz_exp <- function(t, lambda, mu = log(1)){
+  lambda * exp(mu)
 }
 
 #' @rdname exp_hazards

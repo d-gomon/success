@@ -2,6 +2,7 @@
 
 * bernoulli_cusum() no longer re-calculates failure probability at every time point. Major speed-up
 * Added references to published articles in cgr_cusum() and funnel_plot().
+* Added baseline, cumulative and inverse cumulative Weibull hazards (see ?haz_weib)
 
 
 
