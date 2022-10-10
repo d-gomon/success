@@ -99,13 +99,7 @@ plot(bercus)
 }
 \seealso{
 \code{\link[success]{plot.bercusum}}, \code{\link[success]{runlength.bercusum}}
-
-Other quality control charts: 
-\code{\link{bk_cusum}()},
-\code{\link{cgr_cusum}()},
-\code{\link{funnel_plot}()}
 }
 \author{
 Daniel Gomon
 }
-\concept{quality control charts}

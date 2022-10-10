@@ -1,3 +1,10 @@
+# success 1.0.0
+
+* bernoulli_cusum() no longer re-calculates failure probability at every time point. Major speed-up
+* Added references to published articles in cgr_cusum() and funnel_plot().
+
+
+
 # success 0.1.1
 
 * Added a `NEWS.md` file to track changes to the package.

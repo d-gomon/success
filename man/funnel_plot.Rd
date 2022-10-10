@@ -61,7 +61,7 @@ specified confidence levels.}
 }
 \description{
 This function allows to construct a risk-adjusted funnel plot
-for comparing survival proportion between units.
+for comparing survival proportion between units, see Spiegelhalter (2005).
 }
 \examples{
 #Determine a risk-adjustment model using a generalized linear model.
@@ -78,11 +78,15 @@ require(plotly)
 ggplotly(plot(funnel))
 }
 }
+\references{
+Spiegelhalter D. J. (2005). Funnel plots for comparing
+institutional performance. Statistics in medicine, 24(8), 1185-1202.
+\doi{10.1002/sim.1970}
+}
 \seealso{
 \code{\link[success]{plot.funnelplot}}, \code{\link[success]{summary.funnelplot}}
 
 Other quality control charts: 
-\code{\link{bernoulli_cusum}()},
 \code{\link{bk_cusum}()},
 \code{\link{cgr_cusum}()}
 }
