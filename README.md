@@ -17,17 +17,20 @@ status](https://www.r-pkg.org/badges/version/success)](https://CRAN.R-project.or
 downloads](https://cranlogs.r-pkg.org/badges/success)](https://cran.r-project.org/package=success)
 [![GitHub Repo
 stars](https://img.shields.io/github/stars/d-gomon/success?style=social)](https://github.com/d-gomon/success)
-[![arXiv](https://img.shields.io/badge/stat.AP-arXiv%3A2205.07618-B31B1B)](https://doi.org/10.48550/arXiv.2205.07618)
+[![Biostatistics](https://img.shields.io/badge/Biostatistics-kxac041-%23003365)](https://doi.org/10.1093/biostatistics/kxac041)
 <!-- badges: end -->
+
+<!-- [![arXiv](https://img.shields.io/badge/stat.AP-arXiv%3A2205.07618-B31B1B)](https://doi.org/10.48550/arXiv.2205.07618) -->
 
 # SUrvival Control Chart EStimation Software
 
 The goal of the package is to allow easy applications of continuous time
 CUSUM procedures on survival data. Specifically, the Biswas &
-Kalbfleisch CUSUM (2008) and the CGR-CUSUM (2021).
+Kalbfleisch CUSUM (2008) and the CGR-CUSUM (Gomon et al. 2022).
 
-Besides this, it allows for the construction of the Binary CUSUM chart
-and funnel plot on survival data as well.
+Besides continuous time procedures, it is also possible to construct the
+Bernoulli (binary) CUSUM and funnel plot (Spiegelhalter 2005) on
+survival data.
 
 ## Installation
 
@@ -61,9 +64,7 @@ plot(cgr)
 
 <img src="man/figures/README-success-1.png" width="100%" />
 
-You can plot the figure with control limit
-![h = 10](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;h%20%3D%2010 "h = 10")
-by using:
+You can plot the figure with control limit `h = 10` by using:
 
 ``` r
 plot(cgr, h = 10)
@@ -72,35 +73,25 @@ plot(cgr, h = 10)
 <img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
 
 And determine the runlength of the chart when using control limit
-![h = 10](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;h%20%3D%2010 "h = 10"):
+`h = 10`:
 
 ``` r
 runlength(cgr, h = 10)
 #> [1] 151
 ```
 
-Hospital 1 would be detected by a CGR-CUSUM with control limit
-![h = 10](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;h%20%3D%2010 "h = 10")
-after
-![151](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;151 "151")
-days.
-
-Alternatively, you can construct the CGR-CUSUM only until it crosses
-control limit
-![h = 10](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;h%20%3D%2010 "h = 10")
-by:
-
-``` r
-cgr <- cgr_cusum(data = dat, coxphmod = tcoxmod, h = 10)
-plot(cgr)
-```
-
-<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
+Using a control limit of `h = 10` Hospital 1 would be detected by a
+CGR-CUSUM 151 days after the first patient entered the study.
 
 ## References
 
-The theory behind the methods in this package can be found in:
-
 Gomon D., Putter H., Nelissen R.G.H.H., van der Pas S (2022):
 [CGR-CUSUM: A Continuous time Generalized Rapid Response Cumulative Sum
-chart](https://doi.org/10.48550/arXiv.2205.07618), *arXiv: a preprint*
+chart](https://doi.org/10.1093/biostatistics/kxac041), *Biostatistics*
+
+Biswas P. and Kalbfleisch J.D. (2008): [A risk-adjusted CUSUM in
+continuous time based on the Cox
+model](https://doi.org/10.1002/sim.3216), *Statistics in Medicine*
+
+Spiegelhalter D.J. (2005): [Funnel plots for comparing institutional
+performance](https://doi.org/10.1002/sim.1970), *Statistics in Medicine*

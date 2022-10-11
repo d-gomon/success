@@ -16,7 +16,8 @@
 #'
 #'
 #' @param t time of evaluation.
-#' @param lambda parameter of the exponential distribution.
+#' @param lambda shape parameter \eqn{\lambda}{\lambda}
+#' @param theta scale parameter \eqn{\theta}{\theta}
 #' @param mu (optional) true excess hazard rate \eqn{\mu}{\mu}.
 #' @name weib_hazards
 NULL

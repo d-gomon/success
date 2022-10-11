@@ -16,7 +16,9 @@ inv_chaz_weib(t, lambda, theta, mu = log(1))
 \arguments{
 \item{t}{time of evaluation.}
 
-\item{lambda}{parameter of the exponential distribution.}
+\item{lambda}{shape parameter \eqn{\lambda}{\lambda}}
+
+\item{theta}{scale parameter \eqn{\theta}{\theta}}
 
 \item{mu}{(optional) true excess hazard rate \eqn{\mu}{\mu}.}
 }
