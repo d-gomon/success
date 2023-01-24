@@ -82,18 +82,22 @@ interactive_plot <- function(x, unit_names, scale = FALSE,
     group_by <- group_by[1]
   }
 
-  #Check if the graph is lower sided
-  isLowerCUSUM <- ifelse(all(x[[i]][[1]]$value <= 0), -1, 1)
 
+  CUSUM_sign <- integer(length = n)
   if(isTRUE(scale)){
     for(i in 1:n){
+      #Check if the graph is lower sided
+      CUSUM_sign[i] <- ifelse(all(x[[i]][[1]]$value <= 0), -1, 1)
       if("h" %in% names(x[[i]])){
-        x[[i]][[1]]$value <- isLowerCUSUM * x[[i]][[1]]$value/x[[i]]$h
+        x[[i]][[1]]$value <- CUSUM_sign[i] * x[[i]][[1]]$value/x[[i]]$h
       } else{
-        x[[i]][[1]]$value <- isLowerCUSUM * x[[i]][[1]]$value/max(x[[i]][[1]]$value)
+        x[[i]][[1]]$value <- CUSUM_sign[i] * x[[i]][[1]]$value/max(x[[i]][[1]]$value)
       }
     }
   }
+
+
+
   #Function for adding lines to plotly - not currently used
   hline <- function(y = 0, color = "black") {
     list(
@@ -106,6 +110,15 @@ interactive_plot <- function(x, unit_names, scale = FALSE,
       line = list(color = color)
     )
 
+  }
+
+  #Check which control limits to display in plot
+  if(all(CUSUM_sign > 0)){
+    shape_list <- list(hline(1))
+  } else if(all(CUSUM_sign < 0)){
+    shape_list <- list(hline(1))
+  } else{
+    shape_list <- list(hline(-1), hline(1))
   }
 
 
@@ -124,7 +137,7 @@ interactive_plot <- function(x, unit_names, scale = FALSE,
     a <- group_by(plot_ly(tx, color = I("black")),id)
     a <- add_lines(group_by(a, id), x = ~ time, y = ~value)
     if(isTRUE(scale)){
-      a <- plotly::layout(a, shapes = list(hline(isLowerCUSUM)))
+      a <- plotly::layout(a, shapes = shape_list)
     }
     return(highlight(a, on = "plotly_click", off = "plotly_deselect", selectize = TRUE, dynamic = TRUE, persistent = TRUE))
   }
@@ -175,7 +188,7 @@ interactive_plot <- function(x, unit_names, scale = FALSE,
     #https://plotly.com/r/reference/scatter/#scatter-hovertemplate
   }
   if(isTRUE(scale)){
-    a <- plotly::layout(a, shapes = list(hline(isLowerCUSUM)))
+    a <- plotly::layout(a, shapes = shape_list)
   }
   return(a)
 }
