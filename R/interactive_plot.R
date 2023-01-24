@@ -82,12 +82,15 @@ interactive_plot <- function(x, unit_names, scale = FALSE,
     group_by <- group_by[1]
   }
 
+  #Check if the graph is lower sided
+  isLowerCUSUM <- ifelse(all(x[[i]][[1]]$value <= 0), -1, 1)
+
   if(isTRUE(scale)){
     for(i in 1:n){
       if("h" %in% names(x[[i]])){
-        x[[i]][[1]]$value <- x[[i]][[1]]$value/x[[i]]$h
+        x[[i]][[1]]$value <- isLowerCUSUM * x[[i]][[1]]$value/x[[i]]$h
       } else{
-        x[[i]][[1]]$value <- x[[i]][[1]]$value/max(x[[i]][[1]]$value)
+        x[[i]][[1]]$value <- isLowerCUSUM * x[[i]][[1]]$value/max(x[[i]][[1]]$value)
       }
     }
   }
@@ -121,7 +124,7 @@ interactive_plot <- function(x, unit_names, scale = FALSE,
     a <- group_by(plot_ly(tx, color = I("black")),id)
     a <- add_lines(group_by(a, id), x = ~ time, y = ~value)
     if(isTRUE(scale)){
-      a <- plotly::layout(a, shapes = list(hline(1)))
+      a <- plotly::layout(a, shapes = list(hline(isLowerCUSUM)))
     }
     return(highlight(a, on = "plotly_click", off = "plotly_deselect", selectize = TRUE, dynamic = TRUE, persistent = TRUE))
   }
@@ -172,7 +175,7 @@ interactive_plot <- function(x, unit_names, scale = FALSE,
     #https://plotly.com/r/reference/scatter/#scatter-hovertemplate
   }
   if(isTRUE(scale)){
-    a <- plotly::layout(a, shapes = list(hline(1)))
+    a <- plotly::layout(a, shapes = list(hline(isLowerCUSUM)))
   }
   return(a)
 }
