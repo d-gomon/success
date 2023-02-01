@@ -116,7 +116,7 @@ interactive_plot <- function(x, unit_names, scale = FALSE,
   if(all(CUSUM_sign > 0)){
     shape_list <- list(hline(1))
   } else if(all(CUSUM_sign < 0)){
-    shape_list <- list(hline(1))
+    shape_list <- list(hline(-1))
   } else{
     shape_list <- list(hline(-1), hline(1))
   }
