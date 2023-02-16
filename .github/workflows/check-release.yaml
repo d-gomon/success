@@ -1,7 +1,3 @@
-
-
-Based on the answer here and response here, I figured it would involve adding details to r-lib actions to the YAML header in the .github directory. However, the fixes there didn't quite work for me. I (re?)ran usethis::use_github_action("check-standard") and then added the tinytex line and changed pandoc line to - uses: r-lib/actions/setup-pandoc@v2 rather than @v1, and it seems to have finally worked. Full .yaml:
-
 # Workflow derived from https://github.com/r-lib/actions/tree/master/examples
 # Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
 on:
