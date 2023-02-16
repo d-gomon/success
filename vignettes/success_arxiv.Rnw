@@ -1,0 +1,6 @@
+\documentclass{article}
+\usepackage{pdfpages}
+%\VignetteIndexEntry{SUrvival Control Chart EStimation Software in R:the success package}
+\begin{document}
+\includepdf[pages=-, fitpaper=true]{success_arxiv_vignette.pdf}
+\end{document}

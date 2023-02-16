@@ -30,10 +30,10 @@ Prints a summary of the
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{funnelplot}: summarize instances detected by the
+\item \code{summary(funnelplot)}: summarize instances detected by the
 \code{funnelplot} object
-}}
 
+}}
 \seealso{
 \code{\link[success:funnel_plot]{funnel_plot}}
 }

@@ -32,13 +32,13 @@ chart when using control limit h
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{cgrcusum}: determines runlength of \code{cgrcusum} object
+\item \code{runlength(cgrcusum)}: determines runlength of \code{cgrcusum} object
 
-\item \code{bkcusum}: determines runlength of \code{bkcusum} object
+\item \code{runlength(bkcusum)}: determines runlength of \code{bkcusum} object
 
-\item \code{bercusum}: determines runlength of \code{bercusum} object
+\item \code{runlength(bercusum)}: determines runlength of \code{bercusum} object
+
 }}
-
 \examples{
 exprfitber <- as.formula("(survtime <= 100) & (censorid == 1) ~ age + sex + BMI")
 glmmodber <- glm(exprfitber, data = surgerydat, family = binomial(link = "logit"))

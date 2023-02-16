@@ -4,6 +4,8 @@
 * Added references to published articles in cgr_cusum() and funnel_plot().
 * Added baseline, cumulative and inverse cumulative Weibull hazards (see ?haz_weib)
 * Updated README file with references.
+* Interactive plot now correctly displays downward CUSUM charts.
+* Added Vignette describing the package.
 
 
 

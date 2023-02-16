@@ -4,3 +4,6 @@
 .Ruserdata
 success.Rcheck/
 Old_Stuff/
+inst/doc
+/doc/
+/Meta/

@@ -4,7 +4,8 @@
 \alias{funnel_plot}
 \title{Risk-adjusted funnel plot}
 \usage{
-funnel_plot(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.99), assist)
+funnel_plot(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.99),
+  assist)
 }
 \arguments{
 \item{data}{A \code{data.frame} with rows representing subjects and the

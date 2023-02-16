@@ -34,15 +34,15 @@ Plot a \code{cgrcusum}, \code{bkcusum},
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{cgrcusum}: Plot a CGR-CUSUM
+\item \code{plot(cgrcusum)}: Plot a CGR-CUSUM
 
-\item \code{bkcusum}: Plot a BK-CUSUM
+\item \code{plot(bkcusum)}: Plot a BK-CUSUM
 
-\item \code{funnelplot}: Display a funnel plot
+\item \code{plot(funnelplot)}: Display a funnel plot
 
-\item \code{bercusum}: Plot a Bernoulli CUSUM
+\item \code{plot(bercusum)}: Plot a Bernoulli CUSUM
+
 }}
-
 \seealso{
 \code{\link[success]{cgr_cusum}}, \code{\link[success]{bk_cusum}}, \code{\link[success]{bernoulli_cusum}}, \code{\link[success]{funnel_plot}}
 }
