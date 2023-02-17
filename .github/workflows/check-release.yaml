@@ -32,6 +32,12 @@ jobs:
       - uses: actions/checkout@v3
       
       - uses: r-lib/actions/setup-tinytex@v2
+      - run: tlmgr --version
+      
+      - name: Install additional LaTeX packages
+        run: |
+          tlmgr install pdfpages
+          tlmgr list --only-installed
 
       - uses: r-lib/actions/setup-pandoc@v2
 
