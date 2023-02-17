@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      
+
       - uses: r-lib/actions/setup-tinytex@v2
         env:
           # install full prebuilt version
@@ -52,3 +52,4 @@ jobs:
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
+          error-on: '"error"'
