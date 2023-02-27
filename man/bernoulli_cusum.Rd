@@ -80,9 +80,9 @@ as arguments to the function:
 The Bernoulli CUSUM chart is given by
 \deqn{S_n = \max(0, S_{n-1} + W_n),}{S_n = max(0, S_{n-1} + W_n),} where
 \deqn{W_n = X_n \ln \left( \frac{p_1 (1-p_0)}{p_0(1-p_1)}  \right) + \ln \left( \frac{1-p_1}{1-p_0} \right)}{W_n = X_n ln((p_1 * (1-p_0))/(p_0 * (1-p_1))) + ln((1-p_1)/(1-p_0))}
-and \eqn{X_n}{X_n} is the outcome of the \eqn{n}{n}-th (chronological) subject in the data. If \code{glmmod} is specified,
-a risk-adjusted procedure is performed instead where
+and \eqn{X_n}{X_n} is the outcome of the \eqn{n}{n}-th (chronological) subject in the data. In terms of the Odds Ratio:
 \deqn{W_n = X_n \ln \left( e^\theta  \right) + \ln \left( \frac{1}{1-p_0 + e^\theta p_0} \right)}{W_n = X_n ln(exp(theta)) + ln((1)/(1-p_0 - exp(theta) * p_0))}
+For a risk-adjusted procedure (when \code{glmmod} is specified), a patient specific baseline failure probability \eqn{p_{0i}}{p_(0i)} is modelled using logistic regression first.
 Instead of the standard practice of displaying patient numbering on the
 x-axis, the time of outcome is displayed.
 }
