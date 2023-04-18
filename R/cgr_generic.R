@@ -8,6 +8,7 @@
 #' @param x Chart to plot
 #' @param h Control limit to display for \code{cgrcusum}, \code{bkcusum} or \code{bercusum}
 #' @param percentage Should output be shown in percentages? Default is \code{TRUE}.
+#' @param unit_label Should unit labels be displayed next to points in the funnel plot? Default is \code{FALSE}.
 #' @param ... Further plotting parameters
 #'
 #'
@@ -68,10 +69,12 @@ plot.bkcusum <- function(x, h, ...){
 
 #' @describeIn plot Display a funnel plot
 #' @import ggplot2
+#' @import ggrepel
 #' @importFrom grDevices palette
 #' @importFrom grDevices palette.colors
+#' @importFrom grDevices colorRamp
 #' @export
-plot.funnelplot <- function(x, percentage = TRUE, ...){
+plot.funnelplot <- function(x, percentage = TRUE, unit_label = FALSE, ...){
   numtotal <- lower <- conflev <- upper <- p <- unit <- detection <- NULL
 
   #Supply plot.FUNNEL with output from FUNNELsim or a data frame with $unitdata and $p0 and $conflev
@@ -90,22 +93,32 @@ plot.funnelplot <- function(x, percentage = TRUE, ...){
 
   #Determine the number of required colours
   numcolours <- length(x$conflev) + 1
-  cols <- palette.colors(n = numcolours)
+  #Gradient from green to red displaying detection levels
+  cols <- colorRampPalette(c("green", "red"))(numcolours)
   #Determine which colour to use for point:
-  cols_columns <- ncol(x$data) - 5
+  names(cols) = c("in-control", sort(as.numeric(x$conflev)))
+  #Create color scale for ggplot
+  colScale <- scale_colour_manual(name = "Detection", values = cols)
+
+  #Determine highest detection level.
   finalcols <- rep("in-control", length = nrow(x$data))
-  for (k in rev(1:cols_columns)){
+  for (k in rev(1:numcolours)){
     t_col_data <- x$data[,ncol(x$data) - (k-1)]
     finalcols[which(t_col_data == "worse" | t_col_data == "better")] <- rev(x$conflev)[k]
   }
+  finalcols <- as.factor(finalcols)
+  finalcols <- relevel(finalcols, "in-control")
   x$data$detection <- finalcols
-  t <- ggplot() + geom_line(data = x$plotdata, mapping= aes(x = numtotal, y = lower, group = as.factor(conflev)),
+  t <- ggplot(x$data, mapping = aes(x = numtotal, y = p)) + geom_line(data = x$plotdata, mapping= aes(x = numtotal, y = lower, group = as.factor(conflev)),
                             colour = "blue", linetype = "dashed") +
-  geom_line(data = x$plotdata,aes(x = numtotal, y = upper, group = as.factor(conflev)),
+  geom_line(data = x$plotdata, aes(x = numtotal, y = upper, group = as.factor(conflev)),
             colour = "blue", linetype = "dashed") +
-  geom_point(data = x$data, mapping= aes(x = numtotal, y = p, colour = detection, group = unit)) +
+  geom_point(data = x$data, mapping= aes(x = numtotal, y = p, colour = as.factor(detection), group = unit)) +
     #theme(legend.position = "none") +
-    geom_hline(yintercept = x$p0, colour = "grey") + ylim(miny, maxy)
+    geom_hline(yintercept = x$p0, colour = "grey") + ylim(miny, maxy) + colScale
+  if(isTRUE(unit_label)){
+    t <- t + geom_label_repel(aes(color = factor(detection), label = ifelse(detection!="in-control", unit, "")), show.legend = FALSE)
+  }
   t <- t + labs(x = "Number of outcomes", y = paste0("(Risk-adjusted) Proportion of failure (%)"))
   return(t)
 }
