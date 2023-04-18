@@ -53,3 +53,5 @@ jobs:
         with:
           upload-snapshots: true
           error-on: '"error"'
+          #Compact vignette, otherwise workflow fails.
+          build_args: "--compact-vignettes=gs+qpdf"
