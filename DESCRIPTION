@@ -25,7 +25,8 @@ Depends:
     Rfast,
     R (>= 3.5.0)
 Imports: 
-    survival
+    survival,
+    ggrepel
 Suggests: 
     gridExtra,
     knitr,

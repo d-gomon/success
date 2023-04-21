@@ -69,7 +69,8 @@ plot.bkcusum <- function(x, h, ...){
 
 #' @describeIn plot Display a funnel plot
 #' @import ggplot2
-#' @import ggrepel
+#' @importFrom ggrepel geom_label_repel
+#' @importFrom stats relevel
 #' @importFrom grDevices palette
 #' @importFrom grDevices palette.colors
 #' @importFrom grDevices colorRamp
