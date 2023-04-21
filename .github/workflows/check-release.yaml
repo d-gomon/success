@@ -54,4 +54,4 @@ jobs:
           upload-snapshots: true
           error-on: '"error"'
           #Compact vignette, otherwise workflow fails.
-          args: = c('--compact-vignettes=both')
+          args: '--compact-vignettes=both'
