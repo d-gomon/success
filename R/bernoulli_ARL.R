@@ -69,7 +69,7 @@
 #' This function determines the average run length using the Markov Chain approach described
 #' in Brook & Evans (1972), using the risk-adjustment correction proposed in
 #' Steiner et al. (2000). The idea is to discretize the domain (0, h) into $t-1$
-#' state spaces \eqn{E_0, \ldots, E_{t-1}}{E_0, ..., E_{t-1}} of width \eqn{w}{w}, such that
+#' state spaces \eqn{E_0}{E_0} of width \eqn{w/2}{w/2} and \eqn{E_1, \ldots, E_{t-1}}{E_1, ..., E_{t-1}} of width \eqn{w}{w}, such that
 #' \eqn{E_t}{E_t} is an absorbing state.  This is done using the following steps:
 #' \itemize{
 #' \item \eqn{w}{w} is determined using the relationship \eqn{\frac{2h}{2t-1}}{2h/(2t-1)}.
@@ -103,7 +103,7 @@
 
 
 
-bernoulli_ARL <- function(h, t, glmmod, theta, p0, p1, followup, smooth_prob = FALSE){
+bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, followup, smooth_prob = FALSE){
   #------------Variable checks------------------
 
   #Input checks
@@ -120,6 +120,13 @@ bernoulli_ARL <- function(h, t, glmmod, theta, p0, p1, followup, smooth_prob = F
     if(!all(is.numeric(followup), followup > 0, length(followup) == 1)){
       stop("Parameter 'followup' must be a positive numeric variable.")
     }
+  }
+  if(!missing(theta_true)){
+    if(!all(is.numeric(theta_true) & theta != 0)){
+      stop("Parameter 'theta' must be a numeric variable not equal to 0.")
+    }
+  } else{
+    theta_true = NULL
   }
   if(!missing(glmmod)){
     if(!inherits(glmmod, "glm")){
@@ -171,8 +178,13 @@ bernoulli_ARL <- function(h, t, glmmod, theta, p0, p1, followup, smooth_prob = F
       null_probs <- sort(glmmod$fitted.values)
       if(theta > 0){
         #If we have glmmod, we can do a risk-adjusted calculation of the ARL.
-        Wncdf_discrete <- function(x, null_probs, theta){
+        Wncdf_discrete <- function(x, null_probs, theta, theta_true = NULL){
           #Function to calculate cdf of W_n in discrete case
+          if(!is.null(theta_true)){
+            adjnull_probs <- null_probs*exp(theta_true)/(1 - null_probs + exp(theta_true)*null_probs)
+          } else{
+            adjnull_probs <- null_probs
+          }
           N <- length(null_probs)
           if(x <= 0){
             #ind <- which(null_probs >= (1-exp(-x))/(1-exp(theta)))
@@ -184,7 +196,9 @@ bernoulli_ARL <- function(h, t, glmmod, theta, p0, p1, followup, smooth_prob = F
               ind <- ind:N
             }
             #\sum_{p \geq (1-e^{-K})/(1-e^\theta)} (1-p) P(p_n = p)
-            return(sum((1-null_probs[ind]))*1/N)
+            #or
+            #\sum_{p \geq (1-e^{-K})/(1-e^\theta)} (1-(p*e^{theta_true}/(1-p + e^{theta_true}*p))) P(p_n = p)
+            return(sum((1-adjnull_probs[ind]))*1/N)
           } else{
             #ind <- which(null_probs >= (1-exp(-(x-theta)))/(1-exp(theta)))
             ind <- Rfast::binary_search(null_probs, (1-exp(-(x-theta)))/(1-exp(theta)), index = TRUE)
@@ -194,14 +208,19 @@ bernoulli_ARL <- function(h, t, glmmod, theta, p0, p1, followup, smooth_prob = F
               ind <- ind:N
             }
             #P(W_n \leq 0) + \sum_{p \geq (1-e^{-(K-\theta)})/(1-e^\theta)} p* P(p_n = p)
-            return(Wncdf_discrete(0, null_probs = null_probs, theta = theta) + sum(null_probs[ind])*1/N)
+            return(Wncdf_discrete(0, null_probs = null_probs, theta = theta, theta_true = theta_true) + sum(adjnull_probs[ind])*1/N)
           }
         }
       } else if(theta < 0){
         #If we have glmmod, we can do a risk-adjusted calculation of the ARL.
-        Wncdf_discrete <- function(x, null_probs, theta){
+        Wncdf_discrete <- function(x, null_probs, theta, theta_true = NULL){
           #Function to calculate cdf of W_n in discrete case
           N <- length(null_probs)
+          if(!is.null(theta_true)){
+            adjnull_probs <- null_probs*exp(theta_true)/(1 - null_probs + exp(theta_true)*null_probs)
+          } else{
+            adjnull_probs <- null_probs
+          }
           if(x <= 0){
             #ind <- which(null_probs <= (1-exp(-x-theta))/(1-exp(theta)))
             #Finding the probabilities which are larger than cut-off value (see above line)
@@ -211,8 +230,10 @@ bernoulli_ARL <- function(h, t, glmmod, theta, p0, p1, followup, smooth_prob = F
             } else{
               ind <- 1:(ind-1)
             }
-            #\sum_{p \geq (1-e^{-K})/(1-e^\theta)} (1-p) P(p_n = p)
-            return(sum((null_probs[ind]))* 1/N)
+            #\sum_{p \leq (1-e^{-K})/(1-e^\theta)} (1-p) P(p_n = p)
+            #or
+            #\sum_{p \leq (1-e^{-K})/(1-e^\theta)} (1-(p*e^{theta_true}/(1-p + e^{theta_true}*p))) P(p_n = p)
+            return(sum(adjnull_probs[ind])*1/N)
           } else{
             #ind <- which(null_probs <= (1-exp(-(x-theta)))/(1-exp(theta)))
             ind <- Rfast::binary_search(null_probs, (1-exp(-(x)))/(1-exp(theta)), index = TRUE)
@@ -222,7 +243,7 @@ bernoulli_ARL <- function(h, t, glmmod, theta, p0, p1, followup, smooth_prob = F
               ind <- 1:(ind-1)
             }
             #P(W_n \leq 0) + \sum_{p \geq (1-e^{-(K-\theta)})/(1-e^\theta)} p* P(p_n = p)
-            return(Wncdf_discrete(0, null_probs = null_probs, theta = theta) + sum((1-null_probs[ind]))*1/N)
+            return(Wncdf_discrete(0, null_probs = null_probs, theta = theta, theta_true = theta_true) + sum((1-adjnull_probs[ind]))*1/N)
           }
         }
       }
@@ -232,12 +253,17 @@ bernoulli_ARL <- function(h, t, glmmod, theta, p0, p1, followup, smooth_prob = F
       #We use null_probs to represent p0
       #IMPORTANTIMPORTANTIMPORTANTIMPORTANTIMPORTANTIMPORTANTIMPORTANT
       if(theta > 0){
-        Wncdf_discrete <- function(x, null_probs, theta){
+        Wncdf_discrete <- function(x, null_probs, theta, theta_true = NULL){
           #Function to calculate cdf of W_n in discrete unadjusted
+          if(!is.null(theta_true)){
+            adjnull_probs <- null_probs*exp(theta_true)/(1 - null_probs + exp(theta_true)*null_probs)
+          } else{
+            adjnull_probs <- null_probs
+          }
           if(x <= 0){
             #Read line below as if(p0 >= ....)
             if(null_probs >= (1-exp(-x))/(1-exp(theta))){
-              return(1-null_probs)
+              return(1-adjnull_probs)
             } else{
               return(0)
             }
@@ -245,17 +271,22 @@ bernoulli_ARL <- function(h, t, glmmod, theta, p0, p1, followup, smooth_prob = F
             if(null_probs >= (1-exp(-(x-theta)))/(1-exp(theta))){
               return(1)
             }else{
-              return(1-null_probs)
+              return(1-adjnull_probs)
             }
           }
         }
       } else if(theta < 0){
-        Wncdf_discrete <- function(x, null_probs, theta){
+        Wncdf_discrete <- function(x, null_probs, theta, theta_true = NULL){
+          if(!is.null(theta_true)){
+            adjnull_probs <- null_probs*exp(theta_true)/(1 - null_probs + exp(theta_true)*null_probs)
+          } else{
+            adjnull_probs <- null_probs
+          }
           #Function to calculate cdf of W_n in discrete unadjusted
           if(x <= 0){
             #Read line below as if(p0 <= ....)
             if(null_probs <= (1-exp(-(x-theta)))/(1-exp(theta))){
-              return(null_probs)
+              return(adjnull_probs)
             } else{
               return(0)
             }
@@ -263,40 +294,40 @@ bernoulli_ARL <- function(h, t, glmmod, theta, p0, p1, followup, smooth_prob = F
             if(null_probs <= (1-exp(-(x)))/(1-exp(theta))){
               return(1)
             }else{
-              return(null_probs)
+              return(adjnull_probs)
             }
           }
         }
       }
     }
     #Using Wncdf_discrete we can calculate the transition probabilities
-    trans_prob <- function(state1, state2, w, t, null_probs, theta){
+    trans_prob <- function(state1, state2, w, t, null_probs, theta, theta_true = NULL){
       if(state2 == 0){
         #P(W_n \leq -i2 + 1/2*w)
-        Wncdf_discrete((0.5-state1) * w, null_probs = null_probs, theta = theta)
+        Wncdf_discrete((0.5-state1) * w, null_probs = null_probs, theta = theta, theta_true = theta_true)
       } else if(state2 == t){
-        1- Wncdf_discrete((t-state1 - 0.5) * w, null_probs = null_probs, theta = theta)
+        1- Wncdf_discrete((t-state1 - 0.5) * w, null_probs = null_probs, theta = theta, theta_true = theta_true)
       }else{
-        Wncdf_discrete((state2-state1 + 0.5) * w, null_probs = null_probs, theta = theta) - Wncdf_discrete((state2-state1 - 0.5) * w, null_probs = null_probs, theta = theta)
+        Wncdf_discrete((state2-state1 + 0.5) * w, null_probs = null_probs, theta = theta, theta_true = theta_true) - Wncdf_discrete((state2-state1 - 0.5) * w, null_probs = null_probs, theta = theta, theta_true = theta_true)
       }
     }
     #We only need to calculate some specific transition probabilities:
     if(missing(glmmod)){
-      #To avoid code duplication, define glmmod as p0 here.
+      #To avoid code duplication, define null_probs as p0 here.
       null_probs = p0
     }
 
 
     #First we calculate the probabilities in the first row and first column of R
     #For this we create the vector (p_{t-1, 0}, p_{t-2, 0}, ..., p_{0,0}, ..., p_{0, t-2}, p_{0, t-1})
-    probstmin10 <- sapply((t-1):0, function(x) trans_prob(x, 0, w = w, t = t, null_probs = null_probs, theta = theta))
-    probs1tmin1 <- sapply(1:(t-1), function(x) trans_prob(0, x, w = w, t = t, null_probs = null_probs, theta = theta))
+    probstmin10 <- sapply((t-1):0, function(x) trans_prob(x, 0, w = w, t = t, null_probs = null_probs, theta = theta, theta_true = theta_true))
+    probs1tmin1 <- sapply(1:(t-1), function(x) trans_prob(0, x, w = w, t = t, null_probs = null_probs, theta = theta, theta_true = theta_true))
     probs0 <- c(probstmin10, probs1tmin1)
 
     #Then we calculate the probabilities on the diagonal of the rest of the matrix:
     #These are given by the vector (p_{t-1, 1}, ..., p_{1, 1}, p_{1, 2}, ..., p_{1, t-1})
-    probstmin11 <- sapply((t-1):1, function(x) trans_prob(x, 1, w = w, t = t, null_probs = null_probs, theta = theta))
-    probs2tmin1 <- sapply(2:(t-1), function(x) trans_prob(1, x, w = w, t = t, null_probs = null_probs, theta = theta))
+    probstmin11 <- sapply((t-1):1, function(x) trans_prob(x, 1, w = w, t = t, null_probs = null_probs, theta = theta, theta_true = theta_true))
+    probs2tmin1 <- sapply(2:(t-1), function(x) trans_prob(1, x, w = w, t = t, null_probs = null_probs, theta = theta, theta_true = theta_true))
     probs1 <- c(probstmin11, probs2tmin1)
 
     #Iterate through matrix to fill values. For details, see Overleaf file (picture displaying the matrix).
@@ -316,7 +347,8 @@ bernoulli_ARL <- function(h, t, glmmod, theta, p0, p1, followup, smooth_prob = F
     if(missing(glmmod)){
       stop("Probabilities can only be smoothed when 'glmmod' is supplied.")
     }
-    #TO-DO
+    density_estimate <- density(glmmod$fitted.values)
+
   }
 
   #Now we need to decompose the "transition matrix" R to obtain the ARL vector mu
@@ -339,9 +371,10 @@ bernoulli_ARL <- function(h, t, glmmod, theta, p0, p1, followup, smooth_prob = F
   ARL <- cbind(0:(t-1), ARL)
   colnames(ARL)[1] <- "t_start"
 
-  return(list(ARL_0 = ARL_0,
+  print(ARL_0)
+  return(invisible(list(ARL_0 = ARL_0,
               ARL = ARL,
-              R = R))
+              R = R)))
 }
 
 

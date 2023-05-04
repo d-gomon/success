@@ -21,16 +21,27 @@ test_that("Inputs", {
                "Parameter 'p1' must be a positive probability between 0 and 1. (numeric)", fixed = TRUE)
 })
 
-glmmodber <- glm((survtime <= 100) & (censorid == 1)~ age + sex + BMI, data = surgerydat, family = binomial(link = "logit"))
-ARL <- bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmodber, theta = log(2))
-t <- 100
+
 
 
 test_that("Theory", {
+  glmmodber <- glm((survtime <= 100) & (censorid == 1)~ age + sex + BMI, data = surgerydat, family = binomial(link = "logit"))
+  ARL <- bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmodber, theta = log(2))
+  t <- 100
+  #Check whether theta is well defined
   expect_equal(bernoulli_ARL(h = 2, t = t, p0 = 0.5, theta = log(2)), bernoulli_ARL(h = 2, t = t, p0 = 0.5, p1 = 2/3))
+  #Create inverted glmmod
   glmmod2 <- glmmodber
   glmmod2$fitted.values <- 1 - glmmod2$fitted.values
+  #Replacing theta with -theta we should get the same answer when the specified probabilities are inverted (1-p).
   expect_equal(ARL, bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmod2, theta = -log(2)))
+  expect_equal(bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmodber, theta = -log(2)), bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmod2, theta = log(2)))
+  #Same for probabilities specified:
+  expect_equal(bernoulli_ARL(h = 2.5, t = 100, p0 = 0.3, theta = log(2)), bernoulli_ARL(h = 2.5, t = 100, p0 = 0.7, theta = -log(2)))
+  #Equal when theta_true = 0
+  expect_equal(ARL, bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmodber, theta = log(2), theta_true = log(1)))
+  #ARL_0 Smaller when theta_true > 0
+  expect_gt(ARL$ARL_0, bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmodber, theta = log(2), theta_true = log(1.5))$ARL_0)
 })
 
 
