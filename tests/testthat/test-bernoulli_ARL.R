@@ -9,8 +9,6 @@ test_that("Inputs", {
                "Parameter 'h' must be a single numeric variable.")
   expect_error(bernoulli_ARL(h = 2, t = 4, p0 = 0.5, theta = log(2), smooth_prob = 3),
                "Parameter 'smooth_prob' must be a single logical value.")
-  expect_error(bernoulli_ARL(h = 2, t = 4, p0 = 0.5, theta = log(2), followup = "death"),
-               "Parameter 'followup' must be a positive numeric variable.")
   expect_error(bernoulli_ARL(h = 2, t = 4, p0 = 0.5, theta = log(2), glmmod = 0.3),
                "Parameter 'glmmod' must be of class 'glm'.")
   expect_error(bernoulli_ARL(h = 2, t = 4, p0 = 0.5, theta = 0),
@@ -42,6 +40,11 @@ test_that("Theory", {
   expect_equal(ARL, bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmodber, theta = log(2), theta_true = log(1)))
   #ARL_0 Smaller when theta_true > 0
   expect_gt(ARL$ARL_0, bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmodber, theta = log(2), theta_true = log(1.5))$ARL_0)
+  #ARL_0 greater when theta_true < 0
+  expect_lt(ARL$ARL_0, bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmodber, theta = log(2), theta_true = -log(1.5))$ARL_0)
+  #Above 2 tests, but with negative theta
+  expect_lt(bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmodber, theta = -log(2))$ARL_0, bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmodber, theta = -log(2), theta_true = log(1.5))$ARL_0)
+  expect_gt(bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmodber, theta = -log(2))$ARL_0, bernoulli_ARL(h = 2.5, t = 100, glmmod = glmmodber, theta = -log(2), theta_true = -log(1.5))$ARL_0)
 })
 
 

@@ -31,8 +31,6 @@
 #' Note that \deqn{p_1 = \frac{p_0 e^\theta}{1-p_0 +p_0 e^\theta}.}{p1 = (p0 * e^\theta)/(1-p0+p0 * e^\theta).}
 #' @param p0 The baseline failure probability at \code{entrytime + followup} for individuals.
 #' @param p1 The alternative hypothesis failure probability at \code{entrytime + followup} for individuals.
-#' @param followup (optional) The value of the follow-up time used to determine event time. Will be used to
-#' calculate Average Run Length in time units instead of number of observed outcomes.
 #' @param smooth_prob Should the probability distribution of failure under the null distribution be smoothed?
 #' Useful for small samples. Can only be TRUE when \code{glmmod} is supplied. Default = FALSE.
 #'
@@ -40,19 +38,18 @@
 #'
 #' @return A list containing:
 #' \itemize{
-#' \item \code{ARL_0}: A numeric value indicating the average run length in number of outcomes and
-#' time (if followup specified) when starting from state E_0.
-#' \item \code{ARL}: A \code{data.frame} containing the average run length (#outcomes/time)
+#' \item \code{ARL_0}: A numeric value indicating the average run length in
+#' number of outcomes when starting from state E_0.
+#' \item \code{ARL}: A \code{data.frame} containing the average run length (#outcomes)
 #' depending on the state in which the process starts (E_0, E_1, ..., E_{t-1})
 #' \describe{
 #'   \item{\code{t_start}:}{State in which the CUSUM process starts;}
-#'   \item{\code{#outcomes}:}{ARL from starting state in #outcomes;}
-#'   \item{\code{Time}:}{(only if followup specified) ARL in time units;}
+#'   \item{\code{#outcomes}:}{ARL from starting state t_start;}
 #' }
 #' \item \code{R}: A transition probability \code{matrix} containing the transition
 #' probabilities between states \eqn{E_0, \ldots, E_{t-1}}{E_0, ..., E_{t-1}}.
 #' \eqn{R_{i,j}}{R_{i,j}} is the transition probability from state i to state j.
-#' }
+#' } The value of \code{ARL_0} will be printed to the console.
 #'
 #' @references Brook, D., & Evans, D. A. (1972). An Approach to the Probability
 #' Distribution of Cusum Run Length. Biometrika, 59(3), 539–549.
@@ -90,20 +87,18 @@
 #'
 #'
 #' @examples
-#' #We consider patient outcomes 100 days after their entry into the study.
-#' followup <- 100
 #' #Determine a risk-adjustment model using a generalized linear model.
 #' #Outcome (failure within 100 days) is regressed on the available covariates:
-#' exprfitber <- as.formula("(survtime <= followup) & (censorid == 1)~ age + sex + BMI")
-#' glmmodber <- glm(exprfitber, data = surgerydat, family = binomial(link = "logit"))
-#' ARL <- bernoulli_ARL(h = 2.5, t = 50, glmmod = glmmodber, theta = log(2))
-#'
-#'
+#' glmmodber <- glm((survtime <= 100) & (censorid == 1)~ age + sex + BMI,
+#'                   data = surgerydat, family = binomial(link = "logit"))
+#' #Determine the Average Run Length in number of outcomes for
+#' #control limit h = 2.5 with (0, h) divided into t = 200 segments
+#' ARL <- bernoulli_ARL(h = 2.5, t = 200, glmmod = glmmodber, theta = log(2))
 
 
 
 
-bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, followup, smooth_prob = FALSE){
+bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, smooth_prob = FALSE){
   #------------Variable checks------------------
 
   #Input checks
@@ -115,11 +110,6 @@ bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, followup, smo
   }
   if(!all(is.logical(smooth_prob), length(smooth_prob) == 1)){
     stop("Parameter 'smooth_prob' must be a single logical value.")
-  }
-  if(!missing(followup)){
-    if(!all(is.numeric(followup), followup > 0, length(followup) == 1)){
-      stop("Parameter 'followup' must be a positive numeric variable.")
-    }
   }
   if(!missing(theta_true)){
     if(!all(is.numeric(theta_true) & theta != 0)){
@@ -331,6 +321,9 @@ bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, followup, smo
     probs1 <- c(probstmin11, probs2tmin1)
 
     #Iterate through matrix to fill values. For details, see Overleaf file (picture displaying the matrix).
+    #We only need to calculate the first row and column values
+    #And the values on the diagonals of the matrix without first row/column
+    #Then we fill the matrix by checking on which diagonal we are (value of j-i)
     for(i in 1:t){
       for(j in 1:t){
         #If we are in the first row or column, we use probs0 vector
@@ -348,6 +341,10 @@ bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, followup, smo
       stop("Probabilities can only be smoothed when 'glmmod' is supplied.")
     }
     density_estimate <- density(glmmod$fitted.values)
+    stop("smooth_prob not incorporated yet")
+    #Parametric fit of p_0 distribution
+    #Hein: user specifies distribution for linear predictor -> Normal(mu, sigma^2)
+    #Then integrate from logit scale.
 
   }
 
@@ -358,18 +355,10 @@ bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, followup, smo
   rownames(mu) <- 0:(t-1)
 
   #Post-processing
-  if(!missing(followup)){
-    ARL <- cbind(mu, mu*followup)
-    colnames(ARL) <- c("#outcomes", "Time")
-    ARL_0 = c(mu[1,])
-  } else{
-    ARL <- mu
-    colnames(ARL) <- c("#outcomes")
-    ARL_0 = mu[1]
-    names(ARL_0) <- "#outcomes"
-  }
-  ARL <- cbind(0:(t-1), ARL)
-  colnames(ARL)[1] <- "t_start"
+  ARL_0 = mu[1]
+  names(ARL_0) <- "#outcomes"
+  ARL <- cbind(0:(t-1), mu)
+  colnames(ARL) <- c("t_start", "#outcomes")
 
   print(ARL_0)
   return(invisible(list(ARL_0 = ARL_0,

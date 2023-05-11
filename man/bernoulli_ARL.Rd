@@ -4,7 +4,7 @@
 \alias{bernoulli_ARL}
 \title{Average Run Length for Bernoulli CUSUM}
 \usage{
-bernoulli_ARL(h, t, glmmod, theta, p0, p1, followup, smooth_prob = FALSE)
+bernoulli_ARL(h, t, glmmod, theta, theta_true, p0, p1, smooth_prob = FALSE)
 }
 \arguments{
 \item{h}{Control limit for the Bernoulli CUSUM}
@@ -23,20 +23,20 @@ for covariates. Names must be the same as in \code{formula} and colnames of \cod
 
 \item{theta}{The \eqn{\theta}{\theta} value used to specify the odds ratio
 \eqn{e^\theta}{e^\theta} under the alternative hypothesis.
-If \eqn{\theta >= 0}{\theta >= 0}, the chart will try to detect an increase
-in hazard ratio (upper one-sided). If \eqn{\theta < 0}{\theta < 0},
-the chart will look for a decrease in hazard ratio (lower one-sided).
+If \eqn{\theta >= 0}{\theta >= 0}, the average run length for the upper one-sided
+Bernoulli CUSUM will be determined. If \eqn{\theta < 0}{\theta < 0},
+the average run length for the lower one-sided CUSUM will be determined.
 Note that \deqn{p_1 = \frac{p_0 e^\theta}{1-p_0 +p_0 e^\theta}.}{p1 = (p0 * e^\theta)/(1-p0+p0 * e^\theta).}}
 
 \item{p0}{The baseline failure probability at \code{entrytime + followup} for individuals.}
 
 \item{p1}{The alternative hypothesis failure probability at \code{entrytime + followup} for individuals.}
 
-\item{followup}{(optional) The value of the follow-up time used to determine event time. Will be used to
-calculate Average Run Length in time units instead of number of observed outcomes.}
-
 \item{smooth_prob}{Should the probability distribution of failure under the null distribution be smoothed?
 Useful for small samples. Can only be TRUE when \code{glmmod} is supplied. Default = FALSE.}
+
+\item{followup}{(optional) The value of the follow-up time used to determine event time. Will be used to
+calculate Average Run Length in time units instead of number of observed outcomes.}
 }
 \value{
 A list containing:
@@ -53,7 +53,7 @@ depending on the state in which the process starts (E_0, E_1, ..., E_{t-1})
 \item \code{R}: A transition probability \code{matrix} containing the transition
 probabilities between states \eqn{E_0, \ldots, E_{t-1}}{E_0, ..., E_{t-1}}.
 \eqn{R_{i,j}}{R_{i,j}} is the transition probability from state i to state j.
-}
+} The value of \code{ARL_0} will be printed to the console.
 }
 \description{
 This function allows to estimate the Average Run Length (ARL)
@@ -75,7 +75,7 @@ The average run length of a CUSUM chart \eqn{S_n}{S_n} is given by
 This function determines the average run length using the Markov Chain approach described
 in Brook & Evans (1972), using the risk-adjustment correction proposed in
 Steiner et al. (2000). The idea is to discretize the domain (0, h) into $t-1$
-state spaces \eqn{E_0, \ldots, E_{t-1}}{E_0, ..., E_{t-1}} of width \eqn{w}{w}, such that
+state spaces \eqn{E_0}{E_0} of width \eqn{w/2}{w/2} and \eqn{E_1, \ldots, E_{t-1}}{E_1, ..., E_{t-1}} of width \eqn{w}{w}, such that
 \eqn{E_t}{E_t} is an absorbing state.  This is done using the following steps:
 \itemize{
 \item \eqn{w}{w} is determined using the relationship \eqn{\frac{2h}{2t-1}}{2h/(2t-1)}.
@@ -86,15 +86,13 @@ solved to find the ARL starting from each of the states.
 }
 }
 \examples{
-#We consider patient outcomes 100 days after their entry into the study.
-followup <- 100
 #Determine a risk-adjustment model using a generalized linear model.
 #Outcome (failure within 100 days) is regressed on the available covariates:
-exprfitber <- as.formula("(survtime <= followup) & (censorid == 1)~ age + sex + BMI")
-glmmodber <- glm(exprfitber, data = surgerydat, family = binomial(link = "logit"))
-ARL <- bernoulli_ARL(h = 2.5, t = 50, glmmod = glmmodber, theta = log(2))
-
-
+glmmodber <- glm((survtime <= 100) & (censorid == 1)~ age + sex + BMI,
+                  data = surgerydat, family = binomial(link = "logit"))
+#Determine the Average Run Length in number of outcomes for
+#control limit h = 2.5 with (0, h) divided into t = 200 segments
+ARL <- bernoulli_ARL(h = 2.5, t = 200, glmmod = glmmodber, theta = log(2))
 }
 \references{
 Brook, D., & Evans, D. A. (1972). An Approach to the Probability
