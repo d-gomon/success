@@ -368,6 +368,50 @@ bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, smooth_prob =
 
 
 
+bernoulli_ARL_intgeq <- function(h, ngrid, glmmod, theta, theta_true, p0, p1, tol = 1e-10){
+  #TO-DO: Initialize cdf of W_n as in the function above.
+  #Wncdf <- function
+  #For now we check for normal:
+  Wncdf <- function(x){
+    pnorm(x, mean = -0.5, sd = 1)
+  }
+  stieltjes_trapezoid <- function(fvals, gvals, n){
+    #Stieltjes trapezoidal integration approximation
+    #Inputs are:
+    #fvals (Wncdf evaluated at relevant points z - [0,h])
+    #gvals (G_{n-1}(w) evaluated at the grid of [0,h])
+    #Calculate the summation terms (f(x_i)+f(x_{i+1}))/2 * (G(x_i+1) - G(x_i))
+    approxvals <- sapply(1:n, function(x) (fvals[x] + fvals[x+1])/2 * (gvals[x+1] - gvals[x]))
+    #Return sum as approximator of integral
+    sum(approxvals)
+  }
+  outp <- matrix(NA, nrow = 1, ncol = 2)
+  #Initialize grid for Stieltjes integration
+  d <- (h-0)/ngrid
+  xj <- (0:ngrid)*d
+  #Initialize extended grid for cdf memoization
+  xj_extended <- -h + (0:(2*ngrid))*d
+  #Pre-calculate cdf on required values:
+  #We calculate Wncdf on [-h, -h + h/ngrid, ..., 0, h/ngrid, ..., h]
+  Fvals <- sapply(xj_extended, function(x) Wncdf(x))
+  #Pre-calculate G_1(x) on [0,h]
+  G_current <- Fvals[(ngrid+1):(2*ngrid + 1)]
+  #Produce first output (G_1(0), G_1(Inf) - G_1(h))
+  #Note that G_1(Inf) = 1
+  outp[1, ] <- c(G_current[1], 1 - G_current[ngrid + 1])
+  i <- 1
+  while(sum(outp[i,]) > tol){
+    #Calculate values of G_{i}(z) over the grid
+    G_new <- sapply(1:(ngrid + 1), function(x) stieltjes_trapezoid(rev(Fvals[x:(ngrid + x)]), G_current, n = ngrid))
+    G_inf <- stieltjes_trapezoid(rep(1, ngrid+1), G_current, n = ngrid)
+    outp <- rbind(outp, c(G_new[1], G_inf - G_new[ngrid + 1]))
+    G_current <- G_new
+    i <- i + 1
+  }
+  outp
+}
+
+
 
 
 
