@@ -2,7 +2,8 @@
 #'
 #' @description This function allows to estimate the Average Run Length (ARL)
 #' of the risk-adjusted Bernoulli CUSUM (see \code{\link[success:bernoulli_cusum]{bernoulli_cusum()}})
-#' through a Markov Chain Approach (Brook & Evans(1972) & Steiner et al. (2000)).
+#' through a Markov Chain Approach (Brook & Evans(1972) & Steiner et al. (2000)) or
+#' an Integral Equation Approach (Kemp (1971)).
 #' The function requires the specification of one of the following combinations of parameters
 #' as arguments to the function:
 #' \itemize{
@@ -13,7 +14,9 @@
 #' by specifying \code{theta} < 0.
 #'
 #' @param h Control limit for the Bernoulli CUSUM
-#' @param t Number of state spaced used to discretize the outcome space.
+#' @param n_grid Number of state spaces used to discretize the outcome space (when \code{method = "MC"})
+#' or number of grid points used for trapezoidal integration (when \code{method = "IntEq"}).
+#' Increasing this number improves accuracy, but can also significantly increase computation time.
 #' @param glmmod Generalized linear regression model used for risk-adjustment as produced by
 #' the function \code{\link[stats:glm]{glm()}}. Suggested: \cr
 #' \code{glm(as.formula("(survtime <= followup) & (censorid == 1) ~ covariates"), data = data)}. \cr
@@ -31,6 +34,8 @@
 #' Note that \deqn{p_1 = \frac{p_0 e^\theta}{1-p_0 +p_0 e^\theta}.}{p1 = (p0 * e^\theta)/(1-p0+p0 * e^\theta).}
 #' @param p0 The baseline failure probability at \code{entrytime + followup} for individuals.
 #' @param p1 The alternative hypothesis failure probability at \code{entrytime + followup} for individuals.
+#' @param method The method used to obtain the average run length. Either "MC" for Markov Chain
+#' or "IntEq" for integral equation. Default = "MC".
 #' @param smooth_prob Should the probability distribution of failure under the null distribution be smoothed?
 #' Useful for small samples. Can only be TRUE when \code{glmmod} is supplied. Default = FALSE.
 #'
@@ -59,14 +64,21 @@
 #' Monitoring surgical performance using risk-adjusted cumulative sum charts.
 #' Biostatistics, 1(4), 441–452. \doi{10.1093/biostatistics/1.4.441}
 #'
+#' Kemp, K. W. (1971). Formal Expressions which Can Be Applied to Cusum Charts.
+#' Journal of the Royal Statistical Society. Series B (Methodological), 33(3),
+#' 331–360. \doi{10.1111/j.2517-6161.1971.tb01521.x}
+#'
 #'
 #' @details The average run length of a CUSUM chart \eqn{S_n}{S_n} is given by
 #' \eqn{\mathbb{E}[\tau_n],}{E[\tau_n],} where \eqn{\tau_n}{\tau_n} is defined as:
 #' \deqn{\tau_n = \inf\{n \geq 0: S_n \geq h\}.}{\tau_n = inf(n >= 0: S_n >= h).}
-#' This function determines the average run length using the Markov Chain approach described
+#'
+#' When \code{method = "MC"}, the average run length will be determined by
+#' the Markov Chain approach described
 #' in Brook & Evans (1972), using the risk-adjustment correction proposed in
 #' Steiner et al. (2000). The idea is to discretize the domain (0, h) into $t-1$
-#' state spaces \eqn{E_0}{E_0} of width \eqn{w/2}{w/2} and \eqn{E_1, \ldots, E_{t-1}}{E_1, ..., E_{t-1}} of width \eqn{w}{w}, such that
+#' state spaces, with \eqn{E_0}{E_0} of width \eqn{w/2}{w/2}
+#' and \eqn{E_1, \ldots, E_{t-1}}{E_1, ..., E_{t-1}} of width \eqn{w}{w}, such that
 #' \eqn{E_t}{E_t} is an absorbing state.  This is done using the following steps:
 #' \itemize{
 #' \item \eqn{w}{w} is determined using the relationship \eqn{\frac{2h}{2t-1}}{2h/(2t-1)}.
@@ -75,6 +87,19 @@
 #' \item The equation \eqn{(\bm{I}-\bm{R}) \bm{ARL} = \bm{1}}{(I-R) ARL = 1} is
 #' solved to find the ARL starting from each of the states.
 #' }
+#'
+#' When \code{method = "IntEq"}, the average run length will be determined by
+#' the integral equation approach described in Kemp (1971), using the risk-adjustment
+#' correction proposed in Steiner et al. (2000). The idea is to exploit the
+#' connection between the run length of a Sequential Probability Ratio Test (SPRT)
+#' and that of a CUSUM. If N is the run length of a SPRT, P(0) the probability of
+#' a SPRT terminating on the lower boundary of zero and R the run length of
+#' a CUSUM, then \deqn{\mathbb{E}[R] = \frac{\mathbb{E}[N]}{1 - P(0)}}{E[R] = E[N]/(1-P(0))}.
+#' \eqn{\mathbb{E}[N]}{E[N]} and \eqn{P(0)}{P(0)} are completely determined by
+#' \deqn{G_n(z) = \int_0^h F(z-w) dG_{n-1}(w)}{G_n(z) = \int_0^h F(z-w) dG_{n-1}(w)}
+#' with \eqn{F(x)}{F(x)} the cdf of the singletons \eqn{W_n}{Wn}. The integral can be
+#' approximated using the generalized trapezoidal quadrature rule:
+#' \deqn{G_n(z) = \sum_{i=0}^{n_grid-1} \frac{F(z-x_{i+1}) + F(z-x_{i})}{2} \left(G_{n-1}(x_{i+1}) - G_{n-1}(x_{i})  \right)}{Gn(z) = \sum_{i=0}^{n_grid-1} (F(z-x_{i+1}) + F(z-x_{i}))/2 * (G_{n-1}(x_{i+1}) - G_{n-1}(x_{i}))}
 #'
 #'
 #'
@@ -98,15 +123,17 @@
 
 
 
-bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, smooth_prob = FALSE){
+bernoulli_ARL <- function(h, n_grid, glmmod, theta, theta_true, p0, p1,
+                          method = c("MC", "IntEq"), smooth_prob = FALSE){
   #------------Variable checks------------------
 
+  method <- match.arg(method)
   #Input checks
   if(!all(is.numeric(h) & length(h) == 1)){
     stop("Parameter 'h' must be a single numeric variable.")
   }
-  if(!all(is.numeric(t), t%%1 == 0, t > 1, length(t) == 1)){
-    stop("Parameter 't' must be an integer larger than 1.")
+  if(!all(is.numeric(n_grid), n_grid%%1 == 0, n_grid > 1, length(n_grid) == 1)){
+    stop("Parameter 'n_grid' must be an integer larger than 1.")
   }
   if(!all(is.logical(smooth_prob), length(smooth_prob) == 1)){
     stop("Parameter 'smooth_prob' must be a single logical value.")
@@ -138,6 +165,9 @@ bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, smooth_prob =
       stop("Parameter 'p1' must be a positive probability between 0 and 1. (numeric)")
     }
   }
+  if(!((method == "MC") | (method == "IntEq"))){
+    stop("Parameter 'method' must be either 'MC' or 'IntEq'.")
+  }
 
   if(h < 0){
     h <- sign(h)*h
@@ -157,18 +187,16 @@ bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, smooth_prob =
     stop("Probability distribution can only be smoothed when 'glmmod' is specified.")
   }
 
-  #Calculate the value w used for discretizing the state space
-  w <- 2*h/(2*t -1)
-  #Initiatlize transition matrix
-  R <- matrix(0, nrow = t, ncol = t)
-
+  #############################CALCULATE CDF of W_n############################################
   #If we do not want to smooth probability distribution
   if(isFALSE(smooth_prob)){
     if(!missing(glmmod)){
-      null_probs <- sort(glmmod$fitted.values)
+      #IMPORTANT:
+      #null_probs = sort(glmmod$fitted.values)
       if(theta > 0){
         #If we have glmmod, we can do a risk-adjusted calculation of the ARL.
-        Wncdf_discrete <- function(x, null_probs, theta, theta_true = NULL){
+        Wncdf <- function(x, null_probs, theta, theta_true = NULL){
+          #Note that null_probs must be sort(glmmod$fitted.values)!!!!
           #Function to calculate cdf of W_n in discrete case
           if(!is.null(theta_true)){
             adjnull_probs <- null_probs*exp(theta_true)/(1 - null_probs + exp(theta_true)*null_probs)
@@ -198,12 +226,12 @@ bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, smooth_prob =
               ind <- ind:N
             }
             #P(W_n \leq 0) + \sum_{p \geq (1-e^{-(K-\theta)})/(1-e^\theta)} p* P(p_n = p)
-            return(Wncdf_discrete(0, null_probs = null_probs, theta = theta, theta_true = theta_true) + sum(adjnull_probs[ind])*1/N)
+            return(Wncdf(0, null_probs = null_probs, theta = theta, theta_true = theta_true) + sum(adjnull_probs[ind])*1/N)
           }
         }
       } else if(theta < 0){
         #If we have glmmod, we can do a risk-adjusted calculation of the ARL.
-        Wncdf_discrete <- function(x, null_probs, theta, theta_true = NULL){
+        Wncdf <- function(x, null_probs, theta, theta_true = NULL){
           #Function to calculate cdf of W_n in discrete case
           N <- length(null_probs)
           if(!is.null(theta_true)){
@@ -233,7 +261,7 @@ bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, smooth_prob =
               ind <- 1:(ind-1)
             }
             #P(W_n \leq 0) + \sum_{p \geq (1-e^{-(K-\theta)})/(1-e^\theta)} p* P(p_n = p)
-            return(Wncdf_discrete(0, null_probs = null_probs, theta = theta, theta_true = theta_true) + sum((1-adjnull_probs[ind]))*1/N)
+            return(Wncdf(0, null_probs = null_probs, theta = theta, theta_true = theta_true) + sum((1-adjnull_probs[ind]))*1/N)
           }
         }
       }
@@ -243,7 +271,7 @@ bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, smooth_prob =
       #We use null_probs to represent p0
       #IMPORTANTIMPORTANTIMPORTANTIMPORTANTIMPORTANTIMPORTANTIMPORTANT
       if(theta > 0){
-        Wncdf_discrete <- function(x, null_probs, theta, theta_true = NULL){
+        Wncdf <- function(x, null_probs, theta, theta_true = NULL){
           #Function to calculate cdf of W_n in discrete unadjusted
           if(!is.null(theta_true)){
             adjnull_probs <- null_probs*exp(theta_true)/(1 - null_probs + exp(theta_true)*null_probs)
@@ -266,7 +294,7 @@ bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, smooth_prob =
           }
         }
       } else if(theta < 0){
-        Wncdf_discrete <- function(x, null_probs, theta, theta_true = NULL){
+        Wncdf <- function(x, null_probs, theta, theta_true = NULL){
           if(!is.null(theta_true)){
             adjnull_probs <- null_probs*exp(theta_true)/(1 - null_probs + exp(theta_true)*null_probs)
           } else{
@@ -290,51 +318,6 @@ bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, smooth_prob =
         }
       }
     }
-    #Using Wncdf_discrete we can calculate the transition probabilities
-    trans_prob <- function(state1, state2, w, t, null_probs, theta, theta_true = NULL){
-      if(state2 == 0){
-        #P(W_n \leq -i2 + 1/2*w)
-        Wncdf_discrete((0.5-state1) * w, null_probs = null_probs, theta = theta, theta_true = theta_true)
-      } else if(state2 == t){
-        1- Wncdf_discrete((t-state1 - 0.5) * w, null_probs = null_probs, theta = theta, theta_true = theta_true)
-      }else{
-        Wncdf_discrete((state2-state1 + 0.5) * w, null_probs = null_probs, theta = theta, theta_true = theta_true) - Wncdf_discrete((state2-state1 - 0.5) * w, null_probs = null_probs, theta = theta, theta_true = theta_true)
-      }
-    }
-    #We only need to calculate some specific transition probabilities:
-    if(missing(glmmod)){
-      #To avoid code duplication, define null_probs as p0 here.
-      null_probs = p0
-    }
-
-
-    #First we calculate the probabilities in the first row and first column of R
-    #For this we create the vector (p_{t-1, 0}, p_{t-2, 0}, ..., p_{0,0}, ..., p_{0, t-2}, p_{0, t-1})
-    probstmin10 <- sapply((t-1):0, function(x) trans_prob(x, 0, w = w, t = t, null_probs = null_probs, theta = theta, theta_true = theta_true))
-    probs1tmin1 <- sapply(1:(t-1), function(x) trans_prob(0, x, w = w, t = t, null_probs = null_probs, theta = theta, theta_true = theta_true))
-    probs0 <- c(probstmin10, probs1tmin1)
-
-    #Then we calculate the probabilities on the diagonal of the rest of the matrix:
-    #These are given by the vector (p_{t-1, 1}, ..., p_{1, 1}, p_{1, 2}, ..., p_{1, t-1})
-    probstmin11 <- sapply((t-1):1, function(x) trans_prob(x, 1, w = w, t = t, null_probs = null_probs, theta = theta, theta_true = theta_true))
-    probs2tmin1 <- sapply(2:(t-1), function(x) trans_prob(1, x, w = w, t = t, null_probs = null_probs, theta = theta, theta_true = theta_true))
-    probs1 <- c(probstmin11, probs2tmin1)
-
-    #Iterate through matrix to fill values. For details, see Overleaf file (picture displaying the matrix).
-    #We only need to calculate the first row and column values
-    #And the values on the diagonals of the matrix without first row/column
-    #Then we fill the matrix by checking on which diagonal we are (value of j-i)
-    for(i in 1:t){
-      for(j in 1:t){
-        #If we are in the first row or column, we use probs0 vector
-        if(i == 1| j == 1){
-          R[i,j] <- probs0[t + (j-i)]
-        } else{
-          #In any other row/column we use the probs1 vector
-          R[i,j] <- probs1[(t-1) + (j-i)]
-        }
-      }
-    }
   } else if(isTRUE(smooth_prob)){
     #smooth_prob is only usefull if glmmod is supplied.
     if(missing(glmmod)){
@@ -345,70 +328,159 @@ bernoulli_ARL <- function(h, t, glmmod, theta, theta_true, p0, p1, smooth_prob =
     #Parametric fit of p_0 distribution
     #Hein: user specifies distribution for linear predictor -> Normal(mu, sigma^2)
     #Then integrate from logit scale.
-
   }
 
+  if(method == "MC"){
+    return(bernoulli_ARL_MC(h = h, n_grid = n_grid, Wncdf = Wncdf, glmmod = glmmod, p0 = p0, theta = theta, theta_true = theta_true))
+  } else if(method == "IntEq"){
+    return(bernoulli_ARL_IntEq(h = h, n_grid = n_grid, Wncdf = Wncdf, glmmod = glmmod, p0 = p0, theta = theta, theta_true = theta_true))
+  }
+}
+
+bernoulli_ARL_MC <- function(h, n_grid, Wncdf, glmmod, p0, theta, theta_true){
+  #####################CALCULATE TRANSITION PROBABILITIES#######################################
+
+  #Calculate the value w used for discretizing the state space
+  w <- 2*h/(2*n_grid -1)
+  #Initialize transition matrix
+  R <- matrix(0, nrow = n_grid, ncol = n_grid)
+  #Using Wncdf we can calculate the transition probabilities
+  trans_prob <- function(state1, state2, w, t, null_probs, theta, theta_true = NULL){
+    if(state2 == 0){
+      #P(W_n \leq -i2 + 1/2*w)
+      Wncdf((0.5-state1) * w, null_probs = null_probs, theta = theta, theta_true = theta_true)
+    } else if(state2 == t){
+      1- Wncdf((t-state1 - 0.5) * w, null_probs = null_probs, theta = theta, theta_true = theta_true)
+    }else{
+      Wncdf((state2-state1 + 0.5) * w, null_probs = null_probs, theta = theta, theta_true = theta_true) - Wncdf((state2-state1 - 0.5) * w, null_probs = null_probs, theta = theta, theta_true = theta_true)
+    }
+  }
+  #We only need to calculate some specific transition probabilities:
+  if(missing(glmmod)){
+    #To avoid code duplication, define null_probs as p0 here.
+    null_probs = p0
+  } else{
+    null_probs = sort(glmmod$fitted.values)
+  }
+
+
+  #First we calculate the probabilities in the first row and first column of R
+  #For this we create the vector (p_{t-1, 0}, p_{t-2, 0}, ..., p_{0,0}, ..., p_{0, t-2}, p_{0, t-1})
+  probstmin10 <- sapply((n_grid-1):0, function(x) trans_prob(x, 0, w = w, t = n_grid, null_probs = null_probs, theta = theta, theta_true = theta_true))
+  probs1tmin1 <- sapply(1:(n_grid-1), function(x) trans_prob(0, x, w = w, t = n_grid, null_probs = null_probs, theta = theta, theta_true = theta_true))
+  probs0 <- c(probstmin10, probs1tmin1)
+
+  #Then we calculate the probabilities on the diagonal of the rest of the matrix:
+  #These are given by the vector (p_{t-1, 1}, ..., p_{1, 1}, p_{1, 2}, ..., p_{1, t-1})
+  probstmin11 <- sapply((n_grid-1):1, function(x) trans_prob(x, 1, w = w, t = n_grid, null_probs = null_probs, theta = theta, theta_true = theta_true))
+  probs2tmin1 <- sapply(2:(n_grid-1), function(x) trans_prob(1, x, w = w, t = n_grid, null_probs = null_probs, theta = theta, theta_true = theta_true))
+  probs1 <- c(probstmin11, probs2tmin1)
+
+  #Iterate through matrix to fill values. For details, see Overleaf file (picture displaying the matrix).
+  #We only need to calculate the first row and column values
+  #And the values on the diagonals of the matrix without first row/column
+  #Then we fill the matrix by checking on which diagonal we are (value of j-i)
+  for(i in 1:n_grid){
+    for(j in 1:n_grid){
+      #If we are in the first row or column, we use probs0 vector
+      if(i == 1| j == 1){
+        R[i,j] <- probs0[n_grid + (j-i)]
+      } else{
+        #In any other row/column we use the probs1 vector
+        R[i,j] <- probs1[(n_grid-1) + (j-i)]
+      }
+    }
+  }
+
+  #############################DECOMPOSE TRANSITION MATRIX FOR ARL#######################
   #Now we need to decompose the "transition matrix" R to obtain the ARL vector mu
   #Each entry mu[i] represents the ARL when starting from state i-1
   #First entry is therefore the average run length when starting from 0.
-  mu = round(Matrix::solve(diag(1, nrow = t, ncol = t) - R, matrix(1, nrow = t, ncol = 1)))
-  rownames(mu) <- 0:(t-1)
+  mu = round(Matrix::solve(diag(1, nrow = n_grid, ncol = n_grid) - R, matrix(1, nrow = n_grid, ncol = 1)))
+  rownames(mu) <- 0:(n_grid-1)
 
   #Post-processing
   ARL_0 = mu[1]
   names(ARL_0) <- "#outcomes"
-  ARL <- cbind(0:(t-1), mu)
+  ARL <- cbind(0:(n_grid-1), mu)
   colnames(ARL) <- c("t_start", "#outcomes")
 
   print(ARL_0)
   return(invisible(list(ARL_0 = ARL_0,
-              ARL = ARL,
-              R = R)))
+                        ARL = ARL,
+                        R = R)))
 }
 
 
 
-bernoulli_ARL_intgeq <- function(h, ngrid, glmmod, theta, theta_true, p0, p1, tol = 1e-10){
+bernoulli_ARL_IntEq <- function(h, n_grid, Wncdf, glmmod, theta, theta_true, p0, tol = 1e-6){
   #TO-DO: Initialize cdf of W_n as in the function above.
   #Wncdf <- function
   #For now we check for normal:
-  Wncdf <- function(x){
-    pnorm(x, mean = -0.5, sd = 1)
-  }
   stieltjes_trapezoid <- function(fvals, gvals, n){
     #Stieltjes trapezoidal integration approximation
     #Inputs are:
     #fvals (Wncdf evaluated at relevant points z - [0,h])
     #gvals (G_{n-1}(w) evaluated at the grid of [0,h])
     #Calculate the summation terms (f(x_i)+f(x_{i+1}))/2 * (G(x_i+1) - G(x_i))
-    approxvals <- sapply(1:n, function(x) (fvals[x] + fvals[x+1])/2 * (gvals[x+1] - gvals[x]))
+    #approxvals <- sapply(1:n, function(x) (fvals[x] + fvals[x+1])/2 * (gvals[x+1] - gvals[x]))
     #Return sum as approximator of integral
-    sum(approxvals)
+    #sum(approxvals)
+    0.5*sum((fvals[-(n+1)] + fvals[-1]) * (gvals[-1] - gvals[-(n+1)]))
   }
-  outp <- matrix(NA, nrow = 1, ncol = 2)
+
+  if(missing(glmmod)){
+    #To avoid code duplication, define null_probs as p0 here.
+    null_probs = p0
+  } else{
+    null_probs = sort(glmmod$fitted.values)
+  }
+  #Initiate 3 column matrix for storing G_N(0) in the first column,
+  #G_N(h) in the second and G_N(Inf) in the third
+  G_storage <- matrix(NA, nrow = 1, ncol = 3)
   #Initialize grid for Stieltjes integration
-  d <- (h-0)/ngrid
-  xj <- (0:ngrid)*d
+  #The grid is given by: [0, h/n_grid, 2*h/n_grid, ..., h]
+  d <- (h-0)/n_grid
+  xj <- (0:n_grid)*d
   #Initialize extended grid for cdf memoization
-  xj_extended <- -h + (0:(2*ngrid))*d
+  xj_extended <- -h + (0:(2*n_grid))*d
   #Pre-calculate cdf on required values:
   #We calculate Wncdf on [-h, -h + h/ngrid, ..., 0, h/ngrid, ..., h]
-  Fvals <- sapply(xj_extended, function(x) Wncdf(x))
+  #Because we only ever integrate the cdf over these values!
+  Fvals <- sapply(xj_extended, function(x) Wncdf(x, null_probs = null_probs, theta = theta, theta_true = theta_true))
   #Pre-calculate G_1(x) on [0,h]
-  G_current <- Fvals[(ngrid+1):(2*ngrid + 1)]
-  #Produce first output (G_1(0), G_1(Inf) - G_1(h))
+  G_current <- Fvals[(n_grid+1):(2*n_grid + 1)]
+  #Produce first output (G_1(0), G_1(h), G_1(Inf))
   #Note that G_1(Inf) = 1
-  outp[1, ] <- c(G_current[1], 1 - G_current[ngrid + 1])
+  G_storage[1, ] <- c(G_current[1], G_current[n_grid + 1], 1)
   i <- 1
-  while(sum(outp[i,]) > tol){
+  #We continue calculating values until either the tolerance is reached
+  #Sometimes the total sum can be zero, f.e. when a chart cannot stop in a certain number of steps
+  #In this case, we want to continue.
+  while((G_storage[i,2] - G_storage[i,1]) > tol){
     #Calculate values of G_{i}(z) over the grid
-    G_new <- sapply(1:(ngrid + 1), function(x) stieltjes_trapezoid(rev(Fvals[x:(ngrid + x)]), G_current, n = ngrid))
-    G_inf <- stieltjes_trapezoid(rep(1, ngrid+1), G_current, n = ngrid)
-    outp <- rbind(outp, c(G_new[1], G_inf - G_new[ngrid + 1]))
+    #Remember that we have to integrate
+    #G_n(z) = \int_0^h Wncdf(z-w) dG_{n-1}(w)
+    #Let 0 = x_0 < x_1 < ..., x_{n_grid} = h be an equally spaced grid of [0,h]
+    #We approximate the integral using the trapezoidal rule:
+    #G_n(z) = \sum_{i = 1}^{ngrid-1} (Wncdf(z - x_{i+1}) + Wncdf(z - x_{i}))/2 * (G_{n-1}(x_{i+1}) - G_{n-1}(x_i))
+    #Seeing as we are only interested in G_n(z) with z \in [0, h] we only
+    #need to evaluate Wncdf on the grid [-h, h]. We use memoization to pre-calculate
+    #Wncdf on a grid -h = s_0 < s_1 < ... < s_{2n_grid + 1} = h
+    #This grid is given by xj_extended above. And the memoization is given by Fvals.
+    G_new <- sapply(1:(n_grid + 1), function(x) stieltjes_trapezoid(rev(Fvals[x:(n_grid + x)]), G_current, n = n_grid))
+    G_inf <- stieltjes_trapezoid(rep(1, n_grid+1), G_current, n = n_grid)
+    G_storage <- rbind(G_storage, c(G_new[1], G_new[n_grid + 1], G_inf))
     G_current <- G_new
     i <- i + 1
   }
-  outp
+  #E[R; 0] = (sum_{N=1}^Inf (G_N(Inf) - G_N(h) + G_N(0))*N)/(1-sum_{N=1}^Inf G_N(0))
+  #Equation (11) in Kemp(1971)
+  ARL <- round(sum((rowSums(G_storage) - G_storage[,2]*2) * 1:nrow(G_storage))/(1-sum(G_storage[,1])))
+  names(ARL) <- "#outcomes"
+  print(ARL)
+  return(invisible(list(ARL_0 = ARL,
+                        G = G_storage)))
 }
 
 

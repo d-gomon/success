@@ -4,12 +4,15 @@
 \alias{bernoulli_ARL}
 \title{Average Run Length for Bernoulli CUSUM}
 \usage{
-bernoulli_ARL(h, t, glmmod, theta, theta_true, p0, p1, smooth_prob = FALSE)
+bernoulli_ARL(h, n_grid, glmmod, theta, theta_true, p0, p1, method = c("MC",
+  "IntEq"), smooth_prob = FALSE)
 }
 \arguments{
 \item{h}{Control limit for the Bernoulli CUSUM}
 
-\item{t}{Number of state spaced used to discretize the outcome space.}
+\item{n_grid}{Number of state spaces used to discretize the outcome space (when \code{method = "MC"})
+or number of grid points used for trapezoidal integration (when \code{method = "IntEq"}).
+Increasing this number improves accuracy, but can also significantly increase computation time.}
 
 \item{glmmod}{Generalized linear regression model used for risk-adjustment as produced by
 the function \code{\link[stats:glm]{glm()}}. Suggested: \cr
@@ -32,23 +35,22 @@ Note that \deqn{p_1 = \frac{p_0 e^\theta}{1-p_0 +p_0 e^\theta}.}{p1 = (p0 * e^\t
 
 \item{p1}{The alternative hypothesis failure probability at \code{entrytime + followup} for individuals.}
 
+\item{method}{The method used to obtain the average run length. Either "MC" for Markov Chain
+or "IntEq" for integral equation. Default = "MC".}
+
 \item{smooth_prob}{Should the probability distribution of failure under the null distribution be smoothed?
 Useful for small samples. Can only be TRUE when \code{glmmod} is supplied. Default = FALSE.}
-
-\item{followup}{(optional) The value of the follow-up time used to determine event time. Will be used to
-calculate Average Run Length in time units instead of number of observed outcomes.}
 }
 \value{
 A list containing:
 \itemize{
-\item \code{ARL_0}: A numeric value indicating the average run length in number of outcomes and
-time (if followup specified) when starting from state E_0.
-\item \code{ARL}: A \code{data.frame} containing the average run length (#outcomes/time)
+\item \code{ARL_0}: A numeric value indicating the average run length in
+number of outcomes when starting from state E_0.
+\item \code{ARL}: A \code{data.frame} containing the average run length (#outcomes)
 depending on the state in which the process starts (E_0, E_1, ..., E_{t-1})
 \describe{
 \item{\code{t_start}:}{State in which the CUSUM process starts;}
-\item{\code{#outcomes}:}{ARL from starting state in #outcomes;}
-\item{\code{Time}:}{(only if followup specified) ARL in time units;}
+\item{\code{#outcomes}:}{ARL from starting state t_start;}
 }
 \item \code{R}: A transition probability \code{matrix} containing the transition
 probabilities between states \eqn{E_0, \ldots, E_{t-1}}{E_0, ..., E_{t-1}}.
@@ -58,7 +60,8 @@ probabilities between states \eqn{E_0, \ldots, E_{t-1}}{E_0, ..., E_{t-1}}.
 \description{
 This function allows to estimate the Average Run Length (ARL)
 of the risk-adjusted Bernoulli CUSUM (see \code{\link[success:bernoulli_cusum]{bernoulli_cusum()}})
-through a Markov Chain Approach (Brook & Evans(1972) & Steiner et al. (2000)).
+through a Markov Chain Approach (Brook & Evans(1972) & Steiner et al. (2000)) or
+an Integral Equation Approach (Kemp (1971)).
 The function requires the specification of one of the following combinations of parameters
 as arguments to the function:
 \itemize{
@@ -72,10 +75,13 @@ by specifying \code{theta} < 0.
 The average run length of a CUSUM chart \eqn{S_n}{S_n} is given by
 \eqn{\mathbb{E}[\tau_n],}{E[\tau_n],} where \eqn{\tau_n}{\tau_n} is defined as:
 \deqn{\tau_n = \inf\{n \geq 0: S_n \geq h\}.}{\tau_n = inf(n >= 0: S_n >= h).}
-This function determines the average run length using the Markov Chain approach described
+
+When \code{method = "MC"}, the average run length will be determined by
+the Markov Chain approach described
 in Brook & Evans (1972), using the risk-adjustment correction proposed in
 Steiner et al. (2000). The idea is to discretize the domain (0, h) into $t-1$
-state spaces \eqn{E_0}{E_0} of width \eqn{w/2}{w/2} and \eqn{E_1, \ldots, E_{t-1}}{E_1, ..., E_{t-1}} of width \eqn{w}{w}, such that
+state spaces, with \eqn{E_0}{E_0} of width \eqn{w/2}{w/2}
+and \eqn{E_1, \ldots, E_{t-1}}{E_1, ..., E_{t-1}} of width \eqn{w}{w}, such that
 \eqn{E_t}{E_t} is an absorbing state.  This is done using the following steps:
 \itemize{
 \item \eqn{w}{w} is determined using the relationship \eqn{\frac{2h}{2t-1}}{2h/(2t-1)}.
@@ -84,6 +90,19 @@ state spaces \eqn{E_0}{E_0} of width \eqn{w/2}{w/2} and \eqn{E_1, \ldots, E_{t-1
 \item The equation \eqn{(\bm{I}-\bm{R}) \bm{ARL} = \bm{1}}{(I-R) ARL = 1} is
 solved to find the ARL starting from each of the states.
 }
+
+When \code{method = "IntEq"}, the average run length will be determined by
+the integral equation approach described in Kemp (1971), using the risk-adjustment
+correction proposed in Steiner et al. (2000). The idea is to exploit the
+connection between the run length of a Sequential Probability Ratio Test (SPRT)
+and that of a CUSUM. If N is the run length of a SPRT, P(0) the probability of
+a SPRT terminating on the lower boundary of zero and R the run length of
+a CUSUM, then \deqn{\mathbb{E}[R] = \frac{\mathbb{E}[N]}{1 - P(0)}}{E[R] = E[N]/(1-P(0))}.
+\eqn{\mathbb{E}[N]}{E[N]} and \eqn{P(0)}{P(0)} are completely determined by
+\deqn{G_n(z) = \int_0^h F(z-w) dG_{n-1}(w)}{G_n(z) = \int_0^h F(z-w) dG_{n-1}(w)}
+with \eqn{F(x)}{F(x)} the cdf of the singletons \eqn{W_n}{Wn}. The integral can be
+approximated using the generalized trapezoidal quadrature rule:
+\deqn{G_n(z) = \sum_{i=0}^{n_grid-1} \frac{F(z-x_{i+1}) + F(z-x_{i})}{2} \left(G_{n-1}(x_{i+1}) - G_{n-1}(x_{i})  \right)}{Gn(z) = \sum_{i=0}^{n_grid-1} (F(z-x_{i+1}) + F(z-x_{i}))/2 * (G_{n-1}(x_{i+1}) - G_{n-1}(x_{i}))}
 }
 \examples{
 #Determine a risk-adjustment model using a generalized linear model.
@@ -102,6 +121,10 @@ Distribution of Cusum Run Length. Biometrika, 59(3), 539–549.
 Steiner, S. H., Cook, R. J., Farewell, V. T., & Treasure, T. (2000).
 Monitoring surgical performance using risk-adjusted cumulative sum charts.
 Biostatistics, 1(4), 441–452. \doi{10.1093/biostatistics/1.4.441}
+
+Kemp, K. W. (1971). Formal Expressions which Can Be Applied to Cusum Charts.
+Journal of the Royal Statistical Society. Series B (Methodological), 33(3),
+331–360. \doi{10.1111/j.2517-6161.1971.tb01521.x}
 }
 \seealso{
 \code{\link[success]{bernoulli_cusum}}, \code{\link[success]{bernoulli_control_limit}}
