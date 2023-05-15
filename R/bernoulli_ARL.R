@@ -32,6 +32,9 @@
 #'  Bernoulli CUSUM will be determined. If \eqn{\theta < 0}{\theta < 0},
 #' the average run length for the lower one-sided CUSUM will be determined.
 #' Note that \deqn{p_1 = \frac{p_0 e^\theta}{1-p_0 +p_0 e^\theta}.}{p1 = (p0 * e^\theta)/(1-p0+p0 * e^\theta).}
+#' @param theta_true The true log odds ratio \eqn{\theta}{\theta}, describing the
+#' true increase in failure rate from the null-hypothesis. Default = log(1), indicating
+#' no increase in failure rate.
 #' @param p0 The baseline failure probability at \code{entrytime + followup} for individuals.
 #' @param p1 The alternative hypothesis failure probability at \code{entrytime + followup} for individuals.
 #' @param method The method used to obtain the average run length. Either "MC" for Markov Chain
@@ -104,7 +107,7 @@
 #'
 #'
 #' @export
-#' @importFrom Matrix solve
+#' @importFrom Rfast binary_search
 #'
 #' @author Daniel Gomon
 #' @family average run length
@@ -117,8 +120,12 @@
 #' glmmodber <- glm((survtime <= 100) & (censorid == 1)~ age + sex + BMI,
 #'                   data = surgerydat, family = binomial(link = "logit"))
 #' #Determine the Average Run Length in number of outcomes for
-#' #control limit h = 2.5 with (0, h) divided into t = 200 segments
-#' ARL <- bernoulli_ARL(h = 2.5, t = 200, glmmod = glmmodber, theta = log(2))
+#' #control limit h = 2.5 with (0, h) divided into n_grid = 200 segments
+#' ARL <- bernoulli_ARL(h = 2.5, n_grid = 200, glmmod = glmmodber, theta = log(2))
+#' #Calculate ARL, but now exploiting connection between SPRT and CUSUM:
+#' #n_grid now decides the accuracy of the Trapezoidal rule for integral approximation
+#' ARLIntEq <- bernoulli_ARL(h = 2.5, n_grid = 200, glmmod = glmmodber,
+#' theta = log(2), method = "IntEq")
 
 
 
@@ -323,7 +330,7 @@ bernoulli_ARL <- function(h, n_grid, glmmod, theta, theta_true, p0, p1,
     if(missing(glmmod)){
       stop("Probabilities can only be smoothed when 'glmmod' is supplied.")
     }
-    density_estimate <- density(glmmod$fitted.values)
+    #density_estimate <- density(glmmod$fitted.values)
     stop("smooth_prob not incorporated yet")
     #Parametric fit of p_0 distribution
     #Hein: user specifies distribution for linear predictor -> Normal(mu, sigma^2)
@@ -336,6 +343,21 @@ bernoulli_ARL <- function(h, n_grid, glmmod, theta, theta_true, p0, p1,
     return(bernoulli_ARL_IntEq(h = h, n_grid = n_grid, Wncdf = Wncdf, glmmod = glmmod, p0 = p0, theta = theta, theta_true = theta_true))
   }
 }
+
+
+#' Average run length for Bernoulli CUSUM using Markov Chain methodology
+#'
+#' @description Internal function that discretizes grid and solves
+#' matrix equation involving transition matrix.
+#'
+#' @inheritParams bernoulli_ARL
+#' @param Wncdf A function returning the values of the (risk-adjusted) cumulative
+#' distribution function (cdf) for the singletons Wn.
+#'
+#' @importFrom Matrix solve
+#'
+#' @keywords internal
+#'
 
 bernoulli_ARL_MC <- function(h, n_grid, Wncdf, glmmod, p0, theta, theta_true){
   #####################CALCULATE TRANSITION PROBABILITIES#######################################
@@ -412,6 +434,17 @@ bernoulli_ARL_MC <- function(h, n_grid, Wncdf, glmmod, p0, theta, theta_true){
 }
 
 
+#' Average run length for Bernoulli CUSUM using Integral Equation methodology
+#'
+#' @description Internal function that calculates the ARL using the connection
+#' between the ARL of a Wald SPRT and a CUSUM.
+#'
+#' @inheritParams bernoulli_ARL
+#' @param Wncdf A function returning the values of the (risk-adjusted) cumulative
+#' distribution function (cdf) for the singletons Wn.
+#'
+#' @keywords internal
+#'
 
 bernoulli_ARL_IntEq <- function(h, n_grid, Wncdf, glmmod, theta, theta_true, p0, tol = 1e-6){
   #TO-DO: Initialize cdf of W_n as in the function above.
@@ -422,11 +455,15 @@ bernoulli_ARL_IntEq <- function(h, n_grid, Wncdf, glmmod, theta, theta_true, p0,
     #Inputs are:
     #fvals (Wncdf evaluated at relevant points z - [0,h])
     #gvals (G_{n-1}(w) evaluated at the grid of [0,h])
+    #We want to calculate sum_{i=1}^{n_grid -1} (f(x_{i=1}) + f(x_i))/2 * (g(x_{i+1}) - g(x_{i}))
+    #The terms (f(x_{i=1}) + f(x_i)) and (g(x_{i+1}) - g(x_{i})) can be calculated by performing
+    #a single vector operation below. We then retrieve the sum and multiply by 0.5
+    0.5*sum((fvals[-(n+1)] + fvals[-1]) * (gvals[-1] - gvals[-(n+1)]))
+    #OLD - SLOW IMPLEMENTATION
     #Calculate the summation terms (f(x_i)+f(x_{i+1}))/2 * (G(x_i+1) - G(x_i))
     #approxvals <- sapply(1:n, function(x) (fvals[x] + fvals[x+1])/2 * (gvals[x+1] - gvals[x]))
     #Return sum as approximator of integral
     #sum(approxvals)
-    0.5*sum((fvals[-(n+1)] + fvals[-1]) * (gvals[-1] - gvals[-(n+1)]))
   }
 
   if(missing(glmmod)){
@@ -454,9 +491,9 @@ bernoulli_ARL_IntEq <- function(h, n_grid, Wncdf, glmmod, theta, theta_true, p0,
   #Note that G_1(Inf) = 1
   G_storage[1, ] <- c(G_current[1], G_current[n_grid + 1], 1)
   i <- 1
-  #We continue calculating values until either the tolerance is reached
-  #Sometimes the total sum can be zero, f.e. when a chart cannot stop in a certain number of steps
-  #In this case, we want to continue.
+  #We continue calculating values until the tolerance is reached
+  #Tolerance is defined as G_n(h) - G_n(0), the probability of a Wald test not stopping in N steps.
+  #When this is sufficiently small, we barely lose any accuracy
   while((G_storage[i,2] - G_storage[i,1]) > tol){
     #Calculate values of G_{i}(z) over the grid
     #Remember that we have to integrate
@@ -468,7 +505,7 @@ bernoulli_ARL_IntEq <- function(h, n_grid, Wncdf, glmmod, theta, theta_true, p0,
     #need to evaluate Wncdf on the grid [-h, h]. We use memoization to pre-calculate
     #Wncdf on a grid -h = s_0 < s_1 < ... < s_{2n_grid + 1} = h
     #This grid is given by xj_extended above. And the memoization is given by Fvals.
-    G_new <- sapply(1:(n_grid + 1), function(x) stieltjes_trapezoid(rev(Fvals[x:(n_grid + x)]), G_current, n = n_grid))
+    G_new <- sapply(1:(n_grid + 1), function(x) stieltjes_trapezoid(Fvals[(n_grid + x):x], G_current, n = n_grid))
     G_inf <- stieltjes_trapezoid(rep(1, n_grid+1), G_current, n = n_grid)
     G_storage <- rbind(G_storage, c(G_new[1], G_new[n_grid + 1], G_inf))
     G_current <- G_new

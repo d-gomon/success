@@ -31,6 +31,10 @@ Bernoulli CUSUM will be determined. If \eqn{\theta < 0}{\theta < 0},
 the average run length for the lower one-sided CUSUM will be determined.
 Note that \deqn{p_1 = \frac{p_0 e^\theta}{1-p_0 +p_0 e^\theta}.}{p1 = (p0 * e^\theta)/(1-p0+p0 * e^\theta).}}
 
+\item{theta_true}{The true log odds ratio \eqn{\theta}{\theta}, describing the
+true increase in failure rate from the null-hypothesis. Default = log(1), indicating
+no increase in failure rate.}
+
 \item{p0}{The baseline failure probability at \code{entrytime + followup} for individuals.}
 
 \item{p1}{The alternative hypothesis failure probability at \code{entrytime + followup} for individuals.}
@@ -110,8 +114,12 @@ approximated using the generalized trapezoidal quadrature rule:
 glmmodber <- glm((survtime <= 100) & (censorid == 1)~ age + sex + BMI,
                   data = surgerydat, family = binomial(link = "logit"))
 #Determine the Average Run Length in number of outcomes for
-#control limit h = 2.5 with (0, h) divided into t = 200 segments
-ARL <- bernoulli_ARL(h = 2.5, t = 200, glmmod = glmmodber, theta = log(2))
+#control limit h = 2.5 with (0, h) divided into n_grid = 200 segments
+ARL <- bernoulli_ARL(h = 2.5, n_grid = 200, glmmod = glmmodber, theta = log(2))
+#Calculate ARL, but now exploiting connection between SPRT and CUSUM:
+#n_grid now decides the accuracy of the Trapezoidal rule for integral approximation
+ARLIntEq <- bernoulli_ARL(h = 2.5, n_grid = 200, glmmod = glmmodber,
+theta = log(2), method = "IntEq")
 }
 \references{
 Brook, D., & Evans, D. A. (1972). An Approach to the Probability

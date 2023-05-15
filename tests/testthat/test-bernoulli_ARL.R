@@ -22,7 +22,7 @@ test_that("Inputs", {
 
 
 
-test_that("Theory", {
+test_that("Theory - MC", {
   glmmodber <- glm((survtime <= 100) & (censorid == 1)~ age + sex + BMI, data = surgerydat, family = binomial(link = "logit"))
   ARL <- bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = log(2))
   t <- 100
@@ -45,6 +45,40 @@ test_that("Theory", {
   #Above 2 tests, but with negative theta
   expect_lt(bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = -log(2))$ARL_0, bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = -log(2), theta_true = log(1.5))$ARL_0)
   expect_gt(bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = -log(2))$ARL_0, bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = -log(2), theta_true = -log(1.5))$ARL_0)
+})
+
+
+test_that("Theory - IntEq", {
+  glmmodber <- glm((survtime <= 100) & (censorid == 1)~ age + sex + BMI, data = surgerydat, family = binomial(link = "logit"))
+  ARL <- bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = log(2), method = "IntEq")
+  t <- 100
+  #Check whether theta is well defined
+  expect_equal(bernoulli_ARL(h = 2, n_grid = t, p0 = 0.5, theta = log(2), method = "IntEq"), bernoulli_ARL(h = 2, n_grid = t, p0 = 0.5, p1 = 2/3, method = "IntEq"))
+  #Create inverted glmmod
+  glmmod2 <- glmmodber
+  glmmod2$fitted.values <- 1 - glmmod2$fitted.values
+  #Replacing theta with -theta we should get the same answer when the specified probabilities are inverted (1-p).
+  expect_equal(ARL, bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmod2, theta = -log(2), method = "IntEq"))
+  expect_equal(bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = -log(2), method = "IntEq"), bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmod2, theta = log(2), method = "IntEq"))
+  #Same for probabilities specified:
+  expect_equal(bernoulli_ARL(h = 2.5, n_grid = 100, p0 = 0.3, theta = log(2), method = "IntEq"), bernoulli_ARL(h = 2.5, n_grid = 100, p0 = 0.7, theta = -log(2), method = "IntEq"))
+  #Equal when theta_true = 0
+  expect_equal(ARL, bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = log(2), theta_true = log(1), method = "IntEq"))
+  #ARL_0 Smaller when theta_true > 0
+  expect_gt(ARL$ARL_0, bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = log(2), theta_true = log(1.5), method = "IntEq")$ARL_0)
+  #ARL_0 greater when theta_true < 0
+  expect_lt(ARL$ARL_0, bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = log(2), theta_true = -log(1.5), method = "IntEq")$ARL_0)
+  #Above 2 tests, but with negative theta
+  expect_lt(bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = -log(2), method = "IntEq")$ARL_0, bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = -log(2), theta_true = log(1.5), method = "IntEq")$ARL_0)
+  expect_gt(bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = -log(2), method = "IntEq")$ARL_0, bernoulli_ARL(h = 2.5, n_grid = 100, glmmod = glmmodber, theta = -log(2), theta_true = -log(1.5), method = "IntEq")$ARL_0)
+})
+
+
+test_that("MC vs IntEq",{
+  glmmodber <- glm((survtime <= 100) & (censorid == 1)~ age + sex + BMI, data = surgerydat, family = binomial(link = "logit"))
+  ARLInt <- bernoulli_ARL(h = 2.5, n_grid = 300, glmmod = glmmodber, theta = log(2), method = "IntEq")
+  ARLMC <- bernoulli_ARL(h = 2.5, n_grid = 300, glmmod = glmmodber, theta = log(2), method = "MC")
+  expect_equal(ARLInt$ARL_0, ARLMC$ARL_0)
 })
 
 
@@ -76,7 +110,7 @@ test_that("Values of output unchanged?",{
 # #Outcome (failure within 100 days) is regressed on the available covariates:
 # exprfitber <- as.formula("(survtime <= followup) & (censorid == 1)~ age + sex + BMI")
 # glmmodber <- glm(exprfitber, data = surgerydat, family = binomial(link = "logit"))
-# profvis({bernoulli_ARL(h = 2.5, n_grid = 50, glmmod = glmmodber, theta = log(2), method = "IntEq")})
+# profvis({bernoulli_ARL(h = 2.5, n_grid = 200, glmmod = glmmodber, theta = log(2), method = "IntEq")})
 # profvis({bernoulli_ARL(h = 2.5, n_grid = 50, glmmod = glmmodber, theta = log(2), method = "MC")})
 # profvis({bernoulli_ARL(h = 2.5, t = 200, p0 = 0.5, theta = log(2))})
 #
