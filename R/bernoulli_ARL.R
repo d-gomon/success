@@ -49,14 +49,17 @@
 #' \item \code{ARL_0}: A numeric value indicating the average run length in
 #' number of outcomes when starting from state E_0.
 #' \item \code{ARL}: A \code{data.frame} containing the average run length (#outcomes)
-#' depending on the state in which the process starts (E_0, E_1, ..., E_{t-1})
+#' depending on the state in which the process starts (E_0, E_1, ..., E_{n_grid-1})
 #' \describe{
-#'   \item{\code{t_start}:}{State in which the CUSUM process starts;}
-#'   \item{\code{#outcomes}:}{ARL from starting state t_start;}
+#'   \item{\code{start_val}:}{Starting value of the CUSUM, corresponding to the
+#'    discretized state spaces E_{i};}
+#'   \item{\code{#outcomes}:}{ARL for the CUSUM with
+#'   initial value \code{start_val};}
 #' }
 #' \item \code{R}: A transition probability \code{matrix} containing the transition
-#' probabilities between states \eqn{E_0, \ldots, E_{t-1}}{E_0, ..., E_{t-1}}.
+#' probabilities between states \eqn{E_0, \ldots, E_{t-1}}{E_0, ..., E_{n_grid-1}}.
 #' \eqn{R_{i,j}}{R_{i,j}} is the transition probability from state i to state j.
+#' \item \code{h}: Value of the control limit.
 #' } The value of \code{ARL_0} will be printed to the console.
 #'
 #' @references Brook, D., & Evans, D. A. (1972). An Approach to the Probability
@@ -79,10 +82,10 @@
 #' When \code{method = "MC"}, the average run length will be determined by
 #' the Markov Chain approach described
 #' in Brook & Evans (1972), using the risk-adjustment correction proposed in
-#' Steiner et al. (2000). The idea is to discretize the domain (0, h) into $t-1$
+#' Steiner et al. (2000). The idea is to discretize the domain (0, h) into \eqn{n_{grid} -1}{n_grid-1}
 #' state spaces, with \eqn{E_0}{E_0} of width \eqn{w/2}{w/2}
-#' and \eqn{E_1, \ldots, E_{t-1}}{E_1, ..., E_{t-1}} of width \eqn{w}{w}, such that
-#' \eqn{E_t}{E_t} is an absorbing state.  This is done using the following steps:
+#' and \eqn{E_1, \ldots, E_{n_{grid}-1}}{E_1, ..., E_{n_grid-1}} of width \eqn{w}{w}, such that
+#' \eqn{E_{n_{grid}}}{E_{n_grid}} is an absorbing state.  This is done using the following steps:
 #' \itemize{
 #' \item \eqn{w}{w} is determined using the relationship \eqn{\frac{2h}{2t-1}}{2h/(2t-1)}.
 #' \item Transition probabilities between the states are determined and
@@ -97,17 +100,16 @@
 #' connection between the run length of a Sequential Probability Ratio Test (SPRT)
 #' and that of a CUSUM. If N is the run length of a SPRT, P(0) the probability of
 #' a SPRT terminating on the lower boundary of zero and R the run length of
-#' a CUSUM, then \deqn{\mathbb{E}[R] = \frac{\mathbb{E}[N]}{1 - P(0)}}{E[R] = E[N]/(1-P(0))}.
+#' a CUSUM, then: \deqn{\mathbb{E}[R] = \frac{\mathbb{E}[N]}{1 - P(0)}.}{E[R] = E[N]/(1-P(0)).}
 #' \eqn{\mathbb{E}[N]}{E[N]} and \eqn{P(0)}{P(0)} are completely determined by
 #' \deqn{G_n(z) = \int_0^h F(z-w) dG_{n-1}(w)}{G_n(z) = \int_0^h F(z-w) dG_{n-1}(w)}
 #' with \eqn{F(x)}{F(x)} the cdf of the singletons \eqn{W_n}{Wn}. The integral can be
 #' approximated using the generalized trapezoidal quadrature rule:
-#' \deqn{G_n(z) = \sum_{i=0}^{n_grid-1} \frac{F(z-x_{i+1}) + F(z-x_{i})}{2} \left(G_{n-1}(x_{i+1}) - G_{n-1}(x_{i})  \right)}{Gn(z) = \sum_{i=0}^{n_grid-1} (F(z-x_{i+1}) + F(z-x_{i}))/2 * (G_{n-1}(x_{i+1}) - G_{n-1}(x_{i}))}
+#' \deqn{G_n(z) = \sum_{i=0}^{n_{grid}-1} \frac{F(z-x_{i+1}) + F(z-x_{i})}{2} \left(G_{n-1}(x_{i+1}) - G_{n-1}(x_{i})  \right)}{Gn(z) = \sum_{i=0}^{n_grid-1} (F(z-x_{i+1}) + F(z-x_{i}))/2 * (G_{n-1}(x_{i+1}) - G_{n-1}(x_{i}))}
 #'
 #'
 #'
 #' @export
-#' @importFrom Rfast binary_search
 #'
 #' @author Daniel Gomon
 #' @family average run length
@@ -126,6 +128,17 @@
 #' #n_grid now decides the accuracy of the Trapezoidal rule for integral approximation
 #' ARLIntEq <- bernoulli_ARL(h = 2.5, n_grid = 200, glmmod = glmmodber,
 #' theta = log(2), method = "IntEq")
+#'
+#' \donttest{
+#' #We can compare our ARL with that determined using the VLAD package
+#' #See \url{https://cran.r-project.org/package=vlad}
+#' if(require("vlad")){
+#'    fi <- as.numeric(table(glmmodber$fitted.values)/length(glmmodber$fitted.values))
+#'    pi1 <- sort(unique(glmmodber$fitted.values))
+#'    pmix1 <- data.frame(fi, pi1, pi1)
+#'    vlad_ARL <- round(vlad::racusum_arl_mc(pmix = pmix1, RA = 2, RQ = 1, h = 2.5, scaling = 200))
+#' }
+#' }
 
 
 
@@ -133,7 +146,6 @@
 bernoulli_ARL <- function(h, n_grid, glmmod, theta, theta_true, p0, p1,
                           method = c("MC", "IntEq"), smooth_prob = FALSE){
   #------------Variable checks------------------
-
   method <- match.arg(method)
   #Input checks
   if(!all(is.numeric(h) & length(h) == 1)){
@@ -195,6 +207,181 @@ bernoulli_ARL <- function(h, n_grid, glmmod, theta, theta_true, p0, p1,
   }
 
   #############################CALCULATE CDF of W_n############################################
+  Wncdf <- calc_Wncdf(glmmod = glmmod, theta = theta, theta_true = theta_true, p0 = p0, smooth_prob = smooth_prob)
+
+  #Determine Average Run Length depending on method
+  if(method == "MC"){
+    R <- calc_MC_trans_matrix(h = h, n_grid = n_grid, Wncdf = Wncdf, glmmod = glmmod, p0 = p0, theta = theta, theta_true = theta_true)
+    return(c(bernoulli_ARL_MC(n_grid = n_grid, R = R, h = h),
+                h = h))
+  } else if(method == "IntEq"){
+    return(c(bernoulli_ARL_IntEq(h = h, n_grid = n_grid, Wncdf = Wncdf, glmmod = glmmod, p0 = p0, theta = theta, theta_true = theta_true),
+                h = h))
+  }
+}
+
+
+
+#' Cumulative distribution function (cdf) of Run Length for Bernoulli CUSUM
+#'
+#' @description Calculate the cdf of the Run Length of the Bernoulli CUSUM,
+#' starting from initial value between 0 and \code{h}.
+#'
+#'
+#' @inheritParams bernoulli_ARL
+#' @param x Quantile at which to evaluate the cdf.
+#' @param exact Should the cdf be determined exactly (TRUE), or approximately
+#' (FALSE)? The approximation works well for large \code{x}, and can cut computation
+#' time significantly. Default = TRUE.
+#'
+#'
+#' @details Let \eqn{K}{K} denote the run length of the Bernoulli CUSUM with control limit \code{h}, then
+#' this function can be used to evaluate \eqn{\mathbb{P}(K \leq x)}{P(K <= x)}.
+#'
+#' When \code{method = "MC"}, the formula on page 543 of Brook & Evans (1972)
+#' is used if \code{exact = TRUE}. When \code{exact = FALSE}, formula (3.9) on
+#' page 545 is used instead, approximating the transition matrix using its
+#' Jordan canonical form. This can save computation time considerably, but is
+#' not appropriate for small values of \code{x}.
+#'
+#' @return A list containing:
+#' \itemize{
+#' \item \code{Fr_0}: A numeric value indicating the probability of the run
+#' length being smaller than \code{x}.
+#' \item \code{Fr}: A \code{data.frame} containing the cumulative distribution function of the run length
+#' depending on the state in which the process starts (E_0, E_1, ..., E_{n_grid-1})
+#' \describe{
+#'   \item{\code{start_val}:}{Starting value of the CUSUM, corresponding to the
+#'    discretized state spaces E_{i};}
+#'   \item{\code{P(K <= x)}:}{Value of the cdf at \code{x} for the CUSUM with
+#'   initial value \code{start_val};}
+#' }
+#' \item \code{R}: A transition probability \code{matrix} containing the transition
+#' probabilities between states \eqn{E_0, \ldots, E_{t-1}}{E_0, ..., E_{n_grid-1}}.
+#' \eqn{R_{i,j}}{R_{i,j}} is the transition probability from state i to state j.
+#' } The value of \code{ARL_0} will be printed to the console.
+#'
+#'
+#' @export
+#'
+#' @references Brook, D., & Evans, D. A. (1972). An Approach to the Probability
+#' Distribution of Cusum Run Length. Biometrika, 59(3), 539–549.
+#' \doi{10.2307/2334805}
+#'
+#' Steiner, S. H., Cook, R. J., Farewell, V. T., & Treasure, T. (2000).
+#' Monitoring surgical performance using risk-adjusted cumulative sum charts.
+#' Biostatistics, 1(4), 441–452. \doi{10.1093/biostatistics/1.4.441}
+#'
+#' Kemp, K. W. (1971). Formal Expressions which Can Be Applied to Cusum Charts.
+#' Journal of the Royal Statistical Society. Series B (Methodological), 33(3),
+#' 331–360. \doi{10.1111/j.2517-6161.1971.tb01521.x}
+#'
+#' @examples
+#' #Determine a risk-adjustment model using a generalized linear model.
+#' #Outcome (failure within 100 days) is regressed on the available covariates:
+#' glmmodber <- glm((survtime <= 100) & (censorid == 1)~ age + sex + BMI,
+#'                   data = surgerydat, family = binomial(link = "logit"))
+#' #Determine probability of run length being less than 600
+#' prob600 <- bernoulli_RL_cdf(h = 2.5, x = 600, n_grid = 200, glmmod = glmmodber, theta = log(2))
+
+
+bernoulli_RL_cdf <- function(h, x, n_grid, glmmod, theta, theta_true, p0, p1,
+                             method = c("MC", "IntEq"), smooth_prob = FALSE, exact = TRUE){
+  #------------Variable checks------------------
+  method <- match.arg(method)
+  #Input checks
+  if(!all(is.numeric(h) & length(h) == 1)){
+    stop("Parameter 'h' must be a single numeric variable.")
+  }
+  if(!all(is.numeric(n_grid), n_grid%%1 == 0, n_grid > 1, length(n_grid) == 1)){
+    stop("Parameter 'n_grid' must be an integer larger than 1.")
+  }
+  if(!all(is.logical(smooth_prob), length(smooth_prob) == 1)){
+    stop("Parameter 'smooth_prob' must be a single logical value.")
+  }
+  if(!all(is.logical(exact), length(exact) == 1)){
+    stop("Parameter 'exact' must be a single logical value.")
+  }
+  if(!missing(theta_true)){
+    if(!all(is.numeric(theta_true) & theta != 0)){
+      stop("Parameter 'theta' must be a numeric variable not equal to 0.")
+    }
+  } else{
+    theta_true = NULL
+  }
+  if(!missing(glmmod)){
+    if(!inherits(glmmod, "glm")){
+      stop("Parameter 'glmmod' must be of class 'glm'.")
+    }
+  }
+  if(!missing(theta)){
+    if(!all(is.numeric(theta) & theta != 0)){
+      stop("Parameter 'theta' must be a numeric variable not equal to 0.")
+    }
+  }
+  if(!missing(p0)){
+    if(!all(is.numeric(p0), p0 >= 0, p0 <= 1)){
+      stop("Parameter 'p0' must be a positive probability between 0 and 1. (numeric)")
+    }
+  }
+  if(!missing(p1)){
+    if(!all(is.numeric(p1), p1 >= 0, p1 <= 1)){
+      stop("Parameter 'p1' must be a positive probability between 0 and 1. (numeric)")
+    }
+  }
+  if(!((method == "MC") | (method == "IntEq"))){
+    stop("Parameter 'method' must be either 'MC' or 'IntEq'.")
+  }
+
+  if(h < 0){
+    h <- sign(h)*h
+  }
+
+  #Correct combination of parameters specified?
+  if(!((!missing(p0) & !missing(p1)) | (!missing(p0) & !missing(theta)) | (!missing(glmmod) & !missing(theta)))){
+    stop("Please specify any of the following parameter combinations: 'glmmod' & 'theta' or 'p0' & 'theta' or 'p0' & 'p1'.")
+  } else if(!missing(p0) & !missing(p1)){
+    theta <- log((p1)*(1-p0)/((p0)*(1-p1)))
+  } else if(!missing(p0) & !missing(theta)){
+    p1 <- p0*exp(theta)/(1-p0 + exp(theta)*p0)
+  } else if(!missing(glmmod) & !missing(theta)){
+    #Do nothing (for now at least)
+  }
+  if(isTRUE(smooth_prob) & missing(glmmod)){
+    stop("Probability distribution can only be smoothed when 'glmmod' is specified.")
+  }
+
+  #############################CALCULATE CDF of W_n############################################
+  Wncdf <- calc_Wncdf(glmmod = glmmod, theta = theta, theta_true = theta_true, p0 = p0, smooth_prob = smooth_prob)
+
+  #Determine Average Run Length depending on method
+  if(method == "MC"){
+    R <- calc_MC_trans_matrix(h = h, n_grid = n_grid, Wncdf = Wncdf, glmmod = glmmod, p0 = p0, theta = theta, theta_true = theta_true)
+    return(bernoulli_cdf_MC(n_grid = n_grid, R = R, r = x, h = h, exact = exact))
+  } else if(method == "IntEq"){
+    stop("Not implemented yet")
+  }
+}
+
+
+
+#############################UTIL FUNCTIONS BELOW###############################
+##################################INTERNAL######################################
+
+
+#' Calculate cdf of singletons W_n for CUSUM
+#'
+#' @description Internal function to calculate cdf of singletons \eqn{W_n}{Wn}
+#' of the Bernoulli CUSUM chart. The cdf is used to create the transition matrix
+#' when Markov Chain methodology is used or to determine the integral equation/probabilities
+#' of a Wald test when integral equation or Kemp's methodology is used.
+#'
+#' @inheritParams bernoulli_ARL
+#'
+#' @importFrom Rfast binary_search
+#'
+#' @keywords internal
+calc_Wncdf <- function(glmmod, theta, theta_true, p0, smooth_prob = FALSE){
   #If we do not want to smooth probability distribution
   if(isFALSE(smooth_prob)){
     if(!missing(glmmod)){
@@ -336,32 +523,24 @@ bernoulli_ARL <- function(h, n_grid, glmmod, theta, theta_true, p0, p1,
     #Hein: user specifies distribution for linear predictor -> Normal(mu, sigma^2)
     #Then integrate from logit scale.
   }
-
-  if(method == "MC"){
-    return(bernoulli_ARL_MC(h = h, n_grid = n_grid, Wncdf = Wncdf, glmmod = glmmod, p0 = p0, theta = theta, theta_true = theta_true))
-  } else if(method == "IntEq"){
-    return(bernoulli_ARL_IntEq(h = h, n_grid = n_grid, Wncdf = Wncdf, glmmod = glmmod, p0 = p0, theta = theta, theta_true = theta_true))
-  }
+  return(Wncdf)
 }
 
 
-#' Average run length for Bernoulli CUSUM using Markov Chain methodology
+
+#' Transition probability matrix for Bernoulli CUSUM
 #'
-#' @description Internal function that discretizes grid and solves
-#' matrix equation involving transition matrix.
+#' @description Calculates the transition probability matrix for the Bernoulli
+#' CUSUM described in Brook & Evans (1972).
 #'
 #' @inheritParams bernoulli_ARL
-#' @param Wncdf A function returning the values of the (risk-adjusted) cumulative
-#' distribution function (cdf) for the singletons Wn.
-#'
-#' @importFrom Matrix solve
 #'
 #' @keywords internal
 #'
+#'
 
-bernoulli_ARL_MC <- function(h, n_grid, Wncdf, glmmod, p0, theta, theta_true){
+calc_MC_trans_matrix <- function(h, n_grid, Wncdf, glmmod, p0, theta, theta_true){
   #####################CALCULATE TRANSITION PROBABILITIES#######################################
-
   #Calculate the value w used for discretizing the state space
   w <- 2*h/(2*n_grid -1)
   #Initialize transition matrix
@@ -413,7 +592,26 @@ bernoulli_ARL_MC <- function(h, n_grid, Wncdf, glmmod, p0, theta, theta_true){
       }
     }
   }
+  return(R)
+}
 
+
+
+
+#' Average run length for Bernoulli CUSUM using Markov Chain methodology
+#'
+#' @description Internal function that discretizes grid and solves
+#' matrix equation involving transition matrix for Markov Chain methodology
+#'
+#' @inheritParams bernoulli_ARL
+#' @param R Transition probability matrix obtained from \code{calc_MC_trans_matrix}
+#'
+#' @importFrom Matrix solve
+#'
+#' @keywords internal
+#'
+
+bernoulli_ARL_MC <- function(n_grid, R, h){
   #############################DECOMPOSE TRANSITION MATRIX FOR ARL#######################
   #Now we need to decompose the "transition matrix" R to obtain the ARL vector mu
   #Each entry mu[i] represents the ARL when starting from state i-1
@@ -421,15 +619,86 @@ bernoulli_ARL_MC <- function(h, n_grid, Wncdf, glmmod, p0, theta, theta_true){
   mu = round(Matrix::solve(diag(1, nrow = n_grid, ncol = n_grid) - R, matrix(1, nrow = n_grid, ncol = 1)))
   rownames(mu) <- 0:(n_grid-1)
 
+  #Calculate value of w (grid discretization size)
+  w <- 2*h/(2*n_grid -1)
+
   #Post-processing
   ARL_0 = mu[1]
   names(ARL_0) <- "#outcomes"
-  ARL <- cbind(0:(n_grid-1), mu)
-  colnames(ARL) <- c("t_start", "#outcomes")
+  ARL <- cbind(seq(0, h, w), mu)
+  colnames(ARL) <- c("start_val", "#outcomes")
+  rownames(ARL) <- 0:(n_grid -1)
 
   print(ARL_0)
   return(invisible(list(ARL_0 = ARL_0,
                         ARL = ARL,
+                        R = R)))
+}
+
+#' Average run length for Bernoulli CUSUM using Markov Chain methodology
+#'
+#' @description Internal function that discretizes grid and solves
+#' matrix equation involving transition matrix for Markov Chain methodology
+#'
+#' @inheritParams bernoulli_ARL
+#' @param R Transition probability matrix obtained from \code{calc_MC_trans_matrix}
+#'
+#' @importFrom matrixcalc matrix.power
+#'
+#' @keywords internal
+#'
+
+bernoulli_cdf_MC <- function(n_grid, R, r, h, exact = TRUE){
+  #Calculate value of w (grid discretization)
+  w <- 2*h/(2*n_grid -1)
+  #############################DECOMPOSE TRANSITION MATRIX FOR cdf#######################
+  #According to Brook & Evans, the cdf is given by F(X_0 <= r, X_1 <= r, ..., X_{h-1} <= r) =  (I-R^r)1
+  #First entry is therefore the cdf starting from 0
+  if(isTRUE(exact)){
+    Rr <- matrixcalc::matrix.power(R, r-1)
+    Fr <- 1 - (Rr %*% matrix(1, nrow = n_grid, ncol = 1))
+  } else{
+    ######################Right-EV#############################
+    #R = VLV^{-1}, so that RV = VL   -> Left eigenvector
+    #Eigen decompose R
+    eigenR <- eigen(R)
+    #Check which eigenvalues are Real
+    RealEV <- which(abs(Im(eigenR$values)) < 1e-8)
+    #Determine largest real eigenvalue
+    RealEVR <- Re(eigenR$values[RealEV])[1]
+    #Determine associated eigenvector
+    RealEVec <- Re(eigenR$vectors[,RealEV[1]])
+    RealEVec <- sign(RealEVec[1]) * RealEVec
+
+    ######################Left-EV#############################
+    #R^T = VLV^{-1}, so that R^TV = VL  -> Left eigenvector
+    LefteigenR <- eigen(t(R))
+    #Check which eigenvalues are Real
+    LeftRealEV <- which(abs(Im(LefteigenR$values)) < 1e-8)
+    #Determine largest real eigenvalue
+    LeftRealEVR <- Re(LefteigenR$values[LeftRealEV])[1]
+    #Determine associated eigenvector
+    LeftRealEVec <- Re(LefteigenR$vectors[,LeftRealEV[1]])
+    LeftRealEVec <- sign(LeftRealEVec[1]) * LeftRealEVec
+
+    Fr <- 1 - ((RealEVR^(r-1)) * (sum(LeftRealEVec))/(sum(RealEVec * LeftRealEVec))) * RealEVec
+  }
+
+  Fr_0 <- Fr[1]
+  Fr <- cbind(seq(0, h, w), Fr)
+  colnames(Fr) <- c("start_val", "P(K <= x)")
+  rownames(Fr) <- 0:(n_grid -1)
+
+  if(is.unsorted(Fr[, 2])){
+    warning("Probabilities are not increasing with starting value, resulting probabilities may not be accurate.
+            Consider increasing 'x' and/or 'ngrid'.")
+  } else if(any(sign(Fr[,2]) < 0)){
+    warning("Probability below 0 calculated, resulting probabilities may not be accurate.
+            Consider increasing 'x' and/or 'ngrid'.")
+  }
+  print(Fr_0)
+  return(invisible(list(Fr_0 = Fr_0,
+                        Fr = Fr,
                         R = R)))
 }
 

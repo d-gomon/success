@@ -114,6 +114,10 @@ test_that("Values of output unchanged?",{
 # profvis({bernoulli_ARL(h = 2.5, n_grid = 50, glmmod = glmmodber, theta = log(2), method = "MC")})
 # profvis({bernoulli_ARL(h = 2.5, t = 200, p0 = 0.5, theta = log(2))})
 #
+# #Difference in computation time between exact and approximate calculations
+# profvis({bernoulli_RL_cdf(h = 2.5, x = 600, n_grid = 200, glmmod = glmmodber, theta = log(2), method = "MC", exact = TRUE)})
+# profvis({bernoulli_RL_cdf(h = 2.5, x = 600, n_grid = 200, glmmod = glmmodber, theta = log(2), method = "MC", exact = FALSE)})
+#
 # ####################################Speed testing#############################
 # library(tictoc)
 # tic("t = 100")

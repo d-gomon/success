@@ -22,8 +22,8 @@ Possible values are \code{c("none", "unit", "type")}. Default is \code{"none"}.}
 \item{highlight}{Should charts be highlighted on hover? Default is \code{FALSE}.}
 
 \item{manual_colors}{A character vector specifying which colors to use
-for the units in the data. By default, the "Dark2" color set from
-\code{\link[RColorBrewer:brewer.pal]{brewer.pal()}} will be used.}
+for the units in the data. By default, the "Set2" color set from
+\code{\link[grDevices:palette]{palette()}} will be used.}
 
 \item{...}{Further plotting parameters}
 }

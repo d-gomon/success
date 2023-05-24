@@ -17,9 +17,8 @@
 #' @seealso \code{\link[success]{cgr_cusum}}, \code{\link[success]{bk_cusum}}, \code{\link[success]{bernoulli_cusum}}, \code{\link[success]{funnel_plot}}
 #'
 #' @returns A plot of the associated chart is displayed in the current graphics device.
-#'
+#' @importFrom ggplot2 ggplot aes geom_line geom_hline labs
 #' @describeIn plot Plot a CGR-CUSUM
-#' @import ggplot2
 #' @export
 plot.cgrcusum <- function(x, h, ...){
   time <- value <- NULL
@@ -36,7 +35,6 @@ plot.cgrcusum <- function(x, h, ...){
 }
 
 #' @describeIn plot Plot a BK-CUSUM
-#' @import ggplot2
 #' @export
 plot.bkcusum <- function(x, h, ...){
   time <- value <- val_up <- val_down <- NULL
@@ -68,7 +66,7 @@ plot.bkcusum <- function(x, h, ...){
 
 
 #' @describeIn plot Display a funnel plot
-#' @import ggplot2
+#' @importFrom ggplot2 scale_colour_manual geom_point ylim
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom stats relevel
 #' @importFrom grDevices palette
@@ -95,7 +93,7 @@ plot.funnelplot <- function(x, percentage = TRUE, unit_label = FALSE, ...){
   #Determine the number of required colours
   numcolours <- length(x$conflev) + 1
   #Gradient from green to red displaying detection levels
-  cols <- colorRampPalette(c("green", "red"))(numcolours)
+  cols <- grDevices::colorRampPalette(c("green", "red"))(numcolours)
   #Determine which colour to use for point:
   names(cols) = c("in-control", sort(as.numeric(x$conflev)))
   #Create color scale for ggplot
@@ -108,7 +106,7 @@ plot.funnelplot <- function(x, percentage = TRUE, unit_label = FALSE, ...){
     finalcols[which(t_col_data == "worse" | t_col_data == "better")] <- rev(x$conflev)[k]
   }
   finalcols <- as.factor(finalcols)
-  finalcols <- relevel(finalcols, "in-control")
+  finalcols <- stats::relevel(finalcols, "in-control")
   x$data$detection <- finalcols
   t <- ggplot(x$data, mapping = aes(x = numtotal, y = p)) + geom_line(data = x$plotdata, mapping= aes(x = numtotal, y = lower, group = as.factor(conflev)),
                             colour = "blue", linetype = "dashed") +
@@ -126,7 +124,6 @@ plot.funnelplot <- function(x, percentage = TRUE, unit_label = FALSE, ...){
 
 
 #' @describeIn plot Plot a Bernoulli CUSUM
-#' @import ggplot2
 #' @export
 plot.bercusum <- function(x, h = x$h, ...){
   time <- value <- val_up <- val_down <- NULL

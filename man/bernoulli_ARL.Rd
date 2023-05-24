@@ -51,14 +51,17 @@ A list containing:
 \item \code{ARL_0}: A numeric value indicating the average run length in
 number of outcomes when starting from state E_0.
 \item \code{ARL}: A \code{data.frame} containing the average run length (#outcomes)
-depending on the state in which the process starts (E_0, E_1, ..., E_{t-1})
+depending on the state in which the process starts (E_0, E_1, ..., E_{n_grid-1})
 \describe{
-\item{\code{t_start}:}{State in which the CUSUM process starts;}
-\item{\code{#outcomes}:}{ARL from starting state t_start;}
+\item{\code{start_val}:}{Starting value of the CUSUM, corresponding to the
+discretized state spaces E_{i};}
+\item{\code{#outcomes}:}{ARL for the CUSUM with
+initial value \code{start_val};}
 }
 \item \code{R}: A transition probability \code{matrix} containing the transition
-probabilities between states \eqn{E_0, \ldots, E_{t-1}}{E_0, ..., E_{t-1}}.
+probabilities between states \eqn{E_0, \ldots, E_{t-1}}{E_0, ..., E_{n_grid-1}}.
 \eqn{R_{i,j}}{R_{i,j}} is the transition probability from state i to state j.
+\item \code{h}: Value of the control limit.
 } The value of \code{ARL_0} will be printed to the console.
 }
 \description{
@@ -83,10 +86,10 @@ The average run length of a CUSUM chart \eqn{S_n}{S_n} is given by
 When \code{method = "MC"}, the average run length will be determined by
 the Markov Chain approach described
 in Brook & Evans (1972), using the risk-adjustment correction proposed in
-Steiner et al. (2000). The idea is to discretize the domain (0, h) into $t-1$
+Steiner et al. (2000). The idea is to discretize the domain (0, h) into \eqn{n_{grid} -1}{n_grid-1}
 state spaces, with \eqn{E_0}{E_0} of width \eqn{w/2}{w/2}
-and \eqn{E_1, \ldots, E_{t-1}}{E_1, ..., E_{t-1}} of width \eqn{w}{w}, such that
-\eqn{E_t}{E_t} is an absorbing state.  This is done using the following steps:
+and \eqn{E_1, \ldots, E_{n_{grid}-1}}{E_1, ..., E_{n_grid-1}} of width \eqn{w}{w}, such that
+\eqn{E_{n_{grid}}}{E_{n_grid}} is an absorbing state.  This is done using the following steps:
 \itemize{
 \item \eqn{w}{w} is determined using the relationship \eqn{\frac{2h}{2t-1}}{2h/(2t-1)}.
 \item Transition probabilities between the states are determined and
@@ -101,12 +104,12 @@ correction proposed in Steiner et al. (2000). The idea is to exploit the
 connection between the run length of a Sequential Probability Ratio Test (SPRT)
 and that of a CUSUM. If N is the run length of a SPRT, P(0) the probability of
 a SPRT terminating on the lower boundary of zero and R the run length of
-a CUSUM, then \deqn{\mathbb{E}[R] = \frac{\mathbb{E}[N]}{1 - P(0)}}{E[R] = E[N]/(1-P(0))}.
+a CUSUM, then: \deqn{\mathbb{E}[R] = \frac{\mathbb{E}[N]}{1 - P(0)}.}{E[R] = E[N]/(1-P(0)).}
 \eqn{\mathbb{E}[N]}{E[N]} and \eqn{P(0)}{P(0)} are completely determined by
 \deqn{G_n(z) = \int_0^h F(z-w) dG_{n-1}(w)}{G_n(z) = \int_0^h F(z-w) dG_{n-1}(w)}
 with \eqn{F(x)}{F(x)} the cdf of the singletons \eqn{W_n}{Wn}. The integral can be
 approximated using the generalized trapezoidal quadrature rule:
-\deqn{G_n(z) = \sum_{i=0}^{n_grid-1} \frac{F(z-x_{i+1}) + F(z-x_{i})}{2} \left(G_{n-1}(x_{i+1}) - G_{n-1}(x_{i})  \right)}{Gn(z) = \sum_{i=0}^{n_grid-1} (F(z-x_{i+1}) + F(z-x_{i}))/2 * (G_{n-1}(x_{i+1}) - G_{n-1}(x_{i}))}
+\deqn{G_n(z) = \sum_{i=0}^{n_{grid}-1} \frac{F(z-x_{i+1}) + F(z-x_{i})}{2} \left(G_{n-1}(x_{i+1}) - G_{n-1}(x_{i})  \right)}{Gn(z) = \sum_{i=0}^{n_grid-1} (F(z-x_{i+1}) + F(z-x_{i}))/2 * (G_{n-1}(x_{i+1}) - G_{n-1}(x_{i}))}
 }
 \examples{
 #Determine a risk-adjustment model using a generalized linear model.
@@ -120,6 +123,17 @@ ARL <- bernoulli_ARL(h = 2.5, n_grid = 200, glmmod = glmmodber, theta = log(2))
 #n_grid now decides the accuracy of the Trapezoidal rule for integral approximation
 ARLIntEq <- bernoulli_ARL(h = 2.5, n_grid = 200, glmmod = glmmodber,
 theta = log(2), method = "IntEq")
+
+\donttest{
+#We can compare our ARL with that determined using the VLAD package
+#See \url{https://cran.r-project.org/package=vlad}
+if(require("vlad")){
+   fi <- as.numeric(table(glmmodber$fitted.values)/length(glmmodber$fitted.values))
+   pi1 <- sort(unique(glmmodber$fitted.values))
+   pmix1 <- data.frame(fi, pi1, pi1)
+   vlad_ARL <- round(vlad::racusum_arl_mc(pmix = pmix1, RA = 2, RQ = 1, h = 2.5, scaling = 200))
+}
+}
 }
 \references{
 Brook, D., & Evans, D. A. (1972). An Approach to the Probability

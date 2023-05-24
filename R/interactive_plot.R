@@ -13,20 +13,15 @@
 #' @param group_by Character indicating how to group the CUSUM charts in the plot.
 #' Possible values are \code{c("none", "unit", "type")}. Default is \code{"none"}.
 #' @param manual_colors A character vector specifying which colors to use
-#' for the units in the data. By default, the "Dark2" color set from
-#' \code{\link[RColorBrewer:brewer.pal]{brewer.pal()}} will be used.
+#' for the units in the data. By default, the "Set2" color set from
+#' \code{\link[grDevices:palette]{palette()}} will be used.
 #'
 #'
 #' @return An interactive plot will be produced in the current graphics device.
 #' For more information on the possibilities for interaction, see \url{https://plotly.com/r/}.
 #'
-#' @importFrom plotly plot_ly
-#' @importFrom plotly layout
-#' @importFrom plotly highlight_key
-#' @importFrom plotly add_trace
-#' @importFrom plotly add_lines
-#' @importFrom RColorBrewer brewer.pal
-#' @importFrom grDevices colorRampPalette
+#' @importFrom plotly plot_ly layout highlight_key add_trace add_lines
+#' @importFrom grDevices palette
 #' @export
 #'
 #' @seealso \code{\link[success]{cgr_cusum}}, \code{\link[success]{bk_cusum}}, \code{\link[success]{bernoulli_cusum}}, \code{\link[success]{funnel_plot}}
@@ -156,7 +151,7 @@ interactive_plot <- function(x, unit_names, scale = FALSE,
     }
     unitcols <- manual_colors[1:ncols]
   } else{
-    unitcols <- colorRampPalette(brewer.pal(n = 8, "Set2"))(ncols)
+    unitcols <- palette.colors(8, "Set2")[1:ncols]
   }
 
   names(unitcols) <- unique(unit_names)
