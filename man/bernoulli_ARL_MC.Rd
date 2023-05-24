@@ -8,7 +8,7 @@ bernoulli_ARL_MC(n_grid, R, h)
 }
 \arguments{
 \item{n_grid}{Number of state spaces used to discretize the outcome space (when \code{method = "MC"})
-or number of grid points used for trapezoidal integration (when \code{method = "IntEq"}).
+or number of grid points used for trapezoidal integration (when \code{method = "SPRT"}).
 Increasing this number improves accuracy, but can also significantly increase computation time.}
 
 \item{R}{Transition probability matrix obtained from \code{calc_MC_trans_matrix}}

@@ -5,7 +5,7 @@
 \title{Cumulative distribution function (cdf) of Run Length for Bernoulli CUSUM}
 \usage{
 bernoulli_RL_cdf(h, x, n_grid, glmmod, theta, theta_true, p0, p1,
-  method = c("MC", "IntEq"), smooth_prob = FALSE, exact = TRUE)
+  smooth_prob = FALSE, exact = TRUE)
 }
 \arguments{
 \item{h}{Control limit for the Bernoulli CUSUM}
@@ -13,7 +13,7 @@ bernoulli_RL_cdf(h, x, n_grid, glmmod, theta, theta_true, p0, p1,
 \item{x}{Quantile at which to evaluate the cdf.}
 
 \item{n_grid}{Number of state spaces used to discretize the outcome space (when \code{method = "MC"})
-or number of grid points used for trapezoidal integration (when \code{method = "IntEq"}).
+or number of grid points used for trapezoidal integration (when \code{method = "SPRT"}).
 Increasing this number improves accuracy, but can also significantly increase computation time.}
 
 \item{glmmod}{Generalized linear regression model used for risk-adjustment as produced by
@@ -40,9 +40,6 @@ no increase in failure rate.}
 \item{p0}{The baseline failure probability at \code{entrytime + followup} for individuals.}
 
 \item{p1}{The alternative hypothesis failure probability at \code{entrytime + followup} for individuals.}
-
-\item{method}{The method used to obtain the average run length. Either "MC" for Markov Chain
-or "IntEq" for integral equation. Default = "MC".}
 
 \item{smooth_prob}{Should the probability distribution of failure under the null distribution be smoothed?
 Useful for small samples. Can only be TRUE when \code{glmmod} is supplied. Default = FALSE.}
@@ -71,13 +68,13 @@ probabilities between states \eqn{E_0, \ldots, E_{t-1}}{E_0, ..., E_{n_grid-1}}.
 }
 \description{
 Calculate the cdf of the Run Length of the Bernoulli CUSUM,
-starting from initial value between 0 and \code{h}.
+starting from initial value between 0 and \code{h}, using Markov Chain methodology.
 }
 \details{
 Let \eqn{K}{K} denote the run length of the Bernoulli CUSUM with control limit \code{h}, then
 this function can be used to evaluate \eqn{\mathbb{P}(K \leq x)}{P(K <= x)}.
 
-When \code{method = "MC"}, the formula on page 543 of Brook & Evans (1972)
+The formula on page 543 of Brook & Evans (1972)
 is used if \code{exact = TRUE}. When \code{exact = FALSE}, formula (3.9) on
 page 545 is used instead, approximating the transition matrix using its
 Jordan canonical form. This can save computation time considerably, but is
@@ -99,8 +96,4 @@ Distribution of Cusum Run Length. Biometrika, 59(3), 539–549.
 Steiner, S. H., Cook, R. J., Farewell, V. T., & Treasure, T. (2000).
 Monitoring surgical performance using risk-adjusted cumulative sum charts.
 Biostatistics, 1(4), 441–452. \doi{10.1093/biostatistics/1.4.441}
-
-Kemp, K. W. (1971). Formal Expressions which Can Be Applied to Cusum Charts.
-Journal of the Royal Statistical Society. Series B (Methodological), 33(3),
-331–360. \doi{10.1111/j.2517-6161.1971.tb01521.x}
 }

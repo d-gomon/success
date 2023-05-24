@@ -5,13 +5,13 @@
 \title{Average Run Length for Bernoulli CUSUM}
 \usage{
 bernoulli_ARL(h, n_grid, glmmod, theta, theta_true, p0, p1, method = c("MC",
-  "IntEq"), smooth_prob = FALSE)
+  "SPRT"), smooth_prob = FALSE)
 }
 \arguments{
 \item{h}{Control limit for the Bernoulli CUSUM}
 
 \item{n_grid}{Number of state spaces used to discretize the outcome space (when \code{method = "MC"})
-or number of grid points used for trapezoidal integration (when \code{method = "IntEq"}).
+or number of grid points used for trapezoidal integration (when \code{method = "SPRT"}).
 Increasing this number improves accuracy, but can also significantly increase computation time.}
 
 \item{glmmod}{Generalized linear regression model used for risk-adjustment as produced by
@@ -40,7 +40,7 @@ no increase in failure rate.}
 \item{p1}{The alternative hypothesis failure probability at \code{entrytime + followup} for individuals.}
 
 \item{method}{The method used to obtain the average run length. Either "MC" for Markov Chain
-or "IntEq" for integral equation. Default = "MC".}
+or "SPRT" for SPRT methodology. Default = "MC".}
 
 \item{smooth_prob}{Should the probability distribution of failure under the null distribution be smoothed?
 Useful for small samples. Can only be TRUE when \code{glmmod} is supplied. Default = FALSE.}
@@ -68,7 +68,7 @@ probabilities between states \eqn{E_0, \ldots, E_{t-1}}{E_0, ..., E_{n_grid-1}}.
 This function allows to estimate the Average Run Length (ARL)
 of the risk-adjusted Bernoulli CUSUM (see \code{\link[success:bernoulli_cusum]{bernoulli_cusum()}})
 through a Markov Chain Approach (Brook & Evans(1972) & Steiner et al. (2000)) or
-an Integral Equation Approach (Kemp (1971)).
+exploiting the relationship with the Sequential Probability Ratio Test (Kemp (1971)).
 The function requires the specification of one of the following combinations of parameters
 as arguments to the function:
 \itemize{
@@ -98,11 +98,10 @@ and \eqn{E_1, \ldots, E_{n_{grid}-1}}{E_1, ..., E_{n_grid-1}} of width \eqn{w}{w
 solved to find the ARL starting from each of the states.
 }
 
-When \code{method = "IntEq"}, the average run length will be determined by
-the integral equation approach described in Kemp (1971), using the risk-adjustment
-correction proposed in Steiner et al. (2000). The idea is to exploit the
-connection between the run length of a Sequential Probability Ratio Test (SPRT)
-and that of a CUSUM. If N is the run length of a SPRT, P(0) the probability of
+When \code{method = "SPRT"}, the average run length will be determined by
+the relationship between the SPRT and CUSUM described in Kemp (1971), using the risk-adjustment
+correction proposed in Steiner et al. (2000).
+If N is the run length of a SPRT, P(0) the probability of
 a SPRT terminating on the lower boundary of zero and R the run length of
 a CUSUM, then: \deqn{\mathbb{E}[R] = \frac{\mathbb{E}[N]}{1 - P(0)}.}{E[R] = E[N]/(1-P(0)).}
 \eqn{\mathbb{E}[N]}{E[N]} and \eqn{P(0)}{P(0)} are completely determined by
@@ -121,8 +120,8 @@ glmmodber <- glm((survtime <= 100) & (censorid == 1)~ age + sex + BMI,
 ARL <- bernoulli_ARL(h = 2.5, n_grid = 200, glmmod = glmmodber, theta = log(2))
 #Calculate ARL, but now exploiting connection between SPRT and CUSUM:
 #n_grid now decides the accuracy of the Trapezoidal rule for integral approximation
-ARLIntEq <- bernoulli_ARL(h = 2.5, n_grid = 200, glmmod = glmmodber,
-theta = log(2), method = "IntEq")
+ARLSPRT <- bernoulli_ARL(h = 2.5, n_grid = 200, glmmod = glmmodber,
+theta = log(2), method = "SPRT")
 
 \donttest{
 #We can compare our ARL with that determined using the VLAD package
@@ -132,6 +131,7 @@ if(require("vlad")){
    pi1 <- sort(unique(glmmodber$fitted.values))
    pmix1 <- data.frame(fi, pi1, pi1)
    vlad_ARL <- round(vlad::racusum_arl_mc(pmix = pmix1, RA = 2, RQ = 1, h = 2.5, scaling = 200))
+   print(vlad_ARL)
 }
 }
 }

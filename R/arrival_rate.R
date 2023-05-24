@@ -30,6 +30,7 @@
 
 
 arrival_rate <- function(data){
+  unit <- NULL
   data <- check_data(data)
   get_arr_rate <- function(dat){
     (nrow(dat)-1)/(max(dat$"entrytime") - min(dat$"entrytime"))

@@ -90,7 +90,7 @@ bernoulli_control_limit <- function(time, alpha = 0.05, followup, psi,
   #2. Construct the CGR-CUSUM chart for each hospital until timepoint time
   #3. Determine control limit h such that at most proportion alpha of the
   #   instances will produce a signal.
-
+  unit <- NULL
   set.seed(seed)
   if(!missing(assist)){
     list2env(assist, envir = environment())

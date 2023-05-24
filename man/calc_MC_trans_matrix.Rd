@@ -10,7 +10,7 @@ calc_MC_trans_matrix(h, n_grid, Wncdf, glmmod, p0, theta, theta_true)
 \item{h}{Control limit for the Bernoulli CUSUM}
 
 \item{n_grid}{Number of state spaces used to discretize the outcome space (when \code{method = "MC"})
-or number of grid points used for trapezoidal integration (when \code{method = "IntEq"}).
+or number of grid points used for trapezoidal integration (when \code{method = "SPRT"}).
 Increasing this number improves accuracy, but can also significantly increase computation time.}
 
 \item{glmmod}{Generalized linear regression model used for risk-adjustment as produced by
