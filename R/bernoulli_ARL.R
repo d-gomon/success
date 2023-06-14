@@ -285,7 +285,6 @@ bernoulli_ARL <- function(h, n_grid, glmmod, theta, theta_true, p0, p1,
 bernoulli_RL_cdf <- function(h, x, n_grid, glmmod, theta, theta_true, p0, p1,
                              smooth_prob = FALSE, exact = TRUE){
   #------------Variable checks------------------
-  method <- match.arg(method)
   #Input checks
   if(!all(is.numeric(h) & length(h) == 1)){
     stop("Parameter 'h' must be a single numeric variable.")
@@ -325,9 +324,6 @@ bernoulli_RL_cdf <- function(h, x, n_grid, glmmod, theta, theta_true, p0, p1,
     if(!all(is.numeric(p1), p1 >= 0, p1 <= 1)){
       stop("Parameter 'p1' must be a positive probability between 0 and 1. (numeric)")
     }
-  }
-  if(!((method == "MC") | (method == "SPRT"))){
-    stop("Parameter 'method' must be either 'MC' or 'SPRT'.")
   }
 
   if(h < 0){

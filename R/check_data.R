@@ -25,6 +25,9 @@ check_data <- function(data){
     warning("No censoring mechanism specified. Assuming data is uncensored.")
     data$censorid <- rep(1, nrow(data))
   }
+  if(any(is.na(data))){
+    stop("Please make sure 'data' has no missing values.")
+  }
   #  compriskcheck <- "cause" %in% colnames(data)
   #  if(compriskcheck){
   #    message("Competing risks specified.")
