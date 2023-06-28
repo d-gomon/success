@@ -185,31 +185,18 @@ cgr_helper_mat <- function(data, ctimes, h, coxphmod, cbaseh, ncores, displaypb 
 
   #Function used for maximizing over starting points (patients with starting time >= k)
   maxoverk <- function(helperstime, ctime, ctimes, data, lambdamat, maxtheta){
-    #Determine part of data that is active at required times
-    #lower <- binary_search(data[, "entrytime"], helperstime, index = TRUE)
-    #upper <- nrow(data) - binary_search(rev(-1*data[, "entrytime"]), (-1*ctime), index = TRUE) +1
+
+    #For each helperstime, only individuals with entrytime >= helperstime and
+    #entrytime <= ctime are "active" (contribute to the chart).
+    #We can see this as "active" rows in Lambdamat, which we calculate below:
     active_rows <- Active_Individuals_Lambdamat_rows(helperstime, ctime, data[, "entrytime"])
-
-    ########This part of the code can be improved to reduce comp time#######
-    #This code works because data is sorted according to entrytime and then otime
-    #We use findInterval instead of match or which because it's faster
-    #lower <- .Internal(findInterval(data[, "entrytime"], helperstime, rightmost.closed = FALSE,
-    #                                all.inside = FALSE, left.open = TRUE)) + 1
-    #upper <- .Internal(findInterval(data[, "entrytime"], ctime, rightmost.closed = FALSE,
-    #                                all.inside = FALSE, left.open = FALSE))
-    ########This part of the code can be improved to reduce comp time#######
-    #findInterval is faster than binary_search, but we may not use
-    #.Internal functions in R packages
-    #If we remove .Internal, then an is.sorted() check is executed every time,
-    #greatly increasing the required computation time.
-
-    #matsub <- lower:upper
     matsub <- (active_rows[1]+1):(active_rows[2]+1)
     #Above code used to be:
     #matsub <- which(data[, "entrytime"] >= helperstime & data[, "entrytime"] <= ctime)
-    #This was slow, so use Rfast functions instead, .Internal functions a bit faster, rewrite in Rcpp in future.
+    #This was slow, so rewrote in Rcpp
 
-    #The cumulative intensity at that time is the column sum of the specified ctime
+    #The cumulative intensity of all active individuals at ctime is the column
+    #sum associated with that ctime
     AT <- sum(lambdamat[matsub, match(ctime, ctimes)])
 
     #Subset only the part of data where patients arriving after helperstime and having

@@ -9,11 +9,13 @@ tcoxmod <- coxph(exprfit, data= surgerydat)
 
 
 # Test if no active individuals is handled appropriately
+# Should be a straight line between time 5 and time 10
+tdat <- data.frame(entrytime = c(1,  10), survtime = c(4, 5), censorid = rep(1, 2))
+cgr_inactive <- cgr_cusum(tdat, cbaseh = tcbaseh, ctimes = seq(0, 15, 1))
 
-tdat <- data.frame(entrytime = c(1, 2, 3, 5, 7, 30, 40), survtime = c(2, 3, 4, 5, 6, 5, 6), censorid = rep(1, 7))
-cgr_inactive <- cgr_cusum(tdat, cbaseh = tcbaseh)
-
-
+test_that("Straight line when no individuals",{
+  expect_equal(cgr_inactive$CGR[7, 2], cgr_inactive$CGR[12, 2])
+})
 
 
 #Known issues:
@@ -25,13 +27,13 @@ cgr_inactive <- cgr_cusum(tdat, cbaseh = tcbaseh)
 #S_2 + \epsilon to obtain an arbitrarily large value of CGR(t). This is because
 #thetat = log(NDT/AT) = log(1/epsilon) -> infty when epsilon -> 0.
 #Demonstration:
-cgr <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, ctimes = seq(5, 30, 1))
-cgr2 <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, ctimes = seq(5, 30, 0.1))
-cgr3 <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, ctimes = seq(5, 30, 0.01))
+#cgr <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, ctimes = seq(5, 30, 1))
+#cgr2 <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, ctimes = seq(5, 30, 0.1))
+#cgr3 <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, ctimes = seq(5, 30, 0.01))
 #plot the CGR-CUSUM and note how the value can increase infinitely
-plot(cgr)
-plot(cgr2)
-plot(cgr3)
+#plot(cgr)
+#plot(cgr2)
+#plot(cgr3)
 
 
 cgr1c <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh)
