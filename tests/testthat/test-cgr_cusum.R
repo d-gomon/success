@@ -6,6 +6,16 @@ exprfit <- as.formula("Surv(survtime, censorid) ~ age + sex + BMI")
 tcoxmod <- coxph(exprfit, data= surgerydat)
 
 
+
+
+# Test if no active individuals is handled appropriately
+
+tdat <- data.frame(entrytime = c(1, 2, 3, 5, 7, 30, 40), survtime = c(2, 3, 4, 5, 6, 5, 6), censorid = rep(1, 7))
+cgr_inactive <- cgr_cusum(tdat, cbaseh = tcbaseh)
+
+
+
+
 #Known issues:
 
 #When patients with survtime = 0 are present, the ML estimate cannot be calculated
@@ -15,13 +25,13 @@ tcoxmod <- coxph(exprfit, data= surgerydat)
 #S_2 + \epsilon to obtain an arbitrarily large value of CGR(t). This is because
 #thetat = log(NDT/AT) = log(1/epsilon) -> infty when epsilon -> 0.
 #Demonstration:
-#cgr <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, ctimes = seq(5, 30, 1))
-#cgr2 <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, ctimes = seq(5, 30, 0.1))
-#cgr3 <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, ctimes = seq(5, 30, 0.01))
+cgr <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, ctimes = seq(5, 30, 1))
+cgr2 <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, ctimes = seq(5, 30, 0.1))
+cgr3 <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh, pb = TRUE, ctimes = seq(5, 30, 0.01))
 #plot the CGR-CUSUM and note how the value can increase infinitely
-#plot(cgr)
-#plot(cgr2)
-#plot(cgr3)
+plot(cgr)
+plot(cgr2)
+plot(cgr3)
 
 
 cgr1c <- cgr_cusum(data = tdat, coxphmod = tcoxmod, cbaseh = tcbaseh)
@@ -43,6 +53,17 @@ test_that("maxtheta is working as intended",{
 
 
 
+# Profvis time checks
+tdat <- subset(surgerydat, unit <= 15 & entrytime < 100)
+exprfit <- as.formula("Surv(survtime, censorid) ~ age + sex + BMI")
+tcoxmod <- coxph(exprfit, data= surgerydat)
+cppcus <- cgr_cusum(data = tdat, coxphmod = tcoxmod)
+normcus <- cgr_cusum(data = tdat, coxphmod = tcoxmod)
+library(profvis)
+
+profvis({
+  cgr_cusum(data = tdat, coxphmod = tcoxmod)
+})
 
 
 
