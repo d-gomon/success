@@ -4,7 +4,7 @@
 \alias{funnel_plot}
 \title{Risk-adjusted funnel plot}
 \usage{
-funnel_plot(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.99),
+funnel_plot(data, ctime, p0, glmmod, followup, predlim = c(0.95, 0.99),
   assist)
 }
 \arguments{
@@ -37,7 +37,7 @@ for covariates. Names must be the same as in \code{formula} and colnames of \cod
 \item{followup}{The followup time for every individual. At what time
 after subject entry do we consider the outcome?}
 
-\item{conflev}{A vector of confidence levels of interest. Default is c(0.95, 0.99).}
+\item{predlim}{A vector of prediction limits of interest. Default is c(0.95, 0.99).}
 
 \item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
 }
@@ -51,12 +51,12 @@ An object of class "funnelplot" containing:
 \item{\code{expected}:}{expected (risk-adjusted) number of failures at unit;}
 \item{\code{numtotal}}{total number of individuals considered at this unit;}
 \item{\code{p}:}{(risk-adjusted) proportion of failure at unit;}
-\item{\code{conflevels}:}{worse/in-control/better performance than expected at
+\item{\code{predlimels}:}{worse/in-control/better performance than expected at
 specified confidence levels.}
 }
 \item \code{call}: the call used to obtain output
 \item \code{plotdata}: data used for plotting confidence intervals
-\item \code{conflev}: specified confidence level(s)
+\item \code{predlim}: specified confidence level(s)
 \item \code{p0}: (Estimated) baseline failure probability
 }
 }

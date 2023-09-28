@@ -74,9 +74,9 @@ plot.bkcusum <- function(x, h, ...){
 #' @importFrom grDevices colorRamp
 #' @export
 plot.funnelplot <- function(x, percentage = TRUE, unit_label = FALSE, ...){
-  numtotal <- lower <- conflev <- upper <- p <- unit <- detection <- NULL
+  numtotal <- lower <- predlim <- upper <- p <- unit <- detection <- NULL
 
-  #Supply plot.FUNNEL with output from FUNNELsim or a data frame with $unitdata and $p0 and $conflev
+  #Supply plot.FUNNEL with output from FUNNELsim or a data frame with $unitdata and $p0 and $predlim
   if(percentage == TRUE){
     x$plotdata[, c("lower", "upper")] <- x$plotdata[, c("lower", "upper")] * 100
     x$data$p <- x$data$p * 100
@@ -91,11 +91,11 @@ plot.funnelplot <- function(x, percentage = TRUE, unit_label = FALSE, ...){
   }
 
   #Determine the number of required colours
-  numcolours <- length(x$conflev) + 1
+  numcolours <- length(x$predlim) + 1
   #Gradient from green to red displaying detection levels
   cols <- grDevices::colorRampPalette(c("green", "red"))(numcolours)
   #Determine which colour to use for point:
-  names(cols) = c("in-control", sort(as.numeric(x$conflev)))
+  names(cols) = c("in-control", sort(as.numeric(x$predlim)))
   #Create color scale for ggplot
   colScale <- scale_colour_manual(name = "Detection", values = cols)
 
@@ -103,14 +103,14 @@ plot.funnelplot <- function(x, percentage = TRUE, unit_label = FALSE, ...){
   finalcols <- rep("in-control", length = nrow(x$data))
   for (k in rev(1:numcolours)){
     t_col_data <- x$data[,ncol(x$data) - (k-1)]
-    finalcols[which(t_col_data == "worse" | t_col_data == "better")] <- rev(x$conflev)[k]
+    finalcols[which(t_col_data == "worse" | t_col_data == "better")] <- rev(x$predlim)[k]
   }
   finalcols <- as.factor(finalcols)
   finalcols <- stats::relevel(finalcols, "in-control")
   x$data$detection <- finalcols
-  t <- ggplot(x$data, mapping = aes(x = numtotal, y = p)) + geom_line(data = x$plotdata, mapping= aes(x = numtotal, y = lower, group = as.factor(conflev)),
+  t <- ggplot(x$data, mapping = aes(x = numtotal, y = p)) + geom_line(data = x$plotdata, mapping= aes(x = numtotal, y = lower, group = as.factor(predlim)),
                             colour = "blue", linetype = "dashed") +
-  geom_line(data = x$plotdata, aes(x = numtotal, y = upper, group = as.factor(conflev)),
+  geom_line(data = x$plotdata, aes(x = numtotal, y = upper, group = as.factor(predlim)),
             colour = "blue", linetype = "dashed") +
   geom_point(data = x$data, mapping= aes(x = numtotal, y = p, colour = as.factor(detection), group = unit)) +
     #theme(legend.position = "none") +

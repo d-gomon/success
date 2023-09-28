@@ -27,7 +27,7 @@
 #' }
 #' @param followup The followup time for every individual. At what time
 #' after subject entry do we consider the outcome?
-#' @param conflev A vector of confidence levels of interest. Default is c(0.95, 0.99).
+#' @param predlim A vector of confidence levels for the prediction limits of interest. Default is c(0.95, 0.99).
 #' @param assist (optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}
 #'
 #' @return An object of class "funnelplot" containing:
@@ -39,12 +39,12 @@
 #'   \item{\code{expected}:}{expected (risk-adjusted) number of failures at unit;}
 #'   \item{\code{numtotal}}{total number of individuals considered at this unit;}
 #'   \item{\code{p}:}{(risk-adjusted) proportion of failure at unit;}
-#'   \item{\code{conflevels}:}{worse/in-control/better performance than expected at
+#'   \item{\code{predlimels}:}{worse/in-control/better performance than expected at
 #'   specified confidence levels.}
 #' }
 #' \item \code{call}: the call used to obtain output
 #' \item \code{plotdata}: data used for plotting confidence intervals
-#' \item \code{conflev}: specified confidence level(s)
+#' \item \code{predlim}: specified confidence level(s)
 #' \item \code{p0}: (Estimated) baseline failure probability
 #' }
 #'
@@ -82,7 +82,7 @@
 
 
 
-funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.99),
+funnel_plot <- function(data, ctime, p0, glmmod, followup, predlim = c(0.95, 0.99),
                         assist){
   entrytime <- unit <- NULL
   call <- match.call()
@@ -103,7 +103,7 @@ funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.9
   #glmmodel is the risk-adjustment model, either an object of class "glm" or $formula and $coefficients
   #followup is time until which we consider outcomes, usually 365 (1 year) as we consider 1 year post transplant
   #Specify institute name or number in dat$unit
-  #conflev indicates the confidence levels at which to plot the boundaries
+  #predlim indicates the confidence levels at which to plot the boundaries
   #time is the chronological time at which the FUNNEL chart should be constructed, we remove non-qualifying cases
   if(!missing(ctime)){
     newdata <- subset(data, entrytime + followup <= ctime)
@@ -139,17 +139,17 @@ funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.9
 
   plotframe$p <- plotframe$observed/plotframe$expected * p0
   plotframe$p <- ifelse(plotframe$p > 1, 1, plotframe$p)
-  boundplotframe <- data.frame(number = double(),conflev = double(),lower = double(), upper = double())
+  boundplotframe <- data.frame(number = double(),predlim = double(),lower = double(), upper = double())
   plotseq <- seq(max(1, min(plotframe$numtotal)-10), max(plotframe$numtotal) +10, by = 1)
-  findbounds <- function(t, conflev){
-    return(c(p0 - qnorm(conflev) * sqrt((p0*(1-p0))/t),p0 + qnorm(conflev) * sqrt((p0*(1-p0))/t)))
+  findbounds <- function(t, predlim){
+    return(c(p0 - qnorm(predlim) * sqrt((p0*(1-p0))/t),p0 + qnorm(predlim) * sqrt((p0*(1-p0))/t)))
   }
-  for(k in 1:length(conflev)){
-    temprow2 <- data.frame(plotseq, rep(conflev[k], length(plotseq)), t(sapply(plotseq, function(t) findbounds(t, conflev[k]))))
+  for(k in 1:length(predlim)){
+    temprow2 <- data.frame(plotseq, rep(predlim[k], length(plotseq)), t(sapply(plotseq, function(t) findbounds(t, predlim[k]))))
     boundplotframe <- rbind(boundplotframe, temprow2)
     tempchar <- character(length = nrow(plotframe))
     for(i in 1:nrow(plotframe)){
-      tempbounds <- findbounds(plotframe$numtotal[i], conflev = conflev[k])
+      tempbounds <- findbounds(plotframe$numtotal[i], predlim = predlim[k])
       if(plotframe$p[i] > tempbounds[2]){
         tempchar[i] <- "worse"
       } else if(plotframe$p[i] < tempbounds[1]){
@@ -159,13 +159,13 @@ funnel_plot <- function(data, ctime, p0, glmmod, followup, conflev = c(0.95, 0.9
       }
     }
     plotframe <- cbind(plotframe, tempchar)
-    colnames(plotframe)[ncol(plotframe)] <- as.character(conflev[k])
+    colnames(plotframe)[ncol(plotframe)] <- as.character(predlim[k])
   }
-  colnames(boundplotframe) = c("numtotal", "conflev", "lower", "upper")
+  colnames(boundplotframe) = c("numtotal", "predlim", "lower", "upper")
   funnelp <- list(data = plotframe,
               call = call,
               plotdata = boundplotframe,
-              conflev = conflev,
+              predlim = predlim,
               p0 = p0)
   class(funnelp) <- "funnelplot"
   funnelp
