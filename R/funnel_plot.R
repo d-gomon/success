@@ -91,6 +91,9 @@ funnel_plot <- function(data, ctime, p0, glmmod, followup, predlim = c(0.95, 0.9
     data <- assist$baseline_data
   }
 
+  #Check that predlim is sorted
+  predlim <- sort(predlim)
+
   #Basic data checks (global for BK, CGR and Bernoulli & funnel)
   if(missing(data)){
     stop("Please provide data to construct chart.")

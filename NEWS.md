@@ -1,3 +1,13 @@
+# success 1.0.1
+
+* Added bernoulli_ARL, bernoulli_RL_cdf functions which allow to calculate ARL and RL distribution functions using 2 different approaches 
+  * Some tests put into place so that these functions work as expected
+* Fixed figure display in README on CRAN
+* Added some references
+* funnel plot functions changed to display unit labels, as well as prediction intervals by using shaded ribbons instead of lines.
+* Added tests for most functions in the package
+
+
 # success 1.0.0
 
 * bernoulli_cusum() no longer re-calculates failure probability at every time point. Major speed-up

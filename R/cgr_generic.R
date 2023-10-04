@@ -113,9 +113,11 @@ plot.funnelplot <- function(x, percentage = TRUE, unit_label = TRUE, col_fill = 
 
   #Determine highest detection level.
   finalcols <- rep("in-control", length = nrow(x$data))
-  for (k in rev(1:numcolours)){
+  for (k in rev(1:(numcolours-1))){
     t_col_data <- x$data[,ncol(x$data) - (k-1)]
+    print(ncol(x$data) - (k-1))
     finalcols[which(t_col_data == "worse" | t_col_data == "better")] <- rev(x$predlim)[k]
+    print(rev(x$predlim)[k])
   }
   finalcols <- as.factor(finalcols)
   finalcols <- stats::relevel(finalcols, "in-control")
