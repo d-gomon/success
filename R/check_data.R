@@ -22,7 +22,8 @@ check_data <- function(data){
           column 'survtime' in your data frame.")
   }
   if(!"censorid" %in% colnames(data)){
-    warning("No censoring mechanism specified. Assuming data is uncensored.")
+    warning("No censoring mechanism specified. Assuming data is uncensored.
+            May lead to an increased amount of signals!")
     data$censorid <- rep(1, nrow(data))
   }
   if(any(is.na(data))){

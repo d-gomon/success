@@ -11,7 +11,8 @@
 
 \method{plot}{bkcusum}(x, h, ...)
 
-\method{plot}{funnelplot}(x, percentage = TRUE, unit_label = FALSE, ...)
+\method{plot}{funnelplot}(x, percentage = TRUE, unit_label = TRUE,
+  col_fill = "blue", ...)
 
 \method{plot}{bercusum}(x, h = x$h, ...)
 }
@@ -24,7 +25,11 @@
 
 \item{percentage}{Should output be shown in percentages? Default is \code{TRUE}.}
 
-\item{unit_label}{Should unit labels be displayed next to points in the funnel plot? Default is \code{FALSE}.}
+\item{unit_label}{Should unit labels be displayed next to detected units in the funnel plot?
+Default is \code{TRUE}.}
+
+\item{col_fill}{Single fill colour for the prediction intervals in the funnel plot.
+In any format that \code{\link[grDevices]{col2rgb}} accepts. Default is \code{"blue"}.}
 }
 \value{
 A plot of the associated chart is displayed in the current graphics device.

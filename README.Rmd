@@ -8,12 +8,12 @@ output: github_document
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "man/figures/README-",
+  fig.path = "man/figures/",
   out.width = "100%"
 )
 ```
 
-# success <img src="hexagon/success_hex.png" align="right" width="120" />
+# success <img src="man/figures/success_hex.png" align="right" width="120" />
 
 <!-- badges: start -->
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://lifecycle.r-lib.org/articles/stages.html)
@@ -60,7 +60,7 @@ library(devtools)
 load_all()
 ```
 
-```{r success}
+```{r success, fig.show = "hold"}
 dat <- subset(surgerydat, unit == 1)
 exprfit <- as.formula("Surv(survtime, censorid) ~ age + sex + BMI")
 tcoxmod <- coxph(exprfit, data = surgerydat)
@@ -70,12 +70,12 @@ plot(cgr)
 ```
 
 You can plot the figure with control limit `h = 10` by using:
-```{r}
+```{r, fig.show = "hold"}
 plot(cgr, h = 10)
 ```
 
 And determine the runlength of the chart when using control limit `h = 10`:
-```{r}
+```{r, fig.show = "hold"}
 runlength(cgr, h = 10)
 ```
 

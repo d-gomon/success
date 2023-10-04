@@ -7,7 +7,6 @@
 ^\.github$
 ^hexagon$
 ^success\.git
-^.*\.png
 ^.*\.xcf
 
 ^doc$

@@ -37,7 +37,7 @@ for covariates. Names must be the same as in \code{formula} and colnames of \cod
 \item{followup}{The followup time for every individual. At what time
 after subject entry do we consider the outcome?}
 
-\item{predlim}{A vector of prediction limits of interest. Default is c(0.95, 0.99).}
+\item{predlim}{A vector of confidence levels for the prediction limits of interest. Default is c(0.95, 0.99).}
 
 \item{assist}{(optional): Output of the function \code{\link[success:parameter_assist]{parameter_assist()}}}
 }
