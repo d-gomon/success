@@ -115,9 +115,7 @@ plot.funnelplot <- function(x, percentage = TRUE, unit_label = TRUE, col_fill = 
   finalcols <- rep("in-control", length = nrow(x$data))
   for (k in rev(1:(numcolours-1))){
     t_col_data <- x$data[,ncol(x$data) - (k-1)]
-    print(ncol(x$data) - (k-1))
     finalcols[which(t_col_data == "worse" | t_col_data == "better")] <- rev(x$predlim)[k]
-    print(rev(x$predlim)[k])
   }
   finalcols <- as.factor(finalcols)
   finalcols <- stats::relevel(finalcols, "in-control")
@@ -134,7 +132,7 @@ plot.funnelplot <- function(x, percentage = TRUE, unit_label = TRUE, col_fill = 
     #theme(legend.position = "none") +
     geom_hline(yintercept = x$p0, colour = "grey") + ylim(miny, maxy) + colScale
   if(isTRUE(unit_label)){
-    t <- t + geom_label_repel(aes(color = factor(detection), label = ifelse(detection!="in-control", unit, "")), show.legend = FALSE)
+    t <- t + geom_label_repel(aes(color = factor(detection), label = ifelse(detection!="in-control", unit, "")), size = 3, show.legend = FALSE)
   }
   t <- t + labs(x = "Number of outcomes", y = paste0("(Risk-adjusted) Proportion of failure (%)"))
   return(t)
