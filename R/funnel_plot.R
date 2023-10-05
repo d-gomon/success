@@ -91,8 +91,18 @@ funnel_plot <- function(data, ctime, p0, glmmod, followup, predlim = c(0.95, 0.9
     data <- assist$baseline_data
   }
 
-  #Check that predlim is sorted
+
+  #Check that predlim is numerical vector with values between 0 and 1
+  if(!all(is.numeric(predlim), all(predlim > 0), all(predlim < 1))){
+    stop("Argument predlim must be numeric vector with values between 0 and 1.")
+  }
+  #Sort predlim
   predlim <- sort(predlim)
+
+  #Check that followup is a numeric value greater than 0
+  if(!all(is.numeric(followup), length(followup) == 1, followup > 0)){
+    stop("Argument followup must be a single numeric value larger than 0.")
+  }
 
   #Basic data checks (global for BK, CGR and Bernoulli & funnel)
   if(missing(data)){

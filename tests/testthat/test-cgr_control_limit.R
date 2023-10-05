@@ -71,11 +71,6 @@ test_that("Decreasing maxthetat reduces control limit",{
 #
 #
 #
-#
-#
-#
-#
-#
 # #------------------------TEST RUNTIME OF CONTROL LIMIT----------------------
 #
 #

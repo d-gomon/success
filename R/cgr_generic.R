@@ -69,12 +69,10 @@ plot.bkcusum <- function(x, h, ...){
 
 
 #' @describeIn plot Display a funnel plot
-#' @importFrom ggplot2 scale_colour_manual geom_point ylim
+#' @importFrom ggplot2 scale_colour_manual geom_point ylim scale_fill_manual geom_ribbon
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom stats relevel
-#' @importFrom grDevices palette
-#' @importFrom grDevices palette.colors
-#' @importFrom grDevices colorRamp
+#' @importFrom grDevices palette palette.colors colorRamp adjustcolor
 #' @export
 plot.funnelplot <- function(x, percentage = TRUE, unit_label = TRUE, col_fill = "blue", ...){
   numtotal <- lower <- predlim <- upper <- p <- unit <- detection <- NULL

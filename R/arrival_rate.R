@@ -31,7 +31,15 @@
 
 arrival_rate <- function(data){
   unit <- NULL
-  data <- check_data(data)
+  #Transform to df if vector is given
+  if(is.vector(data)){
+    warning("Provided vector is not named, assuming that specified data represents entrytimes.")
+    data <- data.frame(entrytime = data)
+  }
+  #Check whether entrytime is in column names
+  if(!all("entrytime" %in% colnames(data), is.numeric(data$"entrytime"))){
+    stop("Argument data should contain at least a numeric column named 'entrytime'")
+  }
   get_arr_rate <- function(dat){
     (nrow(dat)-1)/(max(dat$"entrytime") - min(dat$"entrytime"))
   }
