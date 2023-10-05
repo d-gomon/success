@@ -1,6 +1,27 @@
 # Expected behaviour when changing max value of MLE theta(t)
 
 
+test_that("input checks", {
+  exprfit <- Surv(survtime, censorid) ~ age + sex + BMI
+  tcoxmod <- coxph(exprfit, data= surgerydat)
+  expect_error(cgr_control_limit(time = -500, alpha = 0.1,
+                                coxphmod = tcoxmod, psi = 0.5, n_sim = 10, baseline_data = surgerydat),
+               "Argument time must be a single positive numeric value.")
+  expect_error(cgr_control_limit(time = 500, alpha = -0.1,
+                                coxphmod = tcoxmod, psi = 0.5, n_sim = 10, baseline_data = surgerydat),
+               "Argument alpha must be a single numeric value between 0 and 1.")
+  expect_error(cgr_control_limit(time = 500, alpha = 0.1,
+                                coxphmod = tcoxmod, psi = -0.5, n_sim = 10, baseline_data = surgerydat),
+               "Argument psi must be a single numeric value larger than 0.")
+  expect_error(cgr_control_limit(time = 500, alpha = 0.1,
+                                coxphmod = tcoxmod, psi = 0.5, n_sim = 10.5, baseline_data = surgerydat),
+               "Argument n_sim must be a single integer value larger than 0.")
+  expect_output(cgr_control_limit(time = 50, alpha = 0.1,
+                                  coxphmod = tcoxmod, psi = 2, n_sim = 10,
+                                  baseline_data = surgerydat, pb = TRUE))
+
+})
+
 test_that("Decreasing maxthetat reduces control limit",{
   a <- cgr_control_limit(time = 50, alpha = 0.05, psi = 2, n_sim = 10, cbaseh = function(t) chaz_exp(t, lambda = 0.02), inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02))$h
   b <- cgr_control_limit(time = 50, alpha = 0.05, psi = 2, n_sim = 10, cbaseh = function(t) chaz_exp(t, lambda = 0.02), inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02), maxtheta = Inf)$h
@@ -8,6 +29,14 @@ test_that("Decreasing maxthetat reduces control limit",{
   d <- bk_control_limit(time = 50, alpha = 0.05, psi = 2, n_sim = 10, cbaseh = function(t) chaz_exp(t, lambda = 0.02), inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02), theta = log(2))$h
   expect_lt(a, b)
   expect_lt(c, a)
+})
+
+test_that("Expect negative control limit if lower sided detection", {
+  a <- cgr_control_limit(time = 50, alpha = 0.05, psi = 2, n_sim = 10,
+                         cbaseh = function(t) chaz_exp(t, lambda = 0.02),
+                         inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02),
+                         detection = "lower")$h
+  expect_lte(a, 0)
 })
 
 

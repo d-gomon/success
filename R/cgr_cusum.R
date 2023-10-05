@@ -186,9 +186,9 @@ cgr_cusum <- function(data, coxphmod, cbaseh, ctimes, h, stoptime,
   # determine chronological failure times
   data$otime <- data$entrytime + data$survtime
   if(!missing(C)){
-    tempidx <- which(data$otime < data$entrytime + C)
-    data[tempidx,]$otime <- data$entrytime + C
-    data[tempidx,]$censorid <- rep(length(tempidx), 0)
+    tempidx <- which(data$otime > data$entrytime + C)
+    data$otime[tempidx] <- data$entrytime[tempidx] + C
+    data$censorid[tempidx] <- rep(0, length(tempidx))
   }
   # determine the default construction times (all failtimes), if none specified
   if(missing(ctimes)){

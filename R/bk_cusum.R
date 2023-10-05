@@ -123,9 +123,9 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
   # determine chronological failure times
   data$otime <- data$entrytime + data$survtime
   if(!missing(C)){
-    tempidx <- which(data$otime < data$entrytime + C)
-    data[tempidx,]$otime <- data$entrytime + C
-    data[tempidx,]$censorid <- rep(length(tempidx), 0)
+    tempidx <- which(data$otime > data$entrytime + C)
+    data$otime[tempidx] <- data$entrytime[tempidx] + C
+    data$censorid[tempidx] <- rep(0, length(tempidx))
   }
   # determine the default construction times (all failtimes + entrytimes), if none specified
   #NOTE: WE NEED BOTH FAILTIMES AND ENTRYTIME, OTHERWISE THE VALUES MIGHT BE WRONG!!!
@@ -367,9 +367,9 @@ bk_cusum <- function(data, theta, coxphmod, cbaseh, ctimes, h, stoptime,
     if (!missing(h)){
       if(twosided == TRUE){
         if(length(h) == 2){
-          if( (Gt[j_temp,2] >= h[2]) | (Gt[j_temp-1,3] <= h[1]) ) {stopind = TRUE; break}
+          if( (Gt[j_temp,2] >= h[2]) | (Gt[j_temp,3] <= h[1]) ) {stopind = TRUE; break}
         } else if(length(h) == 1){
-          if( (abs(Gt[j_temp,2]) >= abs(h)) | (abs(Gt[j_temp-1,3]) >= abs(h)) ) {stopind = TRUE; break}
+          if( (abs(Gt[j_temp,2]) >= abs(h)) | (abs(Gt[j_temp,3]) >= abs(h)) ) {stopind = TRUE; break}
         }
       } else{
         if( abs(Gt[j_temp,2]) >= abs(h) ) {stopind = TRUE; break}
