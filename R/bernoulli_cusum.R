@@ -123,6 +123,10 @@ bernoulli_cusum <- function(data, followup, glmmod, theta, p0, p1, h, stoptime,
     data <- check_data(data)
   }
 
+  #Check that followup is a numeric value greater than 0
+  if(!all(is.numeric(followup), length(followup) == 1, followup > 0)){
+    stop("Argument followup must be a single numeric value larger than 0.")
+  }
 
 
   if(!missing(stoptime)){
@@ -153,6 +157,28 @@ Returning trivial chart.")
   } else{
     min_entrytime <- min(data$entrytime)
   }
+
+  #Order the data by subject entry time
+  data <- data[order(data$entrytime),]
+  #Determine whether patient had failure. Censored observations do
+  #not count as failures
+  data$outcome <- as.integer((data$survtime <= followup) & (data$censorid == 1))
+  data$otime <- data$entrytime + followup
+  j <- 1
+  numobs <- 0
+  if(!missing(p1)){
+    if(missing(p0) & missing(theta)){
+      stop("Please also provide a value for p0 or theta.")
+    } else if(missing(p0) & !missing(theta)){
+      p0 <- p1/(exp(theta) - exp(theta)*p1 + p1)
+    }
+    theta <- log((p1*(1-p0))/(p0*(1-p1)))
+
+  }
+  if(isTRUE(twosided)){
+    theta = abs(theta)
+  }
+
   #If twosided chart is required, determine the chart in two directions
   if(isTRUE(twosided)){
     Gt <- data.frame(time = c(min_entrytime), val_up = c(0), val_down = c(0), numobs = c(0))
@@ -183,27 +209,7 @@ Returning trivial chart.")
       }
     }
   }
-  #Order the data by subject entry time
-  data <- data[order(data$entrytime),]
-  #Determine whether patient had failure. Censored observations do
-  #not count as failures
-  data$outcome <- as.integer((data$survtime <= followup) & (data$censorid == 1))
-  data$otime <- data$entrytime + followup
-  j <- 1
-  numobs <- 0
-  if(!missing(p1)){
-    if(missing(p0) & missing(theta)){
-      stop("Please also provide a value for p0 or theta.")
-    }
-    if(missing(p0) & !missing(theta)){
-      p0 <- p1/(exp(theta) - exp(theta)*p1 + p1)
-    }
-    theta <- log((p1*(1-p0))/(p0*(1-p1)))
 
-  }
-  if(isTRUE(twosided)){
-    theta = abs(theta)
-  }
 
 
   #pre-calculate risk-adjustment
