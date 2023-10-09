@@ -6,6 +6,15 @@
 #'
 #' @param coxphmod A call to \code{\link[survival:coxph]{coxph()}}.
 #'
+#' @details The baseline hazard is extracted from the \code{\link[survival:coxph]{coxph()}}
+#'  call using the \code{\link[survival:basehaz]{basehaz()}} function. The
+#'  baseline hazard function is then smoothed using
+#'  \code{\link[stats:approxfun]{approxfun()}} to obtain the linear interpolant.
+#'  If required, the inverse baseline hazard is determined using root linear
+#'  interpolation. For this, a function written by Zheyuan Li (see references) is used.
+#'
+#' @references \href{https://stackoverflow.com/users/4891738/zheyuan-li}{Zheyuan Li:}
+#' \href{https://stackoverflow.com/questions/52650467/how-to-estimate-x-value-from-y-value-input-after-approxfun-in-r}{How to estimate x value from y value input after approxfun in R?} (accessed: 09/10/2023)
 #'
 #' @author Daniel Gomon
 #'
