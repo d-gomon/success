@@ -1,7 +1,7 @@
 citHeader("To cite success in publications use:")
 
-citEntry(
-  entry    = "Article",
+bibentry(
+  bibtype = "article",
   title="SUrvival Control Chart EStimation Software in R: the success package",
   author= c(person(c("Daniel", "D."), "Gomon"),
             person(c("Marta", "M."), "Fiocco"),
@@ -17,8 +17,8 @@ citEntry(
 )
 
 
-citEntry(
-  entry    = "Article",
+bibentry(
+  bibtype    = "Article",
   title    = "CGR-CUSUM: a continuous time generalized rapid response cumulative sum chart",
   author   = c(person(c("Daniel", "D."), "Gomon"),
                person(c("Hein", "H."), "Putter"),
