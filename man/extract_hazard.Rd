@@ -42,7 +42,7 @@ tcox_hazard_fcts <- extract_hazard(tcoxmod)
 }
 \references{
 \href{https://stackoverflow.com/users/4891738/zheyuan-li}{Zheyuan Li:}
-\href{https://stackoverflow.com/questions/52650467/how-to-estimate-x-value-from-y-value-input-after-approxfun-in-r}{How to estimate x value from y value input after approxfun in R?}
+\href{https://stackoverflow.com/questions/52650467/how-to-estimate-x-value-from-y-value-input-after-approxfun-in-r}{How to estimate x value from y value input after approxfun in R?} (accessed: 09/10/2023)
 }
 \seealso{
 \code{\link[survival:coxph]{coxph}}

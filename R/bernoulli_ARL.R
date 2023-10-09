@@ -76,7 +76,7 @@
 #'
 #'
 #' @details The average run length of a CUSUM chart \eqn{S_n}{S_n} is given by
-#' \eqn{\mathbb{E}[\tau_n],}{E[\tau_n],} where \eqn{\tau_n}{\tau_n} is defined as:
+#' \eqn{E[\tau_n],}{E[\tau_n],} where \eqn{\tau_n}{\tau_n} is defined as:
 #' \deqn{\tau_n = \inf\{n \geq 0: S_n \geq h\}.}{\tau_n = inf(n >= 0: S_n >= h).}
 #'
 #' When \code{method = "MC"}, the average run length will be determined by
@@ -99,8 +99,8 @@
 #' correction proposed in Steiner et al. (2000).
 #' If N is the run length of a SPRT, P(0) the probability of
 #' a SPRT terminating on the lower boundary of zero and R the run length of
-#' a CUSUM, then: \deqn{\mathbb{E}[R] = \frac{\mathbb{E}[N]}{1 - P(0)}.}{E[R] = E[N]/(1-P(0)).}
-#' \eqn{\mathbb{E}[N]}{E[N]} and \eqn{P(0)}{P(0)} are completely determined by
+#' a CUSUM, then: \deqn{E[R] = \frac{E[N]}{1 - P(0)}.}{E[R] = E[N]/(1-P(0)).}
+#' \eqn{E[N]}{E[N]} and \eqn{P(0)}{P(0)} are completely determined by
 #' \deqn{G_n(z) = \int_0^h F(z-w) dG_{n-1}(w)}{G_n(z) = \int_0^h F(z-w) dG_{n-1}(w)}
 #' with \eqn{F(x)}{F(x)} the cdf of the singletons \eqn{W_n}{Wn}. The integral can be
 #' approximated using the generalized trapezoidal quadrature rule:
@@ -236,7 +236,7 @@ bernoulli_ARL <- function(h, n_grid, glmmod, theta, theta_true, p0, p1,
 #'
 #'
 #' @details Let \eqn{K}{K} denote the run length of the Bernoulli CUSUM with control limit \code{h}, then
-#' this function can be used to evaluate \eqn{\mathbb{P}(K \leq x)}{P(K <= x)}.
+#' this function can be used to evaluate \eqn{P(K \leq x)}{P(K <= x)}.
 #'
 #' The formula on page 543 of Brook & Evans (1972)
 #' is used if \code{exact = TRUE}. When \code{exact = FALSE}, formula (3.9) on
