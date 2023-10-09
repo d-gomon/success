@@ -10,6 +10,7 @@
 #' @param percentage Should output be shown in percentages? Default is \code{TRUE}.
 #' @param unit_label Should unit labels be displayed next to detected units in the funnel plot?
 #' Default is \code{TRUE}.
+#' @param label_size Size of the labels when \code{unit_label} is \code{TRUE}. Default is 3.
 #' @param col_fill Single fill colour for the prediction intervals in the funnel plot.
 #' In any format that \code{\link[grDevices]{col2rgb}} accepts. Default is \code{"blue"}.
 #' @param ... Further plotting parameters
@@ -74,7 +75,8 @@ plot.bkcusum <- function(x, h, ...){
 #' @importFrom stats relevel
 #' @importFrom grDevices palette palette.colors colorRamp adjustcolor
 #' @export
-plot.funnelplot <- function(x, percentage = TRUE, unit_label = TRUE, col_fill = "blue", ...){
+plot.funnelplot <- function(x, percentage = TRUE, unit_label = TRUE,
+                            label_size = 3, col_fill = "blue", ...){
   numtotal <- lower <- predlim <- upper <- p <- unit <- detection <- NULL
 
   #Supply plot.FUNNEL with output from FUNNELsim or a data frame with $unitdata and $p0 and $predlim
@@ -130,7 +132,7 @@ plot.funnelplot <- function(x, percentage = TRUE, unit_label = TRUE, col_fill = 
     #theme(legend.position = "none") +
     geom_hline(yintercept = x$p0, colour = "grey") + ylim(miny, maxy) + colScale
   if(isTRUE(unit_label)){
-    t <- t + geom_label_repel(aes(color = factor(detection), label = ifelse(detection!="in-control", unit, "")), size = 3, show.legend = FALSE)
+    t <- t + geom_label_repel(aes(color = factor(detection), label = ifelse(detection!="in-control", unit, "")), size = label_size, show.legend = FALSE)
   }
   t <- t + labs(x = "Number of outcomes", y = paste0("(Risk-adjusted) Proportion of failure (%)"))
   return(t)
