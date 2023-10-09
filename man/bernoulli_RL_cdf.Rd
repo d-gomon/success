@@ -72,7 +72,7 @@ starting from initial value between 0 and \code{h}, using Markov Chain methodolo
 }
 \details{
 Let \eqn{K}{K} denote the run length of the Bernoulli CUSUM with control limit \code{h}, then
-this function can be used to evaluate \eqn{\mathbb{P}(K \leq x)}{P(K <= x)}.
+this function can be used to evaluate \eqn{P(K \leq x)}{P(K <= x)}.
 
 The formula on page 543 of Brook & Evans (1972)
 is used if \code{exact = TRUE}. When \code{exact = FALSE}, formula (3.9) on

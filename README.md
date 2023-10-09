@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# success <img src="hexagon/success_hex.png" align="right" width="120" />
+# success <img src="man/figures/success_hex.png" align="right" width="120" />
 
 <!-- badges: start -->
 
@@ -62,7 +62,7 @@ cgr <- cgr_cusum(data = dat, coxphmod = tcoxmod, stoptime = 200)
 plot(cgr)
 ```
 
-<img src="man/figures/README-success-1.png" width="100%" />
+<img src="man/figures/success-1.png" width="100%" />
 
 You can plot the figure with control limit `h = 10` by using:
 
@@ -70,7 +70,7 @@ You can plot the figure with control limit `h = 10` by using:
 plot(cgr, h = 10)
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+<img src="man/figures/unnamed-chunk-4-1.png" width="100%" />
 
 And determine the runlength of the chart when using control limit
 `h = 10`:
