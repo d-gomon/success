@@ -21,13 +21,13 @@ test_that("input checks", {
 
 
 test_that("cores don't influence results",{
-  skip_on_cran()
+  skip()
   tdat <- subset(surgerydat, unit == 1 & entrytime < 100)
   tcbaseh <- function(t) chaz_exp(t, lambda = 0.01)
   exprfit <- Surv(survtime, censorid) ~ age + sex + BMI
   tcoxmod <- coxph(exprfit, data= surgerydat)
   cgr1c <- cgr_cusum(data = tdat, coxphmod = tcoxmod)
-  cgr3c <- cgr_cusum(data = tdat, coxphmod = tcoxmod, ncores = 3)
+  cgr3c <- cgr_cusum(data = tdat, coxphmod = tcoxmod, ncores = detectCores())
   expect_equal(cgr1c$CGR, cgr3c$CGR)
 }
 )

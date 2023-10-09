@@ -124,7 +124,7 @@ tcbaseh <- function(t) chaz_exp(t, lambda = 0.01)
 
 #Determine a risk-adjustment model using a Cox proportional hazards model.
 #Outcome (survival) is regressed on the available covariates:
-exprfit <- as.formula("Surv(survtime, censorid) ~ age + sex + BMI")
+exprfit <- Surv(survtime, censorid) ~ age + sex + BMI
 tcoxmod <- coxph(exprfit, data= surgerydat)
 
 #Determine the values of the chart

@@ -26,10 +26,40 @@ test_that("Decreasing maxthetat reduces control limit",{
   a <- cgr_control_limit(time = 50, alpha = 0.05, psi = 2, n_sim = 10, cbaseh = function(t) chaz_exp(t, lambda = 0.02), inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02))$h
   b <- cgr_control_limit(time = 50, alpha = 0.05, psi = 2, n_sim = 10, cbaseh = function(t) chaz_exp(t, lambda = 0.02), inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02), maxtheta = Inf)$h
   c <- cgr_control_limit(time = 50, alpha = 0.05, psi = 2, n_sim = 10, cbaseh = function(t) chaz_exp(t, lambda = 0.02), inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02), maxtheta = log(4))$h
-  d <- bk_control_limit(time = 50, alpha = 0.05, psi = 2, n_sim = 10, cbaseh = function(t) chaz_exp(t, lambda = 0.02), inv_cbaseh = function(t) inv_chaz_exp(t, lambda = 0.02), theta = log(2))$h
   expect_lt(a, b)
   expect_lt(c, a)
 })
+
+test_that("Theory", {
+  exprfit <- Surv(survtime, censorid) ~ age + sex + BMI
+  tcoxmod <- coxph(exprfit, data= surgerydat)
+  psilow <- cgr_control_limit(time = 50, alpha = 0.1,
+                             coxphmod = tcoxmod, psi = 0.3, n_sim = 10, baseline_data = surgerydat)
+  psihigh <- cgr_control_limit(time = 50, alpha = 0.1,
+                              coxphmod = tcoxmod, psi = 0.7, n_sim = 10, baseline_data = surgerydat)
+  #Increasing psi should increase control limit
+  expect_lt(psilow$h, psihigh$h)
+  ##############################################
+  alphalow <- cgr_control_limit(time = 50, alpha = 0.1,
+                               coxphmod = tcoxmod, psi = 0.5, n_sim = 10, baseline_data = surgerydat)
+  alphahigh <- cgr_control_limit(time = 50, alpha = 0.4,
+                                coxphmod = tcoxmod, psi = 0.5, n_sim = 10, baseline_data = surgerydat)
+  #Increasing alpha decreases control limit
+  expect_gt(alphalow$h, alphahigh$h)
+  ##############################################
+})
+
+
+test_that("Don't risk-adjust when no baseline_data", {
+  exprfit <- Surv(survtime, censorid) ~ age + sex + BMI
+  tcoxmod <- coxph(exprfit, data= surgerydat)
+  nodata <- cgr_control_limit(time = 50, alpha = 0.1,
+                             coxphmod = tcoxmod, psi = 0.3, n_sim = 10)
+  manual <- cgr_control_limit(time = 50, alpha = 0.1,
+                              cbaseh = extract_hazard(tcoxmod)$cbaseh, psi = 0.3, n_sim = 10)
+  expect_equal(nodata$h, manual$h)
+})
+
 
 test_that("Expect negative control limit if lower sided detection", {
   a <- cgr_control_limit(time = 50, alpha = 0.05, psi = 2, n_sim = 10,

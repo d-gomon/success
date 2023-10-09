@@ -34,6 +34,8 @@ runlength <- function(chart, h){
 runlength.cgrcusum <- function(chart, h, ...){
   if(missing(h)){
     stop("Please specify a control limit h.")
+  } else if(!all(is.numeric(h), length(h) == 1)){
+    stop("Control limit h must be a single numeric value.")
   }
   if(missing(chart)){
     stop("Please provide a 'cgrcusum', 'bkcusum' or 'bercusum' chart as input.")
@@ -55,6 +57,8 @@ runlength.cgrcusum <- function(chart, h, ...){
 runlength.bkcusum <- function(chart, h, ...){
   if(missing(h)){
     stop("Please specify a control limit h.")
+  } else if(!is.numeric(h)){
+    stop("Control limit h must be numeric.")
   }
   if(missing(chart)){
     stop("Please provide a 'cgrcusum', 'bkcusum' or 'bercusum' chart as input.")
@@ -111,6 +115,8 @@ runlength.bkcusum <- function(chart, h, ...){
 runlength.bercusum <- function(chart, h, ...){
   if(missing(h)){
     stop("Please specify a control limit h.")
+  } else if(!is.numeric(h)){
+    stop("Control limit h must be numeric.")
   }
   if(missing(chart)){
     stop("Please provide a 'cgrcusum', 'bkcusum' or 'bercusum' chart as input.")

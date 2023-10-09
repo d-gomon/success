@@ -6,6 +6,7 @@
 * Added some references
 * funnel plot functions changed to display unit labels, as well as prediction intervals by using shaded ribbons instead of lines.
 * Added tests for most functions in the package
+* Added CITATION file
 
 
 # success 1.0.0

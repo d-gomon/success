@@ -1,0 +1,33 @@
+citHeader("To cite success in publications use:")
+
+citEntry(
+  entry    = "Article",
+  title="SUrvival Control Chart EStimation Software in R: the success package",
+  author= c(person(c("Daniel", "D."), "Gomon"),
+            person(c("Marta", "M."), "Fiocco"),
+            person(c("Hein", "H."), "Putter"),
+            person(c("Mirko", "M."), "Signorelli")),
+  year="2023",
+  eprint="2302.07658",
+  journal="arXiv",
+  primaryClass="stat.AP",
+  textVersion = paste(
+  "Daniel Gomon, Marta Fiocco, Hein Putter, Mirko Signorelli, SUrvival Control Chart EStimation Software in R: the success package, arXiv, 2023;, https://doi.org/10.48550/arXiv.2302.07658"
+  )
+)
+
+
+citEntry(
+  entry    = "Article",
+  title    = "CGR-CUSUM: a continuous time generalized rapid response cumulative sum chart",
+  author   = c(person(c("Daniel", "D."), "Gomon"),
+               person(c("Hein", "H."), "Putter"),
+               person(c("Rob", "R.G.H.H."), "Nelissen"),
+               person(c("Stéphanie", "S.L."), "van der Pas")),
+  journal  = "Biostatistics",
+  year     = "2022",
+  url      = "https://doi.org/10.1093/biostatistics/kxac041",
+  textVersion = paste(
+  "Daniel Gomon, Hein Putter, Rob G H H Nelissen, Stéphanie Van Der Pas, CGR-CUSUM: a continuous time generalized rapid response cumulative sum chart, Biostatistics, 2022;, kxac041, https://doi.org/10.1093/biostatistics/kxac041"
+  )
+)
