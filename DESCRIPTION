@@ -34,7 +34,8 @@ Suggests:
     knitr,
     rmarkdown,
     vlad,
-    testthat (>= 3.1.10)
+    testthat (>= 3.1.10),
+    covr
 Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
