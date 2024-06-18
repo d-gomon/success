@@ -128,17 +128,8 @@
 #' ARLSPRT <- bernoulli_ARL(h = 2.5, n_grid = 200, glmmod = glmmodber,
 #' theta = log(2), method = "SPRT")
 #'
-#' \donttest{
-#' #We can compare our ARL with that determined using the VLAD package
-#' #See \url{https://cran.r-project.org/package=vlad}
-#' if(require("vlad")){
-#'    fi <- as.numeric(table(glmmodber$fitted.values)/length(glmmodber$fitted.values))
-#'    pi1 <- sort(unique(glmmodber$fitted.values))
-#'    pmix1 <- data.frame(fi, pi1, pi1)
-#'    vlad_ARL <- round(vlad::racusum_arl_mc(pmix = pmix1, RA = 2, RQ = 1, h = 2.5, scaling = 200))
-#'    print(vlad_ARL)
-#' }
-#' }
+#'
+#'
 
 
 
