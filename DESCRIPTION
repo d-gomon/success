@@ -33,7 +33,6 @@ Suggests:
     gridExtra,
     knitr,
     rmarkdown,
-    vlad,
     testthat (>= 3.1.10),
     covr
 Config/testthat/edition: 3
