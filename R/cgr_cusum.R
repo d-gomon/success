@@ -18,6 +18,10 @@
 #' CGR-CUSUM: A Continuous time Generalized Rapid Response Cumulative Sum chart, Biostatistics
 #' \doi{10.1093/biostatistics/kxac041}
 #'
+#' @references Gomon D. and Fiocco M and Putter H and Signorelli M,
+#' SUrvival Control Chart EStimation Software in R: the success Package,
+#'  The R Journal, vol. 15, no. 4, pp. 270–291, Dec. 2023, \doi{10.32614/rj-2023-095}
+#'
 #' @details The CGR-CUSUM can be used to test for a change of unknown positive fixed size \eqn{\theta}{\theta}
 #'  in the subject-specific hazard rate from \eqn{h_i(t)}{h_i(t)} to \eqn{h_i(t) e^\theta}{h_i(t) exp(\theta)}
 #'  starting from some unknown subject \eqn{\nu}{\nu}. The starting time of the first subject

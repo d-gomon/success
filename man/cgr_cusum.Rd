@@ -166,6 +166,10 @@ plot(cgr_cox)
 Gomon, D. and Putter, H. and Nelissen, R. G. H. H. and van der Pas, S. (2022),
 CGR-CUSUM: A Continuous time Generalized Rapid Response Cumulative Sum chart, Biostatistics
 \doi{10.1093/biostatistics/kxac041}
+
+Gomon D. and Fiocco M and Putter H and Signorelli M,
+SUrvival Control Chart EStimation Software in R: the success Package,
+The R Journal, vol. 15, no. 4, pp. 270–291, Dec. 2023, \doi{10.32614/rj-2023-095}
 }
 \seealso{
 \code{\link[success]{plot.cgrcusum}}, \code{\link[success]{runlength.cgrcusum}}
