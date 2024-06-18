@@ -1,3 +1,8 @@
+# success 1.1.0
+
+* Added references to published article in The R Journal
+* Removed print statements from bernoulli_ARL_* functions 
+
 # success 1.0.1
 
 * Added bernoulli_ARL, bernoulli_RL_cdf functions which allow to calculate ARL and RL distribution functions using 2 different approaches 

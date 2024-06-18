@@ -1,8 +1,8 @@
 Package: success
 Title: Survival Control Charts Estimation Software
-Version: 1.0.1
+Version: 1.1.0
 Authors@R: c(
-    person("Daniel", "Gomon", , "d.gomon@math.leidenuniv.nl", role = c("aut", "cre"),
+    person("Daniel", "Gomon", , "dgstatsoft@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-9011-3743")),
     person("Mirko", "Signorelli", , "msignorelli.rpackages@gmail.com", role = "ctb",
            comment = c(ORCID = "0000-0002-8102-3356"))

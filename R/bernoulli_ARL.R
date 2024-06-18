@@ -619,7 +619,6 @@ bernoulli_ARL_MC <- function(n_grid, R, h){
   colnames(ARL) <- c("start_val", "#outcomes")
   rownames(ARL) <- 0:(n_grid -1)
 
-  print(ARL_0)
   return(invisible(list(ARL_0 = ARL_0,
                         ARL = ARL,
                         R = R)))
@@ -686,7 +685,6 @@ bernoulli_cdf_MC <- function(n_grid, R, r, h, exact = TRUE){
     warning("Probability below 0 calculated, resulting probabilities may not be accurate.
             Consider increasing 'x' and/or 'ngrid'.")
   }
-  print(Fr_0)
   return(invisible(list(Fr_0 = Fr_0,
                         Fr = Fr,
                         R = R)))
@@ -774,7 +772,6 @@ bernoulli_ARL_SPRT <- function(h, n_grid, Wncdf, glmmod, theta, theta_true, p0, 
   #Equation (11) in Kemp(1971)
   ARL <- round(sum((rowSums(G_storage) - G_storage[,2]*2) * 1:nrow(G_storage))/(1-sum(G_storage[,1])))
   names(ARL) <- "#outcomes"
-  print(ARL)
   return(invisible(list(ARL_0 = ARL,
                         G = G_storage)))
 }
