@@ -49,10 +49,10 @@
 #' \item \code{ARL_0}: A numeric value indicating the average run length in
 #' number of outcomes when starting from state E_0.
 #' \item \code{ARL}: A \code{data.frame} containing the average run length (#outcomes)
-#' depending on the state in which the process starts (E_0, E_1, ..., E_{n_grid-1})
+#' depending on the state in which the process starts \eqn{(E_0, E_1, \ldots, E_{n_{grid}-1})}{(E_0, E_1, ..., E_{n_grid-1})}
 #' \describe{
 #'   \item{\code{start_val}:}{Starting value of the CUSUM, corresponding to the
-#'    discretized state spaces E_{i};}
+#'    discretized state spaces \eqn{E_{i}}{E_i};}
 #'   \item{\code{#outcomes}:}{ARL for the CUSUM with
 #'   initial value \code{start_val};}
 #' }
@@ -63,16 +63,16 @@
 #' } The value of \code{ARL_0} will be printed to the console.
 #'
 #' @references Brook, D., & Evans, D. A. (1972). An Approach to the Probability
-#' Distribution of Cusum Run Length. Biometrika, 59(3), 539–549.
+#' Distribution of CUSUM Run Length. Biometrika, 59(3), 539-549.
 #' \doi{10.2307/2334805}
 #'
 #' Steiner, S. H., Cook, R. J., Farewell, V. T., & Treasure, T. (2000).
 #' Monitoring surgical performance using risk-adjusted cumulative sum charts.
-#' Biostatistics, 1(4), 441–452. \doi{10.1093/biostatistics/1.4.441}
+#' Biostatistics, 1(4), 441-452. \doi{10.1093/biostatistics/1.4.441}
 #'
 #' Kemp, K. W. (1971). Formal Expressions which Can Be Applied to Cusum Charts.
 #' Journal of the Royal Statistical Society. Series B (Methodological), 33(3),
-#' 331–360. \doi{10.1111/j.2517-6161.1971.tb01521.x}
+#' 331-360. \doi{10.1111/j.2517-6161.1971.tb01521.x}
 #'
 #'
 #' @details The average run length of a CUSUM chart \eqn{S_n}{S_n} is given by
@@ -240,10 +240,10 @@ bernoulli_ARL <- function(h, n_grid, glmmod, theta, theta_true, p0, p1,
 #' \item \code{Fr_0}: A numeric value indicating the probability of the run
 #' length being smaller than \code{x}.
 #' \item \code{Fr}: A \code{data.frame} containing the cumulative distribution function of the run length
-#' depending on the state in which the process starts (E_0, E_1, ..., E_{n_grid-1})
+#' depending on the state in which the process starts \eqn{(E_0, E_1, \ldots, E_{n_{grid}-1})}{(E_0, E_1, ..., E_{n_grid-1})}
 #' \describe{
 #'   \item{\code{start_val}:}{Starting value of the CUSUM, corresponding to the
-#'    discretized state spaces E_{i};}
+#'    discretized state spaces \eqn{E_{i}}{E_i};}
 #'   \item{\code{P(K <= x)}:}{Value of the cdf at \code{x} for the CUSUM with
 #'   initial value \code{start_val};}
 #' }
@@ -256,12 +256,12 @@ bernoulli_ARL <- function(h, n_grid, glmmod, theta, theta_true, p0, p1,
 #' @export
 #'
 #' @references Brook, D., & Evans, D. A. (1972). An Approach to the Probability
-#' Distribution of Cusum Run Length. Biometrika, 59(3), 539–549.
+#' Distribution of CUSUM Run Length. Biometrika, 59(3), 539-549.
 #' \doi{10.2307/2334805}
 #'
 #' Steiner, S. H., Cook, R. J., Farewell, V. T., & Treasure, T. (2000).
 #' Monitoring surgical performance using risk-adjusted cumulative sum charts.
-#' Biostatistics, 1(4), 441–452. \doi{10.1093/biostatistics/1.4.441}
+#' Biostatistics, 1(4), 441-452. \doi{10.1093/biostatistics/1.4.441}
 #'
 #'
 #' @examples

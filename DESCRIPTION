@@ -7,7 +7,7 @@ Authors@R: c(
     person("Mirko", "Signorelli", , "msignorelli.rpackages@gmail.com", role = "ctb",
            comment = c(ORCID = "0000-0002-8102-3356"))
   )
-Maintainer: Daniel Gomon <d.gomon@math.leidenuniv.nl>
+Maintainer: Daniel Gomon <dgstatsoft@gmail.com>
 Description: Quality control charts for survival outcomes.
     Allows users to construct the Continuous Time Generalized
     Rapid Response CUSUM (CGR-CUSUM) <doi:10.1093/biostatistics/kxac041>, 

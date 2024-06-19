@@ -54,10 +54,10 @@ A list containing:
 \item \code{Fr_0}: A numeric value indicating the probability of the run
 length being smaller than \code{x}.
 \item \code{Fr}: A \code{data.frame} containing the cumulative distribution function of the run length
-depending on the state in which the process starts (E_0, E_1, ..., E_{n_grid-1})
+depending on the state in which the process starts \eqn{(E_0, E_1, \ldots, E_{n_{grid}-1})}{(E_0, E_1, ..., E_{n_grid-1})}
 \describe{
 \item{\code{start_val}:}{Starting value of the CUSUM, corresponding to the
-discretized state spaces E_{i};}
+discretized state spaces \eqn{E_{i}}{E_i};}
 \item{\code{P(K <= x)}:}{Value of the cdf at \code{x} for the CUSUM with
 initial value \code{start_val};}
 }
@@ -90,10 +90,10 @@ prob600 <- bernoulli_RL_cdf(h = 2.5, x = 600, n_grid = 200, glmmod = glmmodber, 
 }
 \references{
 Brook, D., & Evans, D. A. (1972). An Approach to the Probability
-Distribution of Cusum Run Length. Biometrika, 59(3), 539–549.
+Distribution of CUSUM Run Length. Biometrika, 59(3), 539-549.
 \doi{10.2307/2334805}
 
 Steiner, S. H., Cook, R. J., Farewell, V. T., & Treasure, T. (2000).
 Monitoring surgical performance using risk-adjusted cumulative sum charts.
-Biostatistics, 1(4), 441–452. \doi{10.1093/biostatistics/1.4.441}
+Biostatistics, 1(4), 441-452. \doi{10.1093/biostatistics/1.4.441}
 }

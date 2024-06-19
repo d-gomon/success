@@ -56,20 +56,20 @@
 #' @return A list of parameters to feed to quality control charts in this
 #' package:
 #' \itemize{
-#' \item{call: }{The call used to obtain output.}
-#' \item{data: }{The data used in the call to the function.}
-#' \item{baseline_data: }{The baseline_data used in the call to the function}
-#' \item{glmmod: }{A \code{\link[stats:glm]{glm()}} model which can be fed to
+#' \item call: The call used to obtain output.
+#' \item data: The data used in the call to the function.
+#' \item baseline_data: The baseline_data used in the call to the function
+#' \item glmmod: A \code{\link[stats:glm]{glm()}} model which can be fed to
 #' the \code{\link[success:funnel_plot]{funnel_plot()}}
-#'  and \code{\link[success:bernoulli_cusum]{bernoulli_cusum()}} functions.}
-#'  \item{coxphmod: }{A \code{\link[survival:coxph]{coxph()}} model which can be
+#'  and \code{\link[success:bernoulli_cusum]{bernoulli_cusum()}} functions.
+#'  \item coxphmod: A \code{\link[survival:coxph]{coxph()}} model which can be
 #'  fed to the \code{\link[success:cgr_cusum]{cgr_cusum()}} and
-#'  \code{\link[success:cgr_cusum]{cgr_cusum()}} functions.}
-#'  \item{theta: }{Expected increase in the odds/hazard ratio.}
-#'  \item{psi: }{Estimated Poisson arrival rate in \code{data}.}
-#'  \item{time: }{Time frame over which to restrict type I error.}
-#'  \item{alpha: }{Desired level of type I error for control limit determination.}
-#'  \item{maxtheta: }{Maximum expected increase/decrease in the odds/hazard ratio.}
+#'  \code{\link[success:cgr_cusum]{cgr_cusum()}} functions.
+#'  \item theta: Expected increase in the odds/hazard ratio.
+#'  \item psi: Estimated Poisson arrival rate in \code{data}.
+#'  \item time: Time frame over which to restrict type I error.
+#'  \item alpha: Desired level of type I error for control limit determination.
+#'  \item maxtheta: Maximum expected increase/decrease in the odds/hazard ratio.
 #' }
 #'
 #' @importFrom survival coxph

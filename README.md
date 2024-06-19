@@ -19,16 +19,15 @@ downloads](https://cranlogs.r-pkg.org/badges/success)](https://cran.r-project.or
 stars](https://img.shields.io/github/stars/d-gomon/success?style=social)](https://github.com/d-gomon/success)
 [![Biostatistics](https://img.shields.io/badge/Biostatistics-kxac041-%23003365)](https://doi.org/10.1093/biostatistics/kxac041)
 [![Codecov test
-coverage](https://codecov.io/gh/d-gomon/success/branch/main/graph/badge.svg)](https://codecov.io/gh/d-gomon/success?branch=main)
+coverage](https://codecov.io/gh/d-gomon/success/branch/main/graph/badge.svg)](https://app.codecov.io/gh/d-gomon/success?branch=main)
 <!-- badges: end -->
 
-<!-- [![arXiv](https://img.shields.io/badge/stat.AP-arXiv%3A2205.07618-B31B1B)](https://doi.org/10.48550/arXiv.2205.07618) -->
 
 # SUrvival Control Chart EStimation Software
 
 The goal of the package is to allow easy applications of continuous time
 CUSUM procedures on survival data. Specifically, the Biswas &
-Kalbfleisch CUSUM (2008) and the CGR-CUSUM (Gomon et al. 2022).
+Kalbfleisch CUSUM (2008) and the CGR-CUSUM (Gomon et al. 2022).
 
 Besides continuous time procedures, it is also possible to construct the
 Bernoulli (binary) CUSUM and funnel plot (Spiegelhalter 2005) on

@@ -8,7 +8,7 @@
 #'  achieved by leaving \code{ctimes} unspecified.
 #' The function requires the specification of \code{theta} and
 #' has two vital parameters, at least one of which must be specified:
-#' \itemize{
+#' \describe{
 #' \item{\code{coxphmod}: }{Cox proportional hazards model to be used for
 #' risk-adjustment. If \code{cbaseh} is not specified, it will be determined
 #' from \code{coxphmod} numerically.}
